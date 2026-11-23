@@ -1,0 +1,76 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Wendoro UI/Introduction" />
+
+# Wendoro UI (`@wendoro/ui`)
+
+**Business, connected.** — Official Website: [https://wendoro.in](https://wendoro.in)
+
+Wendoro UI is the shared design system and reusable React component library for the Wendoro software ecosystem, powering **Wendoro Desk**, **Wendoro Flow**, **Wendoro Platform**, **Wendoro Studio**, **Wendoro Insights**, **Wendoro Support**, **Wendoro Commerce**, and **Wendoro People**.
+
+---
+
+## Installation
+
+```bash
+npm install @wendoro/ui lucide-react
+```
+
+Import the stylesheet once at your application entry point and wrap your root with `ThemeProvider`:
+
+```tsx
+import '@wendoro/ui/styles.css';
+import { ThemeProvider, ToastProvider, Button } from '@wendoro/ui';
+
+export function App() {
+  return (
+    <ThemeProvider defaultTheme="system">
+      <ToastProvider>
+        <Button variant="primary">Launch Workflow</Button>
+      </ToastProvider>
+    </ThemeProvider>
+  );
+}
+```
+
+---
+
+## Design Principles
+
+1. **Clarity Over Ornament**: Crisp Warm White (`#FAFAF7`) and Deep Black (`#111111`) structural foundations keep high-density business workflows legible.
+2. **Signature Restraint**: Primary Yellow (`#FACC15`) highlights primary actions and active states; Primary Red (`#DC2626`) is reserved for destructive or critical states. Blue, purple, indigo, and teal are excluded from the brand system.
+3. **Composable & Product-Agnostic**: Primitives and business patterns never assume ERP, CRM, or HR data schemas.
+4. **Accessible by Default**: Built around WCAG 2.2 AA contrast, keyboard navigation, and screen-reader semantics.
+
+---
+
+## Theming
+
+Switch between `light`, `dark`, and `system` themes at runtime without reloading via `useTheme()`. All components read semantic CSS variables (`--wdr-background`, `--wdr-surface`, `--wdr-primary`, `--wdr-border`, etc.) rather than hardcoded hex values.
+
+---
+
+## Component Architecture
+
+- **Core**: `Button`, `IconButton`, `Input`, `Textarea`, `Label`, `Select`, `Checkbox`, `Radio`, `Switch`, `Slider`
+- **Feedback**: `Alert`, `Badge`, `Toast`, `Notification`, `Progress`, `Skeleton`, `Spinner`
+- **Layout**: `Card`, `Separator`, `Container`, `Stack`, `Grid`, `Dialog`, `Drawer`, `Sheet`
+- **Navigation**: `Tabs`, `Breadcrumb`, `Pagination`, `Sidebar`, `DropdownMenu`, `NavigationMenu`
+- **Data Display**: `Avatar`, `AvatarGroup`, `Table`, `EmptyState`, `Tooltip`, `Popover`
+- **Advanced**: `CommandPalette`, `Calendar`, `DatePicker`, `Accordion`, `Collapsible`, `FormField`
+- **Business Patterns**: `MetricCard`, `KpiCard`, `StatusBadge`, `UserProfile`, `ActivityItem`, `ActivityFeed`, `DataTable`, `SearchBar`, `FilterBar`, `PageHeader`, `DashboardGrid`, `NotificationCenter`
+
+---
+
+## Accessibility
+
+- **Keyboard Navigation**: Tabs, Select, DropdownMenu, CommandPalette, Dialog, and Calendar support arrow keys, Escape, Enter/Space, and Tab focus order.
+- **No Color-Only Status**: `Alert`, `StatusBadge`, `KpiCard`, and `MetricCard` always combine semantic color with iconography and explicit text labels.
+- **Reduced Motion**: Respects `prefers-reduced-motion: reduce` globally.
+
+---
+
+## Contributing & Versioning
+
+- **Versioning**: Follows Semantic Versioning (`0.1.0` pre-release). Breaking token or prop changes increment major/minor versions per semver.
+- **Contributing**: Every component PR requires TypeScript types, Storybook documentation (`stories/`), and Vitest + React Testing Library tests (`tests/`).

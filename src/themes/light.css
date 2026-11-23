@@ -1,0 +1,70 @@
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* Core Brand & Surfaces */
+  --wdr-background: #FAFAF7;
+  --wdr-foreground: #111111;
+  --wdr-surface: #FFFFFF;
+  --wdr-surface-elevated: #FFFFFF;
+
+  /* Brand Actions */
+  --wdr-primary: #FACC15;
+  --wdr-primary-hover: #EAB308;
+  --wdr-primary-active: #CA8A04;
+  --wdr-primary-foreground: #111111;
+  --wdr-primary-subtle: #FEF9C3;
+  --wdr-primary-subtle-foreground: #713F12;
+
+  /* Secondary & Neutral Surfaces */
+  --wdr-secondary: #EFEFEA;
+  --wdr-secondary-hover: #E5E5DF;
+  --wdr-secondary-foreground: #111111;
+
+  --wdr-accent: #242424;
+  --wdr-accent-foreground: #FFFFFF;
+
+  /* Destructive (Wendoro Red) */
+  --wdr-destructive: #DC2626;
+  --wdr-destructive-hover: #B91C1C;
+  --wdr-destructive-foreground: #FFFFFF;
+  --wdr-destructive-subtle: #FEF2F2;
+  --wdr-destructive-subtle-foreground: #991B1B;
+
+  /* Muted & Structural */
+  --wdr-muted: #F2F2ED;
+  --wdr-muted-foreground: #666662;
+  --wdr-border: #E5E5E5;
+  --wdr-input: #D4D4D0;
+  --wdr-ring: #111111;
+
+  /* Semantic Status (no blue/purple/indigo/teal) */
+  --wdr-success: #15803D;
+  --wdr-success-foreground: #FFFFFF;
+  --wdr-success-subtle: #F0FDF4;
+  --wdr-success-subtle-foreground: #166534;
+
+  --wdr-warning: #B45309;
+  --wdr-warning-foreground: #FFFFFF;
+  --wdr-warning-subtle: #FEFCE8;
+  --wdr-warning-subtle-foreground: #854D0E;
+
+  --wdr-info: #242424;
+  --wdr-info-foreground: #FFFFFF;
+  --wdr-info-subtle: #F4F4F0;
+  --wdr-info-subtle-foreground: #242424;
+
+  /* Radius */
+  --wdr-radius-none: 0px;
+  --wdr-radius-sm: 4px;
+  --wdr-radius-md: 8px;
+  --wdr-radius-lg: 12px;
+  --wdr-radius-xl: 16px;
+  --wdr-radius-full: 9999px;
+
+  /* Shadows */
+  --wdr-shadow-sm: 0 1px 2px 0 rgba(17, 17, 17, 0.05);
+  --wdr-shadow-md: 0 4px 12px -2px rgba(17, 17, 17, 0.08), 0 2px 4px -2px rgba(17, 17, 17, 0.04);
+  --wdr-shadow-lg: 0 12px 28px -4px rgba(17, 17, 17, 0.12), 0 4px 10px -2px rgba(17, 17, 17, 0.05);
+  --wdr-shadow-focus: 0 0 0 2px #FAFAF7, 0 0 0 4px #111111;
+}
