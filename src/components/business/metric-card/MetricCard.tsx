@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { Card } from '@/components/ui/card';
+import { cn } from '../../../utils/cn';
+import { Card } from '../../ui/card';
 
 export type MetricTrend = 'up' | 'down' | 'neutral';
 

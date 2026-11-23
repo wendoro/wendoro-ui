@@ -171,4 +171,75 @@ describe('Core Components', () => {
     await user.click(screen.getByRole('button', { name: 'Clear selected date' }));
     expect(pickerTrigger).toHaveTextContent('Select date');
   });
+
+  it('enforces disabled states on Button, Input, Select, and Switch and supports Select Home/End keys', async () => {
+    const user = userEvent.setup();
+    const onBtn = vi.fn();
+    const onSelect = vi.fn();
+    const onSwitch = vi.fn();
+
+    render(
+      <div>
+        <Button disabled onClick={onBtn}>
+          Disabled Action
+        </Button>
+        <FormField label="Workspace Slug" hint="Lowercase only.">
+          <input id="custom-slug-id" type="text" />
+        </FormField>
+        <Input aria-label="Locked Input" disabled defaultValue="locked" />
+        <Select
+          aria-label="Tier Select"
+          onValueChange={onSelect}
+          options={[
+            { value: 'a', label: 'Alpha' },
+            { value: 'b', label: 'Beta' },
+            { value: 'c', label: 'Gamma' },
+          ]}
+        />
+        <Switch label="Locked Switch" disabled onCheckedChange={onSwitch} />
+      </div>
+    );
+
+    const disabledBtn = screen.getByRole('button', { name: 'Disabled Action' });
+    expect(disabledBtn).toBeDisabled();
+    await user.click(disabledBtn);
+    expect(onBtn).not.toHaveBeenCalled();
+
+    const customInput = screen.getByLabelText('Workspace Slug');
+    expect(customInput).toHaveAttribute('id', 'custom-slug-id');
+    expect(customInput).toHaveAttribute('aria-describedby', 'custom-slug-id-hint');
+
+    expect(screen.getByLabelText('Locked Input')).toBeDisabled();
+
+    const lockedSwitch = screen.getByRole('switch', { name: 'Locked Switch' });
+    await user.click(lockedSwitch);
+    expect(onSwitch).not.toHaveBeenCalled();
+
+    const tierSelect = screen.getByRole('combobox', { name: 'Tier Select' });
+    tierSelect.focus();
+    await user.keyboard('{End}{Enter}');
+    expect(onSelect).toHaveBeenLastCalledWith('c');
+    await user.keyboard('{Home}{Enter}');
+    expect(onSelect).toHaveBeenLastCalledWith('a');
+  });
+
+  it('supports controlled vs uncontrolled Switch state', async () => {
+    const user = userEvent.setup();
+
+    function ControlledSwitch() {
+      const [checked, setChecked] = React.useState(false);
+      return (
+        <div>
+          <Switch label="Controlled Toggle" checked={checked} onCheckedChange={setChecked} />
+          <span data-testid="switch-state">{checked ? 'on' : 'off'}</span>
+        </div>
+      );
+    }
+
+    render(<ControlledSwitch />);
+    expect(screen.getByTestId('switch-state')).toHaveTextContent('off');
+    await user.click(screen.getByRole('switch', { name: 'Controlled Toggle' }));
+    expect(screen.getByTestId('switch-state')).toHaveTextContent('on');
+  });
 });
+

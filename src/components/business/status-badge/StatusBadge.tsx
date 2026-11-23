@@ -8,7 +8,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
 
 export type BusinessStatus =
   | 'active'

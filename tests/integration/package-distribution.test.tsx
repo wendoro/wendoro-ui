@@ -1,0 +1,150 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it } from 'vitest';
+import { ConsumerApp } from './consumer-fixture/ConsumerApp';
+
+const require = createRequire(import.meta.url);
+
+function collectDtsFiles(dir: string): string[] {
+  const results: string[] = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...collectDtsFiles(full));
+    } else if (entry.name.endsWith('.d.ts')) {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
+describe('Package Distribution & External Consumer Integration', () => {
+  const distDir = path.resolve(process.cwd(), 'dist/lib');
+
+  it('ships ESM, CJS, tokens, theme CSS, compiled styles.css, and alias-free .d.ts declarations', () => {
+    const requiredFiles = [
+      'wendoro-ui.js',
+      'wendoro-ui.cjs',
+      'index.d.ts',
+      'styles.css',
+      'tokens/index.js',
+      'tokens/index.cjs',
+      'tokens/index.d.ts',
+    ];
+
+    for (const rel of requiredFiles) {
+      expect(fs.existsSync(path.join(distDir, rel))).toBe(true);
+    }
+    expect(fs.existsSync(path.resolve(process.cwd(), 'src/themes/light.css'))).toBe(true);
+    expect(fs.existsSync(path.resolve(process.cwd(), 'src/themes/dark.css'))).toBe(true);
+
+    const dtsFiles = collectDtsFiles(distDir);
+    expect(dtsFiles.length).toBeGreaterThan(20);
+
+    for (const dtsPath of dtsFiles) {
+      const content = fs.readFileSync(dtsPath, 'utf-8');
+      expect(content).not.toMatch(/from\s+['"]@\//);
+      expect(content).not.toMatch(/import\s+['"]\.\/styles\/index\.css['"]/);
+    }
+  });
+
+  it('compiles dist/lib/styles.css with valid destructive subtle foreground and theme utilities', () => {
+    const css = fs.readFileSync(path.join(distDir, 'styles.css'), 'utf-8');
+
+    // Light & Dark semantic variables
+    expect(css).toMatch(/--wdr-background:\s*#fafaf7/i);
+    expect(css).toMatch(/--wdr-background:\s*#111(111)?\b/i);
+    expect(css).toMatch(/--wdr-primary:\s*#facc15/i);
+    expect(css).toMatch(/--wdr-destructive:\s*#dc2626/i);
+    expect(css).toMatch(/--wdr-destructive-subtle-foreground:\s*#991b1b/i);
+    expect(css).toMatch(/--wdr-destructive-subtle-foreground:\s*#fca5a5/i);
+    expect(css).toContain('--color-destructive-subtle-foreground:var(--wdr-destructive-subtle-foreground)');
+    expect(css).not.toMatch(/--wdr-destructive-subtle-foreground:\s*var\(--wdr-destructive-subtle-foreground\)/);
+
+    // Valid Tailwind utility classes emitted for consumers
+    expect(css).toContain('.text-destructive-subtle-foreground');
+    expect(css).toContain('.bg-destructive-subtle');
+    expect(css).toContain('.bg-primary');
+    expect(css).toContain('.text-primary-foreground');
+    expect(css).toContain('.bg-surface');
+    expect(css).toContain('.border-input');
+    expect(css).toContain('.fixed');
+  });
+
+  it('loads CJS and ESM entry points cleanly', async () => {
+    const cjsMain = require(path.join(distDir, 'wendoro-ui.cjs'));
+    const cjsTokens = require(path.join(distDir, 'tokens/index.cjs'));
+    const esmMain = await import('@wendoro/ui');
+    const esmTokens = await import('@wendoro/ui/tokens');
+
+    expect(cjsMain.Button).toBeTruthy();
+    expect((cjsMain.Button as { $$typeof?: symbol }).$$typeof).toBe(Symbol.for('react.forward_ref'));
+    expect(typeof cjsMain.TeamDirectory).toBe('function');
+    expect(esmMain.Button).toBeTruthy();
+    expect((esmMain.Button as { $$typeof?: symbol }).$$typeof).toBe(Symbol.for('react.forward_ref'));
+    expect(typeof esmMain.ActivityFeed).toBe('function');
+    expect(cjsTokens.brandColors.primaryYellow).toBe('#FACC15');
+    expect(esmTokens.semanticColorTokens.destructiveSubtleForeground).toBe(
+      'var(--wdr-destructive-subtle-foreground)'
+    );
+  });
+
+  it('passes external TypeScript typechecking with zero path aliases', () => {
+    const tsconfigConsumer = path.resolve(
+      process.cwd(),
+      'tests/integration/consumer-fixture/tsconfig.consumer.json'
+    );
+    expect(() =>
+      execFileSync('npx', ['tsc', '-p', tsconfigConsumer, '--noEmit'], {
+        cwd: process.cwd(),
+        stdio: 'pipe',
+      })
+    ).not.toThrow();
+  });
+
+  it('renders a full consumer application with Sidebar, Dialog, Business components, and Light/Dark switching', async () => {
+    const user = userEvent.setup();
+    window.localStorage.removeItem('wendoro-consumer-fixture-theme');
+    render(<ConsumerApp initialTheme="light" />);
+
+    const root = screen.getByTestId('consumer-root');
+    expect(root).toHaveAttribute('data-resolved-theme', 'light');
+    expect(root).toHaveAttribute('data-brand-yellow', '#FACC15');
+    expect(root).toHaveAttribute(
+      'data-destructive-subtle-fg',
+      'var(--wdr-destructive-subtle-foreground)'
+    );
+    expect(document.documentElement).toHaveClass('light');
+
+    // Alert destructive subtle foreground renders
+    expect(screen.getByRole('alert')).toHaveTextContent('Webhook attention required');
+
+    // DataTable generic consumer rendering
+    expect(screen.getByText('Wendoro Desk', { selector: 'td' })).toBeInTheDocument();
+    expect(screen.getByText('Failed')).toBeInTheDocument();
+
+    // Sidebar navigation renders TeamDirectory
+    await user.click(screen.getByRole('button', { name: 'Founders' }));
+    expect(screen.getByPlaceholderText('Search team members…')).toBeInTheDocument();
+
+    // Input interaction
+    const input = screen.getByLabelText('Consumer workspace input');
+    await user.type(input, 'Desk');
+    expect(input).toHaveValue('Desk');
+
+    // Theme switching
+    await user.click(screen.getByRole('button', { name: 'Switch Theme' }));
+    expect(root).toHaveAttribute('data-resolved-theme', 'dark');
+    expect(document.documentElement).toHaveClass('dark');
+
+    // Dialog open and close
+    await user.click(screen.getByRole('button', { name: 'Open Consumer Dialog' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+});

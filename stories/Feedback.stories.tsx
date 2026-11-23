@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Alert } from '../src/components/ui/alert';
 import { Badge } from '../src/components/ui/badge';
 import { Button } from '../src/components/ui/button';
+import { EmptyState } from '../src/components/ui/empty-state';
 import { Notification } from '../src/components/ui/notification';
 import { Progress } from '../src/components/ui/progress';
 import { Skeleton } from '../src/components/ui/skeleton';
@@ -15,7 +16,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Feedback primitives: Alert, Badge, Toast, Notification, Progress, Skeleton, and Spinner. Never conveys state by color alone.',
+          'Feedback primitives: Alert, Badge, Toast, Notification, Progress, Skeleton, Spinner, and EmptyState. Never conveys state by color alone.',
       },
     },
   },
@@ -57,8 +58,8 @@ function ToastTriggerDemo() {
   );
 }
 
-export const FeedbackShowcase: StoryObj = {
-  render: () => (
+function FeedbackShowcaseContent() {
+  return (
     <div className="max-w-2xl space-y-6">
       <div className="space-y-3">
         <Alert variant="neutral" title="Scheduled Maintenance">
@@ -108,6 +109,39 @@ export const FeedbackShowcase: StoryObj = {
           <Skeleton shape="text" lines={2} />
         </div>
       </div>
+    </div>
+  );
+}
+
+export const FeedbackShowcase: StoryObj = {
+  render: () => <FeedbackShowcaseContent />,
+};
+
+export const LoadingAndEmpty: StoryObj = {
+  render: () => (
+    <div className="max-w-2xl space-y-6">
+      <div className="flex items-center gap-6 rounded-[var(--wdr-radius-md)] border border-border bg-surface p-4">
+        <Spinner size="md" variant="primary" />
+        <div className="flex-1 space-y-2">
+          <Skeleton shape="text" lines={3} />
+        </div>
+      </div>
+      <EmptyState
+        title="No alerts recorded"
+        description="All Wendoro Platform and Desk pipelines are operating normally."
+        action={<Button variant="outline" size="sm">Refresh Status</Button>}
+      />
+    </div>
+  ),
+};
+
+export const DarkTheme: StoryObj = {
+  render: () => (
+    <div
+      className="dark rounded-[var(--wdr-radius-lg)] border border-border bg-background p-6 text-foreground"
+      data-theme="dark"
+    >
+      <FeedbackShowcaseContent />
     </div>
   ),
 };

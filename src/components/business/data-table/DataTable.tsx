@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { Checkbox } from '@/components/ui/checkbox';
-import { EmptyState } from '@/components/ui/empty-state';
-import { Pagination } from '@/components/ui/pagination';
-import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '../../../utils/cn';
+import { Checkbox } from '../../ui/checkbox';
+import { EmptyState } from '../../ui/empty-state';
+import { Pagination } from '../../ui/pagination';
+import { Skeleton } from '../../ui/skeleton';
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '../../ui/table';
 
 export interface DataTableColumn<T> {
   key: string;
@@ -36,6 +36,7 @@ export interface DataTableProps<T> {
   emptyTitle?: string;
   emptyDescription?: string;
   emptyAction?: React.ReactNode;
+  'aria-label'?: string;
   className?: string;
 }
 
@@ -53,6 +54,7 @@ export function DataTable<T>({
   emptyTitle = 'No records found',
   emptyDescription = 'Try adjusting your search query or clearing active filters.',
   emptyAction,
+  'aria-label': ariaLabel,
   className,
 }: DataTableProps<T>) {
   const [sortKey, setSortKey] = React.useState<string | null>(null);
@@ -128,7 +130,11 @@ export function DataTable<T>({
 
   if (loading) {
     return (
-      <div className={cn('space-y-2 rounded-[var(--wdr-radius-lg)] border border-border bg-surface p-4', className)}>
+      <div
+        role="status"
+        aria-label="Loading table data"
+        className={cn('space-y-2 rounded-[var(--wdr-radius-lg)] border border-border bg-surface p-4', className)}
+      >
         {Array.from({ length: 5 }).map((_, idx) => (
           <Skeleton key={idx} height={40} className="w-full" />
         ))}
@@ -149,7 +155,7 @@ export function DataTable<T>({
 
   return (
     <div className={cn('space-y-3', className)}>
-      <Table>
+      <Table aria-label={ariaLabel}>
         <TableHeader>
           <TableRow>
             {selectable && (

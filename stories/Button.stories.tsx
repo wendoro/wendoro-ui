@@ -1,3 +1,4 @@
+import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { ArrowRight, Plus, Trash2 } from 'lucide-react';
 import { Button, IconButton } from '../src/components/ui/button';
@@ -62,7 +63,7 @@ export const Sizes: Story = {
   ),
 };
 
-export const States: Story = {
+export const DisabledAndLoading: Story = {
   render: () => (
     <div className="flex flex-wrap items-center gap-3">
       <Button variant="primary" rightIcon={<ArrowRight className="h-4 w-4" />}>
@@ -70,6 +71,59 @@ export const States: Story = {
       </Button>
       <Button variant="primary" loading loadingText="Saving…">
         Save
+      </Button>
+      <Button variant="outline" disabled>
+        Disabled
+      </Button>
+      <Button variant="destructive" disabled>
+        Disabled Destructive
+      </Button>
+    </div>
+  ),
+};
+
+function InteractiveButtonDemo() {
+  const [saving, setSaving] = React.useState(false);
+  const [count, setCount] = React.useState(0);
+
+  return (
+    <div className="flex flex-wrap items-center gap-4">
+      <Button
+        variant="primary"
+        loading={saving}
+        loadingText="Processing…"
+        onClick={() => {
+          setSaving(true);
+          setCount((c) => c + 1);
+          setTimeout(() => setSaving(false), 600);
+        }}
+      >
+        Trigger Action
+      </Button>
+      <span className="text-sm text-muted-foreground tabular-nums">
+        Triggered {count} {count === 1 ? 'time' : 'times'}
+      </span>
+    </div>
+  );
+}
+
+export const Interactive: Story = {
+  render: () => <InteractiveButtonDemo />,
+};
+
+export const DarkTheme: Story = {
+  render: () => (
+    <div
+      className="dark flex flex-wrap items-center gap-3 rounded-[var(--wdr-radius-lg)] border border-border bg-background p-6 text-foreground"
+      data-theme="dark"
+    >
+      <Button variant="primary">Primary</Button>
+      <Button variant="secondary">Secondary</Button>
+      <Button variant="outline">Outline</Button>
+      <Button variant="ghost">Ghost</Button>
+      <Button variant="destructive">Destructive</Button>
+      <Button variant="primary" loading loadingText="Syncing…">
+        Sync
       </Button>
       <Button variant="outline" disabled>
         Disabled

@@ -1,6 +1,6 @@
 import { Search, X } from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { Input } from '@/components/ui/input';
+import { cn } from '../../../utils/cn';
+import { Input } from '../../ui/input';
 
 export interface SearchBarProps {
   value: string;

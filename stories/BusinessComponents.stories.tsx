@@ -156,3 +156,59 @@ function EnterpriseWorkspaceDemo() {
 export const EnterpriseWorkspace: StoryObj = {
   render: () => <EnterpriseWorkspaceDemo />,
 };
+
+export const LoadingTable: StoryObj = {
+  render: () => (
+    <DataTable
+      data={[]}
+      columns={columns}
+      getRowId={(r) => r.id}
+      loading
+      aria-label="Loading ecosystem modules"
+    />
+  ),
+};
+
+export const EmptyTable: StoryObj = {
+  render: () => (
+    <DataTable
+      data={[]}
+      columns={columns}
+      getRowId={(r) => r.id}
+      emptyTitle="No matching ecosystem modules"
+      emptyDescription="Adjust filters or add a new workspace integration."
+      emptyAction={<Button variant="outline" size="sm">Reset Filters</Button>}
+    />
+  ),
+};
+
+export const StatusAndMetricsVariants: StoryObj = {
+  render: () => (
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-2">
+        <StatusBadge status="active" />
+        <StatusBadge status="pending" />
+        <StatusBadge status="completed" label="Verified" />
+        <StatusBadge status="warning" label="Review" />
+        <StatusBadge status="error" label="Blocked" />
+        <StatusBadge status="draft" />
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <MetricCard label="Active Desks (Demo)" value="24" delta="+3" trend="up" period="Sample UI data" />
+        <MetricCard label="Open Escalations (Demo)" value="2" delta="2 critical" trend="down" period="Sample UI data" />
+        <KpiCard title="Audit Coverage (Demo)" actual="42" target="100" completion={42} status="at_risk" period="Sample UI data" />
+      </div>
+    </div>
+  ),
+};
+
+export const DarkTheme: StoryObj = {
+  render: () => (
+    <div
+      className="dark rounded-[var(--wdr-radius-lg)] border border-border bg-background p-6 text-foreground"
+      data-theme="dark"
+    >
+      <EnterpriseWorkspaceDemo />
+    </div>
+  ),
+};

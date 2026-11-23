@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
 
 export type SpinnerSize = 'xs' | 'sm' | 'md' | 'lg';
 export type SpinnerVariant = 'current' | 'primary' | 'muted';

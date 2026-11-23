@@ -115,4 +115,19 @@ describe('Design Tokens & Theming', () => {
 
     window.matchMedia = originalMatchMedia;
   });
+
+  it('hydrates persisted theme from localStorage on initial mount', () => {
+    window.localStorage.setItem('hydrated-wdr-theme', 'dark');
+    render(
+      <ThemeProvider defaultTheme="light" storageKey="hydrated-wdr-theme">
+        <ThemeProbe />
+      </ThemeProvider>
+    );
+
+    expect(screen.getByTestId('theme-mode')).toHaveTextContent('dark');
+    expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark');
+    expect(document.documentElement).toHaveClass('dark');
+    window.localStorage.removeItem('hydrated-wdr-theme');
+  });
 });
+

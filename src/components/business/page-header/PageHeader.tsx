@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { cn } from '@/utils/cn';
-import { Breadcrumb, type BreadcrumbItem } from '@/components/ui/breadcrumb';
+import { cn } from '../../../utils/cn';
+import { Breadcrumb, type BreadcrumbItem } from '../../ui/breadcrumb';
 
 export interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   title: React.ReactNode;

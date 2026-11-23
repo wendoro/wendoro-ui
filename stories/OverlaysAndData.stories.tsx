@@ -103,3 +103,14 @@ function OverlaysInteractiveDemo() {
 export const InteractiveOverlays: StoryObj = {
   render: () => <OverlaysInteractiveDemo />,
 };
+
+export const DarkTheme: StoryObj = {
+  render: () => (
+    <div
+      className="dark rounded-[var(--wdr-radius-lg)] border border-border bg-background p-6 text-foreground"
+      data-theme="dark"
+    >
+      <OverlaysInteractiveDemo />
+    </div>
+  ),
+};

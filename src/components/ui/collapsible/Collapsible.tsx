@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ChevronDown } from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { useStableId } from '@/hooks/use-id';
+import { cn } from '../../../utils/cn';
+import { useStableId } from '../../../hooks/use-id';
 
 export interface CollapsibleProps {
   open?: boolean;

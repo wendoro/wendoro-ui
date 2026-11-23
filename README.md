@@ -3,7 +3,7 @@
 > **Business, connected.** — Official Website: [https://wendoro.in](https://wendoro.in)  
 > Repository: [https://github.com/wendoro/wendoro-ui](https://github.com/wendoro/wendoro-ui)
 
-Wendoro UI is the shared design system and reusable React component library for the Wendoro software ecosystem, including Wendoro Desk, Wendoro Flow, Wendoro Platform, Wendoro Studio, Wendoro Insights, Wendoro Support, Wendoro Commerce, and Wendoro People.
+Wendoro UI is the shared design system and reusable React component library for the Wendoro software ecosystem, including **Wendoro Desk**, **Wendoro Flow**, **Wendoro Platform**, **Wendoro Studio**, **Wendoro Insights**, **Wendoro Support**, **Wendoro Commerce**, and **Wendoro People**.
 
 ---
 
@@ -13,32 +13,34 @@ Wendoro UI prevents individual Wendoro applications from developing inconsistent
 
 - **Design Tokens**: Semantic CSS custom properties (`--wdr-*`) and TypeScript tokens (`@wendoro/ui/tokens`) for colors, typography, spacing (4px scale), radius, and shadows.
 - **Brand Palette**: Primary Yellow (`#FACC15`), Primary Red (`#DC2626`), Deep Black (`#111111`), White (`#FFFFFF`), Warm White (`#FAFAF7`), Charcoal (`#242424`), Border Gray (`#E5E5E5`), and Muted Gray (`#737373`). Blue, purple, indigo, and teal are excluded.
-- **Theming**: Light, Dark, and System themes with zero-reload switching and WCAG 2.2 AA contrast calibration.
+- **Theming**: Light, Dark, and System themes with zero-reload switching and accessible semantic color contrast.
 - **Component Architecture**: Accessible core, feedback, layout, navigation, data-display, advanced, and business components built with React, TypeScript, Tailwind CSS v4, and Lucide icons.
 
 ---
 
 ## Installation
 
-`@wendoro/ui` requires `react` and `react-dom` (`>=18.0.0 <20.0.0`) as peer dependencies:
+`@wendoro/ui` declares `react` and `react-dom` (`>=18.0.0 <20.0.0`) as peer dependencies and depends on `lucide-react`:
 
 ```bash
 npm install @wendoro/ui react react-dom lucide-react
 ```
 
-*(Note: `@wendoro/ui` is currently marked `"private": true` while preparing the publishing workflow and is consumed via workspace/tarball/git integration.)*
+> **Pre-publish status**: `@wendoro/ui` is currently marked `"private": true` in `package.json` while release governance is finalized. Consuming Wendoro apps integrate via workspace dependency (`"@wendoro/ui": "workspace:*"`) or a local tarball (`npm pack`).
 
 Import the compiled stylesheet once at your application entry point and wrap your root with `ThemeProvider`:
 
 ```tsx
 import '@wendoro/ui/styles.css';
-import { ThemeProvider, Button, PageHeader } from '@wendoro/ui';
+import { ThemeProvider, ToastProvider, Button, PageHeader } from '@wendoro/ui';
 
 export function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="wendoro-app-theme">
-      <PageHeader title="Workspace" description="Business, connected." />
-      <Button variant="primary">Create Record</Button>
+      <ToastProvider>
+        <PageHeader title="Workspace" description="Business, connected." />
+        <Button variant="primary">Create Record</Button>
+      </ToastProvider>
     </ThemeProvider>
   );
 }
@@ -51,11 +53,26 @@ export function App() {
 ```bash
 npm install
 npm run dev          # Starts the Design System Showcase app on http://localhost:3000
+npm run storybook    # Launches interactive Storybook on http://localhost:6006
 ```
 
 ---
 
-## Component Usage
+## Package Exports & Imports
+
+`package.json` exposes tree-shakeable ESM, CJS, standalone compiled CSS, raw theme stylesheets, TypeScript declarations (zero internal path aliases), and the tokens subpath:
+
+| Subpath | Output | Purpose |
+| --- | --- | --- |
+| `@wendoro/ui` | `dist/lib/wendoro-ui.js`, `dist/lib/wendoro-ui.cjs`, `dist/lib/index.d.ts` | All UI components, business components, hooks, utilities, and types |
+| `@wendoro/ui/styles.css` | `dist/lib/styles.css` | Precompiled standalone Tailwind v4 + theme stylesheet (no consumer Tailwind setup required) |
+| `@wendoro/ui/themes/light.css` | `src/themes/light.css` | Raw Light theme `--wdr-*` CSS custom properties |
+| `@wendoro/ui/themes/dark.css` | `src/themes/dark.css` | Raw Dark theme `--wdr-*` CSS custom properties |
+| `@wendoro/ui/tokens` | `dist/lib/tokens/index.js`, `dist/lib/tokens/index.cjs`, `dist/lib/tokens/index.d.ts` | Programmatic TypeScript/JS tokens (`brandColors`, `semanticColorTokens`, `typographyScale`, `spacing`, `radius`, `shadows`) |
+
+---
+
+## Component Catalog
 
 - **Core**: `Button`, `IconButton`, `Input`, `Textarea`, `Label`, `Select`, `Checkbox`, `Radio`, `RadioGroup`, `Switch`, `Slider`
 - **Feedback**: `Alert`, `Badge`, `ToastProvider`, `useToast`, `Notification`, `Progress`, `Skeleton`, `Spinner`
@@ -67,156 +84,190 @@ npm run dev          # Starts the Design System Showcase app on http://localhost
 
 ---
 
-## Team Components (`TeamDirectory` & `UserProfile`)
+## Theme Configuration & Design Tokens
 
-`UserProfile` and `TeamDirectory` render team member cards and inline rows using initials-based `Avatar` fallbacks (unless an explicit `avatarSrc` is supplied). Missing optional attributes such as `role`, `department`, `email`, or `statusBadge` are cleanly omitted rather than replaced with placeholder values.
+### Runtime Theme Switching
+Wrap your app in `ThemeProvider` and call `useTheme()` anywhere inside:
+
+- `theme`: `'light' | 'dark' | 'system'`
+- `resolvedTheme`: `'light' | 'dark'`
+- `setTheme(theme)` & `toggleTheme()`
+- `storageKey`: customizable `localStorage` key (defaults to `'wendoro-ui-theme'`)
+
+Light theme (`src/themes/light.css`) pairs Warm White (`#FAFAF7`) background, Crisp White (`#FFFFFF`) elevated surfaces, and Deep Black (`#111111`) foreground. Dark theme (`src/themes/dark.css`) pairs Deep Black (`#111111`) background, Charcoal (`#242424`) elevated surfaces, and Warm White (`#FAFAF7`) foreground. Both themes activate via `.dark` or `[data-theme='dark']` on `<html>` or a scoped container.
+
+### Programmatic Tokens
+
+```ts
+import {
+  brandColors,
+  semanticColorTokens,
+  typographyScale,
+  spacing,
+  radius,
+  shadows,
+} from '@wendoro/ui/tokens';
+
+// Example:
+// brandColors.primaryYellow === '#FACC15'
+// semanticColorTokens.destructiveSubtleForeground === 'var(--wdr-destructive-subtle-foreground)'
+```
+
+---
+
+## External Consumer Integration Example
+
+Below is a realistic consumer pattern verified by the integration fixture (`tests/integration/consumer-fixture/ConsumerApp.tsx`):
 
 ```tsx
-import { TeamDirectory, UserProfile, type TeamMember } from '@wendoro/ui';
+import * as React from 'react';
+import '@wendoro/ui/styles.css';
+import {
+  ThemeProvider,
+  useTheme,
+  Sidebar,
+  SidebarSection,
+  SidebarItem,
+  Alert,
+  Button,
+  DataTable,
+  Dialog,
+  DialogFooter,
+  StatusBadge,
+  UserProfile,
+  ActivityFeed,
+  type DataTableColumn,
+} from '@wendoro/ui';
+import { brandColors } from '@wendoro/ui/tokens';
 
-const members: TeamMember[] = [
-  {
-    id: 'ananya-rao',
-    name: 'Ananya Rao',
-    role: 'Principal Systems Lead',
-    department: 'Wendoro Platform',
-    email: 'ananya@wendoro.in',
-    status: 'completed',
-    statusLabel: 'Verified',
-    contactHref: 'mailto:ananya@wendoro.in',
-  },
-  {
-    id: 'sumita-singh',
-    name: 'Sumita Singh',
-    affiliation: 'Wendoro · Team member',
-  },
+interface ServiceRow {
+  id: string;
+  product: string;
+  status: 'active' | 'error';
+}
+
+const columns: DataTableColumn<ServiceRow>[] = [
+  { key: 'product', header: 'Product', sortable: true, accessor: (r) => r.product, cell: (r) => r.product },
+  { key: 'status', header: 'State', cell: (r) => <StatusBadge status={r.status} /> },
 ];
 
-export function TeamOverview() {
+function DeskWorkspace() {
+  const { toggleTheme } = useTheme();
+  const [open, setOpen] = React.useState(false);
+
   return (
-    <div className="space-y-6">
-      <UserProfile
-        variant="card"
-        name="Ananya Rao"
-        role="Principal Systems Lead"
-        department="Wendoro Platform"
-        email="ananya@wendoro.in"
-        statusBadge="completed"
-        statusLabel="Verified"
-        actions={[{ id: 'copy', label: 'Copy email', onSelect: () => {} }]}
-      />
-      <TeamDirectory
-        members={members}
-        defaultView="grid"
-        demoNotice="Team showcase displaying provided member attributes."
-      />
+    <div className="flex min-h-screen bg-background text-foreground" data-accent={brandColors.primaryYellow}>
+      <Sidebar header={<span className="font-bold">Wendoro Desk</span>}>
+        <SidebarSection title="Operations">
+          <SidebarItem active>Overview</SidebarItem>
+        </SidebarSection>
+      </Sidebar>
+      <main className="flex-1 space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <UserProfile variant="inline" name="Ananya Rao" role="Principal Systems Lead" department="Wendoro Platform" />
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={toggleTheme}>Toggle Theme</Button>
+            <Button variant="primary" onClick={() => setOpen(true)}>Inspect</Button>
+          </div>
+        </div>
+        <Alert variant="destructive" title="Webhook attention required">
+          Check secret rotation status for commerce events.
+        </Alert>
+        <DataTable
+          aria-label="Service status"
+          data={[{ id: '1', product: 'Wendoro Desk', status: 'active' }]}
+          columns={columns}
+          getRowId={(row) => row.id}
+        />
+        <ActivityFeed items={[]} demoLabel="Sample UI demonstration data" />
+        <Dialog open={open} onOpenChange={setOpen} title="Diagnostics">
+          <p className="text-sm text-muted-foreground">All tokens loaded cleanly.</p>
+          <DialogFooter>
+            <Button variant="primary" onClick={() => setOpen(false)}>Close</Button>
+          </DialogFooter>
+        </Dialog>
+      </main>
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <ThemeProvider defaultTheme="light">
+      <DeskWorkspace />
+    </ThemeProvider>
   );
 }
 ```
 
 ---
 
-## Activity Feed (`ActivityFeed` & `ActivityItem`)
-
-`ActivityFeed` renders chronological team and product events with actor initials avatars, action verbs, entities, source product tags, tabular amounts, status badges, optional metadata, and an optional `demoLabel` banner for demonstration data.
-
-```tsx
-import { ActivityFeed } from '@wendoro/ui';
-
-<ActivityFeed
-  demoLabel="Sample UI demonstration data — illustrative component preview only."
-  items={[
-    {
-      id: 'evt-1',
-      actor: 'Ananya Rao',
-      actorSubtitle: 'Principal Systems Lead · Wendoro Platform',
-      action: 'approved',
-      entity: 'settlement batch #SL-4092',
-      source: 'Wendoro Commerce',
-      amount: '$48,200 cleared',
-      status: 'completed',
-      statusLabel: 'Verified',
-      timestamp: '6 minutes ago',
-    },
-  ]}
-/>
-```
-
----
-
-## Theming & CSS Distribution
-
-### Theme Switching
-Wrap your app in `ThemeProvider` and call `useTheme()` anywhere inside:
-
-- `theme`: `'light' | 'dark' | 'system'`
-- `resolvedTheme`: `'light' | 'dark'`
-- `setTheme(theme)` & `toggleTheme()`
-- `storageKey`: customizable localStorage key (defaults to `'wendoro-ui-theme'`)
-
-Light theme (`src/themes/light.css`) uses Warm White (`#FAFAF7`) background, Crisp White (`#FFFFFF`) elevated surfaces, and Deep Black (`#111111`) foreground. Dark theme (`src/themes/dark.css`) uses Deep Black (`#111111`) background, Charcoal (`#242424`) elevated surfaces, and Warm White (`#FAFAF7`) foreground.
-
-### Stylesheet & Subpath Exports
-The library build compiles a self-contained CSS bundle so consuming apps do **not** need Tailwind CSS v4 `@source` configuration:
-
-- `@wendoro/ui` — ESM (`./dist/lib/wendoro-ui.js`), CJS (`./dist/lib/wendoro-ui.cjs`), and TypeScript types (`./dist/lib/index.d.ts`)
-- `@wendoro/ui/styles.css` — Compiled standalone stylesheet (`./dist/lib/styles.css`) including all theme tokens and component utility classes
-- `@wendoro/ui/themes/light.css` — Raw light theme CSS variables
-- `@wendoro/ui/themes/dark.css` — Raw dark theme CSS variables
-- `@wendoro/ui/tokens` — Programmatic TypeScript/JS design tokens (`brandColors`, `typographyScale`, `spacing`, `radius`, `shadows`)
-
----
-
 ## Storybook
 
 ```bash
-npm run storybook        # Launch interactive Storybook on http://localhost:6006
-npm run build-storybook  # Build static Storybook documentation into storybook-static/
+npm run storybook        # Interactive Storybook on http://localhost:6006
+npm run build-storybook  # Build static documentation into storybook-static/
 ```
 
-Stories live under `stories/` and use `@storybook/addon-a11y` for accessibility checks across tokens, core inputs, feedback, layout/navigation, overlays, `TeamDirectory`, `UserProfile`, and `ActivityFeed`.
+Stories live under `stories/` with `@storybook/addon-a11y` enabled and cover Design Tokens, Core Controls, Feedback (loading/empty/alerts), Layout & Navigation, Overlays & Calendar, `TeamDirectory`, `UserProfile`, `ActivityFeed`, `BusinessComponents`, and explicit Light/Dark theme previews.
 
 ---
 
-## Testing
+## Testing & CI Sequence
+
+Tests are cleanly split so a **fresh checkout passes unit tests and typechecking without running a prior build**:
+
+- `npm run test`: Interactive Vitest watch mode.
+- `npm run test:run`: Clean-checkout unit & component suite (`tests/*.test.tsx`, excluding `tests/integration/**`). Requires **zero** prebuilt artifacts in `dist/`.
+- `npm run test:integration`: Builds `dist/lib` (`npm run build:lib`), typechecks the alias-free external consumer fixture (`tests/integration/consumer-fixture/tsconfig.consumer.json`), and executes `tests/integration/package-distribution.test.tsx` against the compiled ESM, CJS, `.d.ts`, `styles.css`, and `@wendoro/ui/tokens` artifacts.
+- `npm run test:ci`: Runs the full verification pipeline from start to finish.
+
+### Exact CI Verification Sequence
+
+Run in this order on a clean checkout (`dist/` absent):
 
 ```bash
-npm run test             # Watch mode (Vitest + React Testing Library)
-npm run test:run         # Single-run CI verification suite
+npm ci
+npm run typecheck          # App, stories, and unit tests (tsconfig.json)
+npm run lint               # ESLint across src/, stories/, tests/
+npm run test:run           # Unit & component suite (no dist/ required)
+npm run test:integration   # Builds dist/lib + external consumer tsc + package distribution Vitest
+npm run build              # Showcase app build (tsc --noEmit && vite build)
+npm run build-storybook    # Static Storybook build
+npm pack --dry-run         # Verify tarball allowlist (dist/lib, src/styles, src/themes, README.md)
 ```
 
-Test coverage in `tests/` verifies token parity, light/dark/system theme switching, core form and button accessibility, keyboard navigation and focus trapping in overlays (`Dialog`, `Drawer`, `DropdownMenu`, `CommandPalette`, `Select`, `Tabs`), `TeamDirectory`, `UserProfile`, `ActivityFeed`, and package CSS/bundle integration (`tests/css-distribution.test.tsx`).
-
----
-
-## Build & Package Integration
+Or run steps 2–7 in one command via:
 
 ```bash
-npm run typecheck        # TypeScript check across app, stories, and tests
-npm run lint             # ESLint across src, stories, and tests
-npm run build            # Build the showcase application (tsc --noEmit && vite build)
-npm run build:lib        # Emit .d.ts declarations, ESM/CJS bundles, tokens, and dist/lib/styles.css
+npm run test:ci
 ```
 
-For local package integration tests before publishing:
+---
 
-1. Run `npm run build:lib` to generate `dist/lib/`.
-2. Link or install the workspace package (e.g., `npm pack` or monorepo workspace dependency `"@wendoro/ui": "workspace:*"`).
-3. Ensure consuming apps provide a single `react` and `react-dom` instance (matching `peerDependencies: ">=18.0.0 <20.0.0"`).
+## Build & Release Workflow
+
+### Build Commands
+
+```bash
+npm run build        # Build the showcase application into dist/
+npm run build:lib    # Clean dist/lib, emit alias-free .d.ts, ESM/CJS bundles, tokens subpath, and dist/lib/styles.css
+```
+
+### Release Checklist (Internal / Pre-Publish)
+
+1. Ensure working tree is clean and run the full CI sequence (`npm run test:ci`).
+2. Inspect exact package contents with `npm pack --dry-run` to confirm only `dist/lib/`, `src/styles/`, `src/themes/`, `README.md` (and `LICENSE` when present) are packaged—no tests, stories, or showcase source.
+3. Bump version in `package.json` following SemVer (`MAJOR.MINOR.PATCH`).
+4. Keep `"private": true` until registry authentication and release pipelines are formally approved for `@wendoro/ui`.
 
 ---
 
-## Contribution Guidelines
+## Versioning & Contribution Guidelines
 
-1. Consume semantic CSS variables (`--wdr-*` / Tailwind semantic utilities); never introduce blue, purple, indigo, or teal into the brand palette.
-2. Pair every status indicator with explicit text or iconography—never rely on color alone.
-3. Ensure full keyboard navigation (`Tab`, `Arrow` keys, `Escape`, `Enter`/`Space`), focus trapping in modal overlays, and visible `focus-visible` rings.
-4. Keep demo data clearly labeled and never fabricate personal details or company records.
-5. Add Vitest + RTL tests under `tests/` and Storybook stories under `stories/` for every new or modified component, then run `npm run build:lib`, `npm run typecheck`, `npm run lint`, `npm run test:run`, `npm run build`, and `npm run build-storybook`.
+- **Versioning**: Follows Semantic Versioning (`0.1.0` pre-release). Breaking token or component API changes bump `MINOR` during `0.x` development and `MAJOR` after `1.0.0`.
+- **Tokens & Brand**: Consume semantic CSS variables (`--wdr-*` / Tailwind semantic utilities); never introduce blue, purple, indigo, or teal.
+- **Accessibility**: Pair every status indicator with explicit text or iconography; preserve keyboard navigation (`Tab`, `Arrow` keys, `Home`/`End`, `Escape`, `Enter`/`Space`), focus trapping/restoration in overlays, and visible `focus-visible` rings.
+- **Imports**: Within library source (`src/components/**`, `src/hooks/**`, `src/utils/**`, `src/tokens/**`), always use relative imports instead of `@/` aliases so generated `.d.ts` files remain portable for external consumers.
+- **Demo Data**: Keep demonstration records clearly labeled (`demoLabel`, `demoNotice`) and never fabricate personal details or business transactions.
 
----
-
-## Versioning
-
-`@wendoro/ui` follows Semantic Versioning (`MAJOR.MINOR.PATCH`), currently at `0.1.0` (`"private": true`). Breaking token or component API changes bump `MINOR` during `0.x` pre-release development and `MAJOR` once `1.0.0` is tagged.

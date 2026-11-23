@@ -7,7 +7,8 @@
     "emitDeclarationOnly": true,
     "outDir": "./dist/lib",
     "allowImportingTsExtensions": false,
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "paths": {}
   },
   "include": ["src/index.ts", "src/tokens", "src/components", "src/hooks", "src/utils"],
   "exclude": ["src/app", "src/main.tsx", "src/App.tsx", "tests", "stories"]

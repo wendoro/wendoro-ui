@@ -57,6 +57,7 @@
   /* Radius */
   --wdr-radius-none: 0px;
   --wdr-radius-sm: 4px;
+  --wdr-radius-small: var(--wdr-radius-sm);
   --wdr-radius-md: 8px;
   --wdr-radius-lg: 12px;
   --wdr-radius-xl: 16px;

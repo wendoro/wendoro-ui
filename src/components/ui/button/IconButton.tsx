@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
 import { Button, type ButtonVariant } from './Button';
 
 export type IconButtonSize = 'sm' | 'md' | 'lg';

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
 
 export interface SidebarProps extends React.HTMLAttributes<HTMLElement> {
   collapsed?: boolean;

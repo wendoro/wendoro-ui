@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { X } from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { useStableId } from '@/hooks/use-id';
+import { cn } from '../../../utils/cn';
+import { useStableId } from '../../../hooks/use-id';
 
 export type DialogSize = 'sm' | 'md' | 'lg' | 'xl';
 
@@ -33,9 +33,11 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
     'select:not([disabled])',
     '[tabindex]:not([tabindex="-1"])',
   ].join(',');
-  return Array.from(container.querySelectorAll<HTMLElement>(selectors)).filter(
-    (el) => !el.hasAttribute('disabled') && el.offsetParent !== null
-  );
+  return Array.from(container.querySelectorAll<HTMLElement>(selectors)).filter((el) => {
+    if (el.hasAttribute('disabled') || el.closest('[hidden]')) return false;
+    const style = window.getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  });
 }
 
 export function Dialog({
@@ -71,7 +73,9 @@ export function Dialog({
 
     return () => {
       window.clearTimeout(timer);
-      previousFocusRef.current?.focus();
+      if (previousFocusRef.current?.isConnected) {
+        previousFocusRef.current.focus();
+      }
     };
   }, [open]);
 

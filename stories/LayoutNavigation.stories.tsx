@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../src/components/ui/t
 import { Breadcrumb } from '../src/components/ui/breadcrumb';
 import { Pagination } from '../src/components/ui/pagination';
 import { DropdownMenu } from '../src/components/ui/dropdown';
+import { NavigationMenu } from '../src/components/ui/navigation-menu';
 import { Sidebar, SidebarItem, SidebarSection } from '../src/components/ui/sidebar';
 
 const meta: Meta = {
@@ -26,6 +27,20 @@ function InteractiveLayoutAndNavDemo() {
 
   return (
       <div className="space-y-8">
+        <NavigationMenu
+          items={[
+            { id: 'overview', label: 'Overview', active: true, onClick: () => {} },
+            {
+              id: 'products',
+              label: 'Ecosystem',
+              items: [
+                { label: 'Wendoro Desk', description: 'Customer operations & ticketing' },
+                { label: 'Wendoro Platform', description: 'Identity & shared tokens' },
+              ],
+            },
+          ]}
+        />
+
         <Breadcrumb
           items={[
             { label: 'Wendoro Platform', href: '#platform' },
@@ -56,7 +71,7 @@ function InteractiveLayoutAndNavDemo() {
           <TabsList aria-label="Workspace views">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="tokens">Tokens</TabsTrigger>
-            <TabsTrigger value="audit">Audit Log</TabsTrigger>
+            <TabsTrigger value="audit" disabled>Audit Log (Disabled)</TabsTrigger>
           </TabsList>
           <TabsContent value="overview">
             <Card>
@@ -137,4 +152,15 @@ function InteractiveLayoutAndNavDemo() {
 
 export const InteractiveLayoutAndNav: StoryObj = {
   render: () => <InteractiveLayoutAndNavDemo />,
+};
+
+export const DarkTheme: StoryObj = {
+  render: () => (
+    <div
+      className="dark rounded-[var(--wdr-radius-lg)] border border-border bg-background p-6 text-foreground"
+      data-theme="dark"
+    >
+      <InteractiveLayoutAndNavDemo />
+    </div>
+  ),
 };

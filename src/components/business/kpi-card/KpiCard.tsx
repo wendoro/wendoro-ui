@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { cn } from '../../../utils/cn';
+import { Card } from '../../ui/card';
+import { Progress } from '../../ui/progress';
 
 export type KpiStatus = 'on_track' | 'at_risk' | 'off_track';
 

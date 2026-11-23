@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ChevronDown } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
 
 export interface NavigationMenuSubItem {
   label: string;
@@ -25,6 +25,7 @@ export interface NavigationMenuProps extends React.HTMLAttributes<HTMLElement> {
 export function NavigationMenu({ items, className, ...props }: NavigationMenuProps) {
   const [openId, setOpenId] = React.useState<string | null>(null);
   const navRef = React.useRef<HTMLElement>(null);
+  const triggerRefs = React.useRef<Record<string, HTMLButtonElement | null>>({});
 
   React.useEffect(() => {
     if (!openId) return;
@@ -34,7 +35,11 @@ export function NavigationMenu({ items, className, ...props }: NavigationMenuPro
       }
     };
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpenId(null);
+      if (e.key === 'Escape') {
+        const current = openId;
+        setOpenId(null);
+        triggerRefs.current[current]?.focus();
+      }
     };
     document.addEventListener('mousedown', handleOutside);
     document.addEventListener('keydown', handleKey);
@@ -61,9 +66,18 @@ export function NavigationMenu({ items, className, ...props }: NavigationMenuPro
               {hasChildren ? (
                 <>
                   <button
+                    ref={(el) => {
+                      triggerRefs.current[item.id] = el;
+                    }}
                     type="button"
                     aria-expanded={isOpen}
                     onClick={() => setOpenId(isOpen ? null : item.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowDown' && !isOpen) {
+                        e.preventDefault();
+                        setOpenId(item.id);
+                      }
+                    }}
                     className={cn(
                       'inline-flex items-center gap-1.5 rounded-[var(--wdr-radius-md)] px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',

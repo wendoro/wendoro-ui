@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Search, X } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
+import { useStableId } from '../../../hooks/use-id';
 
 export interface CommandItem {
   id: string;
@@ -22,6 +23,22 @@ export interface CommandPaletteProps {
   enableGlobalShortcut?: boolean;
 }
 
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  const selectors = [
+    'a[href]',
+    'button:not([disabled])',
+    'textarea:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+  ].join(',');
+  return Array.from(container.querySelectorAll<HTMLElement>(selectors)).filter((el) => {
+    if (el.hasAttribute('disabled') || el.closest('[hidden]')) return false;
+    const style = window.getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  });
+}
+
 export function CommandPalette({
   open,
   onOpenChange,
@@ -33,6 +50,9 @@ export function CommandPalette({
   const [query, setQuery] = React.useState('');
   const [activeIndex, setActiveIndex] = React.useState(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+  const previousFocusRef = React.useRef<HTMLElement | null>(null);
+  const listboxId = useStableId(undefined, 'wdr-cmd-list');
 
   React.useEffect(() => {
     if (!enableGlobalShortcut) return;
@@ -47,11 +67,17 @@ export function CommandPalette({
   }, [enableGlobalShortcut, onOpenChange, open]);
 
   React.useEffect(() => {
-    if (open) {
-      setQuery('');
-      setActiveIndex(0);
-      window.setTimeout(() => inputRef.current?.focus(), 0);
-    }
+    if (!open) return;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    setQuery('');
+    setActiveIndex(0);
+    const timer = window.setTimeout(() => inputRef.current?.focus(), 0);
+    return () => {
+      window.clearTimeout(timer);
+      if (previousFocusRef.current?.isConnected) {
+        previousFocusRef.current.focus();
+      }
+    };
   }, [open]);
 
   const filtered = React.useMemo(() => {
@@ -82,6 +108,8 @@ export function CommandPalette({
     }
   }, [activeIndex, filtered.length]);
 
+  const activeItem = filtered[activeIndex];
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') {
       e.preventDefault();
@@ -92,12 +120,37 @@ export function CommandPalette({
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (filtered.length > 0) setActiveIndex((prev) => (prev - 1 + filtered.length) % filtered.length);
+    } else if (e.key === 'Home') {
+      if (filtered.length > 0) {
+        e.preventDefault();
+        setActiveIndex(0);
+      }
+    } else if (e.key === 'End') {
+      if (filtered.length > 0) {
+        e.preventDefault();
+        setActiveIndex(filtered.length - 1);
+      }
     } else if (e.key === 'Enter') {
       e.preventDefault();
       const target = filtered[activeIndex];
       if (target) {
         target.onSelect();
         onOpenChange(false);
+      }
+    } else if (e.key === 'Tab' && dialogRef.current) {
+      const focusables = getFocusableElements(dialogRef.current);
+      if (focusables.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
       }
     }
   };
@@ -112,6 +165,7 @@ export function CommandPalette({
         className="fixed inset-0 bg-black/55 backdrop-blur-[2px]"
       />
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="Command palette"
@@ -123,6 +177,10 @@ export function CommandPalette({
           <input
             ref={inputRef}
             type="text"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={listboxId}
+            aria-activedescendant={activeItem ? `${listboxId}-opt-${activeItem.id}` : undefined}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -142,7 +200,7 @@ export function CommandPalette({
           </button>
         </div>
 
-        <div className="max-h-80 overflow-y-auto p-2" role="listbox" aria-label="Commands">
+        <div id={listboxId} className="max-h-80 overflow-y-auto p-2" role="listbox" aria-label="Commands">
           {filtered.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">{emptyMessage}</div>
           ) : (
@@ -158,8 +216,10 @@ export function CommandPalette({
                     return (
                       <button
                         key={item.id}
+                        id={`${listboxId}-opt-${item.id}`}
                         type="button"
                         role="option"
+                        tabIndex={-1}
                         aria-selected={isActive}
                         onMouseEnter={() => setActiveIndex(flatIdx)}
                         onClick={() => {

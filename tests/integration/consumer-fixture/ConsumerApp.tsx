@@ -1,0 +1,173 @@
+import * as React from 'react';
+import '@wendoro/ui/styles.css';
+import {
+  ThemeProvider,
+  useTheme,
+  Button,
+  Input,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Dialog,
+  DialogFooter,
+  Sidebar,
+  SidebarSection,
+  SidebarItem,
+  Alert,
+  StatusBadge,
+  UserProfile,
+  TeamDirectory,
+  ActivityFeed,
+  DataTable,
+  type DataTableColumn,
+  type TeamMember,
+  type ActivityFeedEntry,
+  type ThemeMode,
+} from '@wendoro/ui';
+import {
+  brandColors,
+  semanticColorTokens,
+  typographyScale,
+  spacing,
+  radius,
+  shadows,
+} from '@wendoro/ui/tokens';
+
+interface ServiceRow {
+  id: string;
+  product: string;
+  status: 'active' | 'error';
+}
+
+const SERVICE_ROWS: ServiceRow[] = [
+  { id: 'svc-1', product: 'Wendoro Desk', status: 'active' },
+  { id: 'svc-2', product: 'Wendoro Platform', status: 'error' },
+];
+
+const SERVICE_COLUMNS: DataTableColumn<ServiceRow>[] = [
+  {
+    key: 'product',
+    header: 'Product',
+    sortable: true,
+    accessor: (row) => row.product,
+    cell: (row) => row.product,
+  },
+  {
+    key: 'status',
+    header: 'State',
+    cell: (row) => <StatusBadge status={row.status} />,
+  },
+];
+
+const TEAM_MEMBERS: TeamMember[] = [
+  { id: 'suraj', name: 'Suraj Singh', affiliation: 'Wendoro · Founder' },
+  { id: 'sumita', name: 'Sumita Singh', affiliation: 'Wendoro · Founder' },
+];
+
+const ACTIVITY_ITEMS: ActivityFeedEntry[] = [
+  {
+    id: 'act-1',
+    actor: 'Suraj Singh',
+    actorSubtitle: 'Founder · Wendoro',
+    action: 'reviewed',
+    entity: 'Wendoro Desk UI integration',
+    timestamp: 'Just now',
+  },
+];
+
+export function ConsumerApp({ initialTheme = 'light' }: { initialTheme?: ThemeMode }) {
+  return (
+    <ThemeProvider defaultTheme={initialTheme} storageKey="wendoro-consumer-fixture-theme">
+      <ConsumerWorkspace />
+    </ThemeProvider>
+  );
+}
+
+function ConsumerWorkspace() {
+  const { resolvedTheme, toggleTheme } = useTheme();
+  const [activeNav, setActiveNav] = React.useState<'overview' | 'team'>('overview');
+  const [workspaceName, setWorkspaceName] = React.useState('');
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+
+  return (
+    <div
+      data-testid="consumer-root"
+      data-resolved-theme={resolvedTheme}
+      data-brand-yellow={brandColors.primaryYellow}
+      data-destructive-subtle-fg={semanticColorTokens.destructiveSubtleForeground}
+      data-token-space={spacing[4]}
+      data-token-radius={radius.medium}
+      data-token-shadow={shadows.small}
+      data-token-h1={typographyScale.h1.fontSize}
+      className="flex min-h-screen bg-background text-foreground"
+    >
+      <Sidebar header={<span>Wendoro Desk</span>}>
+        <SidebarSection title="Workspace">
+          <SidebarItem active={activeNav === 'overview'} onClick={() => setActiveNav('overview')}>
+            Overview
+          </SidebarItem>
+          <SidebarItem active={activeNav === 'team'} onClick={() => setActiveNav('team')}>
+            Founders
+          </SidebarItem>
+        </SidebarSection>
+      </Sidebar>
+
+      <main className="flex-1 space-y-6 p-6">
+        <div className="flex items-center justify-between gap-4">
+          <UserProfile variant="inline" name="Suraj Singh" affiliation="Wendoro · Founder" />
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={toggleTheme}>
+              Switch Theme
+            </Button>
+            <Button variant="primary" onClick={() => setDialogOpen(true)}>
+              Open Consumer Dialog
+            </Button>
+          </div>
+        </div>
+
+        <Alert variant="destructive" title="Webhook attention required">
+          Destructive subtle foreground alert verification.
+        </Alert>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Consumer App Integration</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Input
+              aria-label="Consumer workspace input"
+              value={workspaceName}
+              onChange={(e) => setWorkspaceName(e.target.value)}
+              placeholder="Enter workspace"
+            />
+            <DataTable
+              aria-label="Service status table"
+              data={SERVICE_ROWS}
+              columns={SERVICE_COLUMNS}
+              getRowId={(r) => r.id}
+            />
+          </CardContent>
+        </Card>
+
+        {activeNav === 'team' && <TeamDirectory members={TEAM_MEMBERS} />}
+
+        <ActivityFeed items={ACTIVITY_ITEMS} demoLabel="Consumer fixture demo data" />
+
+        <Dialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          title="Consumer Dialog"
+          description="Rendered from @wendoro/ui compiled distribution."
+        >
+          <p className="text-sm text-muted-foreground">Dialog body content.</p>
+          <DialogFooter>
+            <Button variant="primary" onClick={() => setDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </Dialog>
+      </main>
+    </div>
+  );
+}

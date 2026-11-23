@@ -101,3 +101,34 @@ function AllControlsDemo() {
 export const AllControls: StoryObj = {
   render: () => <AllControlsDemo />,
 };
+
+export const ValidationAndDisabled: StoryObj = {
+  render: () => (
+    <div className="max-w-xl space-y-5">
+      <FormField label="Billing Domain" required error="Enter a valid verified domain (e.g. wendoro.in).">
+        <Input defaultValue="invalid" />
+      </FormField>
+      <FormField label="Locked Workspace ID" hint="Managed by Wendoro Platform administrator.">
+        <Input defaultValue="wdr-platform-prod" disabled />
+      </FormField>
+      <Select
+        disabled
+        value="desk"
+        options={[{ value: 'desk', label: 'Wendoro Desk (Locked)' }]}
+      />
+      <Checkbox disabled checked label="Audit logging enforced" />
+      <Switch disabled checked label="Strict TLS policy" />
+    </div>
+  ),
+};
+
+export const DarkTheme: StoryObj = {
+  render: () => (
+    <div
+      className="dark rounded-[var(--wdr-radius-lg)] border border-border bg-background p-6 text-foreground"
+      data-theme="dark"
+    >
+      <AllControlsDemo />
+    </div>
+  ),
+};

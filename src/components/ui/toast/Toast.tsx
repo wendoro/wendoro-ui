@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
 
 export type ToastVariant = 'default' | 'success' | 'warning' | 'destructive';
 

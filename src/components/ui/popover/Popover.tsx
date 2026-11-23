@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { cn } from '@/utils/cn';
-import { useStableId } from '@/hooks/use-id';
+import { cn } from '../../../utils/cn';
+import { useStableId } from '../../../hooks/use-id';
 
 export interface PopoverProps {
   trigger: React.ReactNode;
@@ -18,6 +18,19 @@ const alignClasses: Record<NonNullable<PopoverProps['align']>, string> = {
   end: 'right-0',
 };
 
+function mergeRefs<T>(...refs: Array<React.Ref<T> | undefined>) {
+  return (value: T | null) => {
+    for (const ref of refs) {
+      if (!ref) continue;
+      if (typeof ref === 'function') {
+        ref(value);
+      } else {
+        (ref as React.MutableRefObject<T | null>).current = value;
+      }
+    }
+  };
+}
+
 export function Popover({
   trigger,
   children,
@@ -31,12 +44,20 @@ export function Popover({
   const isControlled = controlledOpen !== undefined;
   const isOpen = isControlled ? controlledOpen : internalOpen;
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLElement>(null);
   const popoverId = useStableId(undefined, 'wdr-popover');
 
   const setOpen = React.useCallback(
-    (next: boolean) => {
+    (next: boolean, restoreFocus = false) => {
       if (!isControlled) setInternalOpen(next);
       onOpenChange?.(next);
+      if (!next && restoreFocus) {
+        window.setTimeout(() => {
+          if (triggerRef.current?.isConnected) {
+            triggerRef.current.focus();
+          }
+        }, 0);
+      }
     },
     [isControlled, onOpenChange]
   );
@@ -49,7 +70,10 @@ export function Popover({
       }
     };
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setOpen(false, true);
+      }
     };
     document.addEventListener('mousedown', handleOutside);
     document.addEventListener('keydown', handleKey);
@@ -59,25 +83,43 @@ export function Popover({
     };
   }, [isOpen, setOpen]);
 
-  return (
-    <div ref={containerRef} className="relative inline-block">
-      <div
-        role="button"
-        tabIndex={0}
+  const renderTrigger = () => {
+    if (React.isValidElement(trigger)) {
+      const childProps = trigger.props as {
+        onClick?: (e: React.MouseEvent<HTMLElement>) => void;
+      };
+      const existingRef = (trigger as unknown as { ref?: React.Ref<HTMLElement> }).ref;
+
+      return React.cloneElement(trigger as React.ReactElement<Record<string, unknown>>, {
+        ref: mergeRefs(existingRef, triggerRef),
+        'aria-haspopup': 'dialog',
+        'aria-expanded': isOpen,
+        'aria-controls': isOpen ? popoverId : undefined,
+        onClick: (e: React.MouseEvent<HTMLElement>) => {
+          childProps.onClick?.(e);
+          setOpen(!isOpen);
+        },
+      });
+    }
+
+    return (
+      <button
+        ref={triggerRef as React.RefObject<HTMLButtonElement>}
+        type="button"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-controls={isOpen ? popoverId : undefined}
         onClick={() => setOpen(!isOpen)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setOpen(!isOpen);
-          }
-        }}
-        className="inline-flex cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-[var(--wdr-radius-md)]"
+        className="inline-flex cursor-pointer items-center rounded-[var(--wdr-radius-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {trigger}
-      </div>
+      </button>
+    );
+  };
+
+  return (
+    <div ref={containerRef} className="relative inline-block">
+      {renderTrigger()}
 
       {isOpen && (
         <div

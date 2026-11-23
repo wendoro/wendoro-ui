@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { Mail, MoreVertical } from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { Avatar, type AvatarProps } from '@/components/ui/avatar';
-import { Button, IconButton } from '@/components/ui/button';
-import { DropdownMenu, type DropdownMenuItem } from '@/components/ui/dropdown';
-import { StatusBadge, type BusinessStatus } from '@/components/business/status-badge';
+import { cn } from '../../../utils/cn';
+import { Avatar, type AvatarProps } from '../../ui/avatar';
+import { Button, IconButton } from '../../ui/button';
+import { DropdownMenu, type DropdownMenuItem } from '../../ui/dropdown';
+import { StatusBadge, type BusinessStatus } from '../status-badge';
 
 export interface UserProfileProps extends React.HTMLAttributes<HTMLDivElement> {
   name: string;

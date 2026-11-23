@@ -41,3 +41,18 @@ export const EmptyDirectory: Story = {
     emptyDescription: 'Members added to this workspace will appear here.',
   },
 };
+
+export const DarkTheme: Story = {
+  render: () => (
+    <div
+      className="dark rounded-[var(--wdr-radius-lg)] border border-border bg-background p-6 text-foreground"
+      data-theme="dark"
+    >
+      <TeamDirectory
+        members={WENDORO_TEAM_MEMBERS}
+        defaultView="grid"
+        demoNotice="Wendoro team showcase — dark theme verification."
+      />
+    </div>
+  ),
+};

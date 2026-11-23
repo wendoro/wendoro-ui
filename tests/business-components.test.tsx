@@ -167,4 +167,82 @@ describe('Business Components & Wendoro Team Showcase', () => {
     await user.click(screen.getByRole('button', { name: /Mark all read/i }));
     expect(onMarkAllRead).toHaveBeenCalledTimes(1);
   });
+
+  it('preserves className, container props, and demoLabel when ActivityFeed is empty', () => {
+    render(
+      <ActivityFeed
+        items={[]}
+        className="custom-feed-class"
+        data-testid="empty-activity-feed"
+        aria-label="Founder activity feed"
+        demoLabel="Demo data — empty preview"
+        emptyTitle="Nothing yet"
+      />
+    );
+
+    const container = screen.getByTestId('empty-activity-feed');
+    expect(container).toHaveClass('custom-feed-class');
+    expect(container).toHaveAttribute('aria-label', 'Founder activity feed');
+    expect(screen.getByText('Demo data — empty preview')).toBeInTheDocument();
+    expect(screen.getByText('Nothing yet')).toBeInTheDocument();
+  });
+
+  it('filters TeamDirectory by department and status and resets empty search', async () => {
+    const user = userEvent.setup();
+    render(<TeamDirectory members={WENDORO_TEAM_MEMBERS} />);
+
+    const statusTrigger = screen.getByRole('combobox', { name: 'Status' });
+    await user.click(statusTrigger);
+    await user.click(screen.getByRole('option', { name: 'Completed' }));
+    expect(screen.getByText('Ananya Rao')).toBeInTheDocument();
+    expect(screen.queryByText('Sumita Singh')).not.toBeInTheDocument();
+
+    await user.type(screen.getByRole('searchbox'), 'NoSuchMember');
+    expect(screen.getByText('No matching team members')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Reset Filters' }));
+    expect(screen.getByText('Suraj Singh')).toBeInTheDocument();
+    expect(screen.getByText('Ananya Rao')).toBeInTheDocument();
+  });
+
+  it('supports DataTable loading status, select-all rows, and NotificationCenter dismissal', async () => {
+    const user = userEvent.setup();
+    const onSelected = vi.fn();
+    const onDismiss = vi.fn();
+
+    const { rerender } = render(
+      <DataTable
+        data={rows}
+        columns={columns}
+        getRowId={(r) => r.id}
+        loading
+      />
+    );
+    expect(screen.getByRole('status', { name: 'Loading table data' })).toBeInTheDocument();
+
+    rerender(
+      <div>
+        <DataTable
+          data={rows}
+          columns={columns}
+          getRowId={(r) => r.id}
+          selectable
+          selectedIds={[]}
+          onSelectedIdsChange={onSelected}
+        />
+        <NotificationCenter
+          onDismiss={onDismiss}
+          items={[{ id: 'n1', title: 'Alert 1', timestamp: '1m ago', unread: true }]}
+        />
+      </div>
+    );
+
+    await user.click(screen.getByLabelText('Select all rows on page'));
+    expect(onSelected).toHaveBeenCalledWith(['1', '2']);
+
+    await user.click(screen.getByRole('button', { name: /Notifications, 1 unread/i }));
+    await user.click(screen.getByRole('button', { name: 'Dismiss notification' }));
+    expect(onDismiss).toHaveBeenCalledWith('n1');
+  });
 });
+

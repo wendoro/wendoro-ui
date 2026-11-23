@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { LayoutGrid, List, Users } from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/ui/empty-state';
-import { FilterBar, type FilterGroup } from '@/components/business/filter-bar';
-import { type BusinessStatus } from '@/components/business/status-badge';
-import { UserProfile } from '@/components/business/user-profile';
-import { type DropdownMenuItem } from '@/components/ui/dropdown';
+import { cn } from '../../../utils/cn';
+import { Button } from '../../ui/button';
+import { EmptyState } from '../../ui/empty-state';
+import { FilterBar, type FilterGroup } from '../filter-bar';
+import { type BusinessStatus } from '../status-badge';
+import { UserProfile } from '../user-profile';
+import { type DropdownMenuItem } from '../../ui/dropdown';
 
 export interface TeamMember {
   id: string;

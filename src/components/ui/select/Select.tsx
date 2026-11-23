@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Check, ChevronDown } from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { useStableId } from '@/hooks/use-id';
+import { cn } from '../../../utils/cn';
+import { useStableId } from '../../../hooks/use-id';
 
 export interface SelectOption {
   value: string;
@@ -127,6 +127,14 @@ export function Select({
       } else if (highlightedIndex >= 0) {
         selectIndex(highlightedIndex);
       }
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      if (!open) setOpen(true);
+      setHighlightedIndex(findNextEnabledIndex(-1, 1));
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      if (!open) setOpen(true);
+      setHighlightedIndex(findNextEnabledIndex(0, -1));
     } else if (event.key === 'Escape') {
       if (open) {
         event.preventDefault();

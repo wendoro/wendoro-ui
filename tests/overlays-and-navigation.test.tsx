@@ -20,6 +20,9 @@ function DialogHarness() {
       <button onClick={() => setOpen(true)}>Launch Modal</button>
       <Dialog open={open} onOpenChange={setOpen} title="Security Notice">
         <p>Confirm token rotation.</p>
+        <button type="button" onClick={() => setOpen(false)}>
+          Confirm Action
+        </button>
       </Dialog>
     </div>
   );
@@ -47,52 +50,75 @@ function ToastHarness() {
 }
 
 describe('Overlays, Navigation & Feedback Components', () => {
-  it('opens Dialog, traps focus, and closes on Escape', async () => {
+  it('opens Dialog, traps Tab focus, and restores focus on Escape', async () => {
     const user = userEvent.setup();
     render(<DialogHarness />);
 
-    await user.click(screen.getByRole('button', { name: 'Launch Modal' }));
+    const launchBtn = screen.getByRole('button', { name: 'Launch Modal' });
+    await user.click(launchBtn);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Security Notice')).toBeInTheDocument();
 
+    const closeBtn = screen.getByRole('button', { name: 'Close dialog' });
+    const confirmBtn = screen.getByRole('button', { name: 'Confirm Action' });
+    closeBtn.focus();
+    await user.tab();
+    expect(confirmBtn).toHaveFocus();
+    await user.tab();
+    expect(closeBtn).toHaveFocus();
+
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await vi.waitFor(() => expect(launchBtn).toHaveFocus());
   });
 
   it('opens Drawer, closes on Escape, and exposes dialog semantics', async () => {
     const user = userEvent.setup();
     render(<DrawerHarness />);
 
-    await user.click(screen.getByRole('button', { name: 'Launch Drawer' }));
+    const launchBtn = screen.getByRole('button', { name: 'Launch Drawer' });
+    await user.click(launchBtn);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Inspector Drawer')).toBeInTheDocument();
 
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await vi.waitFor(() => expect(launchBtn).toHaveFocus());
   });
 
-  it('navigates Tabs with ArrowRight/ArrowLeft keyboard input', async () => {
+  it('navigates Tabs with ArrowRight, ArrowLeft, Home, and End keyboard input', async () => {
     const user = userEvent.setup();
     render(
       <Tabs defaultValue="a">
         <TabsList aria-label="Sections">
           <TabsTrigger value="a">First</TabsTrigger>
           <TabsTrigger value="b">Second</TabsTrigger>
+          <TabsTrigger value="c">Third</TabsTrigger>
         </TabsList>
         <TabsContent value="a">Panel A</TabsContent>
         <TabsContent value="b">Panel B</TabsContent>
+        <TabsContent value="c">Panel C</TabsContent>
       </Tabs>
     );
 
     const firstTab = screen.getByRole('tab', { name: 'First' });
     firstTab.focus();
     await user.keyboard('{ArrowRight}');
-
     expect(screen.getByRole('tab', { name: 'Second' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Panel B')).toBeInTheDocument();
+
+    await user.keyboard('{End}');
+    expect(screen.getByRole('tab', { name: 'Third' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('Panel C')).toBeInTheDocument();
+
+    await user.keyboard('{ArrowLeft}');
+    expect(screen.getByRole('tab', { name: 'Second' })).toHaveAttribute('aria-selected', 'true');
+
+    await user.keyboard('{Home}');
+    expect(firstTab).toHaveAttribute('aria-selected', 'true');
   });
 
-  it('opens DropdownMenu, triggers item, and dismisses on Escape', async () => {
+  it('opens DropdownMenu with keyboard, avoids nested buttons, triggers item, and restores focus on Escape', async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
 
@@ -102,14 +128,32 @@ describe('Overlays, Navigation & Feedback Components', () => {
         items={[
           { id: '1', label: 'Duplicate', onSelect },
           { id: '2', label: 'Disabled Item', disabled: true, onSelect: vi.fn() },
+          { id: '3', label: 'Archive', onSelect: vi.fn() },
         ]}
       />
     );
 
-    await user.click(screen.getByText('Open Menu'));
+    const triggerBtns = screen.getAllByRole('button', { name: 'Open Menu' });
+    expect(triggerBtns).toHaveLength(1);
+    const triggerBtn = triggerBtns[0];
+
+    triggerBtn.focus();
+    await user.keyboard('{ArrowDown}');
     expect(screen.getByRole('menu')).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Disabled Item' })).toBeDisabled();
 
+    const duplicateItem = screen.getByRole('menuitem', { name: 'Duplicate' });
+    const archiveItem = screen.getByRole('menuitem', { name: 'Archive' });
+    await vi.waitFor(() => expect(duplicateItem).toHaveFocus());
+
+    await user.keyboard('{ArrowDown}');
+    expect(archiveItem).toHaveFocus();
+
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    await vi.waitFor(() => expect(triggerBtn).toHaveFocus());
+
+    await user.click(triggerBtn);
     await user.click(screen.getByRole('menuitem', { name: 'Duplicate' }));
     expect(onSelect).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
@@ -133,10 +177,16 @@ describe('Overlays, Navigation & Feedback Components', () => {
     expect(tipTarget).toHaveFocus();
     expect(screen.getByRole('tooltip')).toHaveTextContent('Helpful info');
 
-    await user.click(screen.getByText('Open Popover'));
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+
+    const popoverBtns = screen.getAllByRole('button', { name: 'Open Popover' });
+    expect(popoverBtns).toHaveLength(1);
+    await user.click(popoverBtns[0]);
     expect(screen.getByText('Popover body')).toBeInTheDocument();
     await user.keyboard('{Escape}');
     expect(screen.queryByText('Popover body')).not.toBeInTheDocument();
+    await vi.waitFor(() => expect(popoverBtns[0]).toHaveFocus());
   });
 
   it('handles Pagination boundaries and page selection', async () => {

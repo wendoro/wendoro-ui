@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
 
 export interface CalendarProps {
   selected?: Date;
@@ -78,9 +78,32 @@ export function Calendar({
     return false;
   };
 
+  const gridRef = React.useRef<HTMLDivElement>(null);
+
+  const handleDayKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, dayNumber: number) => {
+    const deltaMap: Record<string, number> = {
+      ArrowLeft: -1,
+      ArrowRight: 1,
+      ArrowUp: -7,
+      ArrowDown: 7,
+    };
+    const delta = deltaMap[event.key];
+    if (!delta || !gridRef.current) return;
+
+    const targetDay = dayNumber + delta;
+    const buttons = Array.from(
+      gridRef.current.querySelectorAll<HTMLButtonElement>('button[data-day]:not([disabled])')
+    );
+    const nextBtn = buttons.find((b) => Number(b.dataset.day) === targetDay);
+    if (nextBtn) {
+      event.preventDefault();
+      nextBtn.focus();
+    }
+  };
+
   return (
     <div
-      role="application"
+      role="region"
       aria-label={`Calendar, ${MONTHS[monthIdx]} ${year}`}
       className={cn(
         'w-72 rounded-[var(--wdr-radius-lg)] border border-border bg-surface p-3.5 text-foreground',
@@ -96,7 +119,7 @@ export function Calendar({
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
         </button>
-        <div className="text-sm font-semibold tabular-nums">
+        <div aria-live="polite" className="text-sm font-semibold tabular-nums">
           {MONTHS[monthIdx]} {year}
         </div>
         <button
@@ -109,7 +132,7 @@ export function Calendar({
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center">
+      <div ref={gridRef} className="grid grid-cols-7 gap-1 text-center">
         {WEEKDAYS.map((day) => (
           <div key={day} className="py-1 text-[11px] font-medium text-muted-foreground">
             {day}
@@ -122,15 +145,18 @@ export function Calendar({
           const disabled = isDisabled(date);
           const isSelected = isSameDay(date, selected);
           const isToday = isSameDay(date, today);
+          const dayNum = date.getDate();
 
           return (
             <button
               key={date.toISOString()}
               type="button"
+              data-day={dayNum}
               disabled={disabled}
               aria-label={date.toDateString()}
               aria-pressed={isSelected}
               onClick={() => onSelect?.(date)}
+              onKeyDown={(e) => handleDayKeyDown(e, dayNum)}
               className={cn(
                 'inline-flex h-8 w-8 items-center justify-center rounded-[var(--wdr-radius-md)] text-xs font-medium tabular-nums transition-colors',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -142,7 +168,7 @@ export function Calendar({
                     : 'text-foreground hover:bg-muted'
               )}
             >
-              {date.getDate()}
+              {dayNum}
             </button>
           );
         })}

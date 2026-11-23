@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
 
 export type GridColumns = 1 | 2 | 3 | 4 | 6 | 12;
 export type GridGap = 2 | 3 | 4 | 6 | 8;

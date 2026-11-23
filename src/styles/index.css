@@ -30,7 +30,7 @@
   --color-destructive-hover: var(--wdr-destructive-hover);
   --color-destructive-foreground: var(--wdr-destructive-foreground);
   --color-destructive-subtle: var(--wdr-destructive-subtle);
-  --wdr-destructive-subtle-foreground: var(--wdr-destructive-subtle-foreground);
+  --color-destructive-subtle-foreground: var(--wdr-destructive-subtle-foreground);
 
   --color-muted: var(--wdr-muted);
   --color-muted-foreground: var(--wdr-muted-foreground);

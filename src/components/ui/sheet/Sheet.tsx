@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
 import { Drawer, type DrawerPlacement } from '../drawer';
 
 export type SheetSize = 'sm' | 'md' | 'lg' | 'xl';

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { RotateCcw } from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { Button } from '@/components/ui/button';
-import { Select, type SelectOption } from '@/components/ui/select';
+import { cn } from '../../../utils/cn';
+import { Button } from '../../ui/button';
+import { Select, type SelectOption } from '../../ui/select';
 import { SearchBar } from '../search-bar';
 
 export interface FilterGroup {

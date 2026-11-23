@@ -64,3 +64,24 @@ export const InlineVariant: Story = {
     </div>
   ),
 };
+
+export const DarkTheme: Story = {
+  render: () => (
+    <div
+      className="dark max-w-md rounded-[var(--wdr-radius-lg)] border border-border bg-background p-6 text-foreground"
+      data-theme="dark"
+    >
+      <UserProfile
+        variant="card"
+        name="Ananya Rao"
+        role="Principal Systems Lead"
+        department="Wendoro Platform"
+        email="ananya@wendoro.in"
+        status="online"
+        statusBadge="completed"
+        statusLabel="Verified"
+        contactHref="mailto:ananya@wendoro.in"
+      />
+    </div>
+  ),
+};

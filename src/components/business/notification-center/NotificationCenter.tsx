@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { Bell, CheckCheck } from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/ui/empty-state';
-import { Notification, type NotificationTone } from '@/components/ui/notification';
-import { Popover } from '@/components/ui/popover';
+import { cn } from '../../../utils/cn';
+import { Button } from '../../ui/button';
+import { EmptyState } from '../../ui/empty-state';
+import { Notification, type NotificationTone } from '../../ui/notification';
+import { Popover } from '../../ui/popover';
 
 export interface NotificationCenterItem {
   id: string;

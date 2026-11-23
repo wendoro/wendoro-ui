@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Bell, CheckCircle2, AlertTriangle, AlertCircle, X } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
 
 export type NotificationTone = 'neutral' | 'success' | 'warning' | 'destructive';
 

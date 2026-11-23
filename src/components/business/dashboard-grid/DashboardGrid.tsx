@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
 
 export interface DashboardGridProps extends React.HTMLAttributes<HTMLDivElement> {
   gap?: 'sm' | 'md' | 'lg';

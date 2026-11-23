@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../utils/cn';
 import { Calendar } from '../calendar';
 import { Popover } from '../popover';
 

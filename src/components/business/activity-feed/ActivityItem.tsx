@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { cn } from '@/utils/cn';
-import { Avatar } from '@/components/ui/avatar';
-import { StatusBadge, type BusinessStatus } from '@/components/business/status-badge';
+import { cn } from '../../../utils/cn';
+import { Avatar } from '../../ui/avatar';
+import { StatusBadge, type BusinessStatus } from '../status-badge';
 
 export interface ActivityItemProps extends React.HTMLAttributes<HTMLLIElement> {
   actor: string;
@@ -12,6 +12,7 @@ export interface ActivityItemProps extends React.HTMLAttributes<HTMLLIElement> {
   target?: string;
   source?: string;
   timestamp: string;
+  dateTime?: string;
   amount?: string;
   status?: BusinessStatus;
   statusLabel?: string;
@@ -29,6 +30,7 @@ export function ActivityItem({
   target,
   source,
   timestamp,
+  dateTime,
   amount,
   status,
   statusLabel,
@@ -42,7 +44,7 @@ export function ActivityItem({
   const metaContent = metadata ?? detail;
 
   return (
-    <li className={cn('relative flex gap-3 pb-5 last:pb-0', className)} {...props}>
+    <li className={cn('group relative flex gap-3 pb-5 last:pb-0', className)} {...props}>
       <div className="relative flex flex-col items-center">
         {icon ? (
           <div
@@ -54,7 +56,7 @@ export function ActivityItem({
         ) : (
           <Avatar src={actorAvatar} alt={actor} size="sm" />
         )}
-        <span aria-hidden="true" className="mt-1.5 w-px flex-1 bg-border" />
+        <span aria-hidden="true" className="mt-1.5 w-px flex-1 bg-border group-last:hidden" />
       </div>
 
       <div className="min-w-0 flex-1 space-y-1 pt-0.5">
@@ -69,7 +71,10 @@ export function ActivityItem({
               </>
             )}
           </p>
-          <time className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">
+          <time
+            dateTime={dateTime}
+            className="text-xs text-muted-foreground whitespace-nowrap tabular-nums"
+          >
             {timestamp}
           </time>
         </div>
