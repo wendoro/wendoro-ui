@@ -108,12 +108,11 @@ describe('Business Components & Wendoro Team Showcase', () => {
     );
 
     expect(screen.getByText('Demo data — illustrative component preview only.')).toBeInTheDocument();
-    expect(screen.getByText('Ananya Rao')).toBeInTheDocument();
+    expect(screen.getAllByText('Suraj Singh').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Sumita Singh').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Founder · Wendoro')).toHaveLength(2);
     expect(screen.getByText('#SL-4092')).toBeInTheDocument();
     expect(screen.getByText('$48,200 cleared')).toBeInTheDocument();
-    expect(screen.getByText('Rohan Mehta')).toBeInTheDocument();
-    expect(screen.getByText('Sumita Singh')).toBeInTheDocument();
-    expect(screen.getByText('Suraj Singh')).toBeInTheDocument();
   });
 
   it('sorts DataTable columns, selects rows, and handles empty state', async () => {

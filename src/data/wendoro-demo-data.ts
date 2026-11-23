@@ -41,8 +41,8 @@ export const WENDORO_TEAM_MEMBERS: TeamMember[] = [
 export const WENDORO_DEMO_ACTIVITY: ActivityFeedEntry[] = [
   {
     id: 'demo-act-1',
-    actor: 'Ananya Rao',
-    actorSubtitle: 'Principal Systems Lead · Wendoro Platform',
+    actor: 'Suraj Singh',
+    actorSubtitle: 'Founder · Wendoro',
     action: 'approved settlement batch',
     entity: '#SL-4092',
     source: 'Wendoro Commerce',
@@ -53,8 +53,8 @@ export const WENDORO_DEMO_ACTIVITY: ActivityFeedEntry[] = [
   },
   {
     id: 'demo-act-2',
-    actor: 'Rohan Mehta',
-    actorSubtitle: 'Wendoro',
+    actor: 'Sumita Singh',
+    actorSubtitle: 'Founder · Wendoro',
     action: 'updated a routing rule in',
     entity: 'Wendoro Flow',
     source: 'Wendoro Flow',
