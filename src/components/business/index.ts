@@ -8,4 +8,5 @@ export * from './notification-center';
 export * from './page-header';
 export * from './search-bar';
 export * from './status-badge';
+export * from './team-directory';
 export * from './user-profile';

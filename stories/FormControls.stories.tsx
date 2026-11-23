@@ -90,6 +90,10 @@ function AllControlsDemo() {
           onValueChange={setSlaTarget}
           formatValue={(v) => `${v}%`}
         />
+
+        <FormField label="Read-only / Disabled Control" hint="Locked by workspace policy.">
+          <Input defaultValue="wendoro-prod-01" disabled />
+        </FormField>
       </div>
   );
 }

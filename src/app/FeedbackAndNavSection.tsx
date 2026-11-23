@@ -21,13 +21,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/toast';
 import { Tooltip } from '@/components/ui/tooltip';
 
-const TEAM_MEMBERS = [
-  { id: '1', src: '/src/assets/images/avatar_product_lead_1795446315491.jpg', alt: 'Ananya Rao' },
-  { id: '2', src: '/src/assets/images/avatar_systems_architect_1795446316565.jpg', alt: 'Rohan Mehta' },
-  { id: '3', src: '/src/assets/images/avatar_design_director_1795446316268.jpg', alt: 'Clara Lindqvist' },
-  { id: '4', alt: 'Vikram Nair' },
-  { id: '5', alt: 'Meera Kapoor' },
-];
+import { WENDORO_TEAM_MEMBERS } from '@/data/wendoro-demo-data';
+
+const TEAM_AVATARS = WENDORO_TEAM_MEMBERS.map((member) => ({
+  id: member.id,
+  alt: member.name,
+}));
 
 export function FeedbackAndNavSection() {
   const { toast } = useToast();
@@ -143,7 +142,7 @@ export function FeedbackAndNavSection() {
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-4">
-              <AvatarGroup items={TEAM_MEMBERS} max={3} />
+              <AvatarGroup items={TEAM_AVATARS} max={4} />
               <div className="flex items-center gap-2">
                 <Tooltip content="View workspace documentation">
                   <Button variant="outline" size="sm" leftIcon={<Info className="h-3.5 w-3.5" />}>
@@ -291,10 +290,10 @@ export function FeedbackAndNavSection() {
       >
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <Avatar src="/src/assets/images/avatar_product_lead_1795446315491.jpg" alt="Ananya Rao" status="online" />
+            <Avatar alt="Ananya Rao" status="online" />
             <div>
-              <div className="text-sm font-semibold">Maintainer: Ananya Rao</div>
-              <div className="text-xs text-muted-foreground">Design Systems Engineering</div>
+              <div className="text-sm font-semibold">Ananya Rao</div>
+              <div className="text-xs text-muted-foreground">Principal Systems Lead · Wendoro Platform</div>
             </div>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">

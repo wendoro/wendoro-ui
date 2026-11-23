@@ -22,6 +22,20 @@ const placementClasses: Record<DrawerPlacement, string> = {
   bottom: 'inset-x-0 bottom-0 w-full max-h-[85vh] border-t',
 };
 
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  const selectors = [
+    'a[href]',
+    'button:not([disabled])',
+    'textarea:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+  ].join(',');
+  return Array.from(container.querySelectorAll<HTMLElement>(selectors)).filter(
+    (el) => !el.hasAttribute('disabled')
+  );
+}
+
 export function Drawer({
   open,
   onOpenChange,
@@ -33,6 +47,29 @@ export function Drawer({
 }: DrawerProps) {
   const titleId = useStableId(undefined, 'wdr-drawer-title');
   const descId = useStableId(undefined, 'wdr-drawer-desc');
+  const drawerRef = React.useRef<HTMLDivElement>(null);
+  const previousFocusRef = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    if (!open) return;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+
+    const timer = window.setTimeout(() => {
+      if (drawerRef.current) {
+        const focusables = getFocusableElements(drawerRef.current);
+        if (focusables.length > 0) {
+          focusables[0].focus();
+        } else {
+          drawerRef.current.focus();
+        }
+      }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+      previousFocusRef.current?.focus();
+    };
+  }, [open]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -40,6 +77,24 @@ export function Drawer({
       if (e.key === 'Escape') {
         e.preventDefault();
         onOpenChange(false);
+        return;
+      }
+
+      if (e.key === 'Tab' && drawerRef.current) {
+        const focusables = getFocusableElements(drawerRef.current);
+        if (focusables.length === 0) {
+          e.preventDefault();
+          return;
+        }
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
     document.addEventListener('keydown', handleKey);
@@ -56,12 +111,14 @@ export function Drawer({
         className="fixed inset-0 bg-black/55 backdrop-blur-[2px]"
       />
       <div
+        ref={drawerRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
         aria-describedby={description ? descId : undefined}
+        tabIndex={-1}
         className={cn(
-          'fixed z-10 flex flex-col border-border bg-surface-elevated text-foreground shadow-[var(--wdr-shadow-lg)]',
+          'fixed z-10 flex flex-col border-border bg-surface-elevated text-foreground shadow-[var(--wdr-shadow-lg)] focus:outline-none',
           placementClasses[placement],
           className
         )}

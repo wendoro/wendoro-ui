@@ -35,9 +35,9 @@ const INITIAL_NOTIFICATIONS: NotificationCenterItem[] = [
   },
   {
     id: 'n2',
-    title: 'Invoice approval pending',
-    description: 'Kaveri Logistics order #INV-1042 awaiting dual sign-off.',
-    timestamp: '22m ago',
+    title: 'Sample routing rule updated',
+    description: 'Rohan Mehta updated dual-control payout sign-off in Wendoro Flow (demo).',
+    timestamp: '34m ago',
     source: 'Wendoro Flow',
     tone: 'warning',
     unread: true,

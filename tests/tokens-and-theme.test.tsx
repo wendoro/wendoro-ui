@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ThemeProvider, useTheme } from '@/hooks/use-theme';
 import { brandColors, radius, spacing, typographyScale } from '@/tokens';
 
@@ -12,13 +12,14 @@ function ThemeProbe() {
       <span data-testid="resolved-theme">{resolvedTheme}</span>
       <button onClick={() => setTheme('dark')}>Set Dark</button>
       <button onClick={() => setTheme('light')}>Set Light</button>
+      <button onClick={() => setTheme('system')}>Set System</button>
       <button onClick={toggleTheme}>Toggle</button>
     </div>
   );
 }
 
 describe('Design Tokens & Theming', () => {
-  it('defines all Wendoro brand colors accurately', () => {
+  it('defines all Wendoro brand colors accurately without forbidden hues', () => {
     expect(brandColors.primaryYellow).toBe('#FACC15');
     expect(brandColors.primaryRed).toBe('#DC2626');
     expect(brandColors.deepBlack).toBe('#111111');
@@ -53,10 +54,12 @@ describe('Design Tokens & Theming', () => {
     ]);
   });
 
-  it('switches between light and dark themes without reloading', async () => {
+  it('switches between light and dark themes and persists under a custom storageKey', async () => {
     const user = userEvent.setup();
+    window.localStorage.removeItem('custom-wdr-theme');
+
     render(
-      <ThemeProvider defaultTheme="light">
+      <ThemeProvider defaultTheme="light" storageKey="custom-wdr-theme">
         <ThemeProbe />
       </ThemeProvider>
     );
@@ -69,8 +72,47 @@ describe('Design Tokens & Theming', () => {
     expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark');
     expect(document.documentElement).toHaveClass('dark');
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+    expect(window.localStorage.getItem('custom-wdr-theme')).toBe('dark');
 
     await user.click(screen.getByRole('button', { name: 'Toggle' }));
     expect(screen.getByTestId('resolved-theme')).toHaveTextContent('light');
+    expect(window.localStorage.getItem('custom-wdr-theme')).toBe('light');
+  });
+
+  it('reacts to OS system preference changes in system mode', () => {
+    let changeHandler: ((event: MediaQueryListEvent) => void) | undefined;
+    const originalMatchMedia = window.matchMedia;
+
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: (_event: string, cb: (e: MediaQueryListEvent) => void) => {
+        changeHandler = cb;
+      },
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    window.localStorage.removeItem('system-test-key');
+    render(
+      <ThemeProvider defaultTheme="system" storageKey="system-test-key">
+        <ThemeProbe />
+      </ThemeProvider>
+    );
+
+    expect(screen.getByTestId('theme-mode')).toHaveTextContent('system');
+    expect(screen.getByTestId('resolved-theme')).toHaveTextContent('light');
+
+    act(() => {
+      changeHandler?.({ matches: true } as MediaQueryListEvent);
+    });
+
+    expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark');
+    expect(document.documentElement).toHaveClass('dark');
+
+    window.matchMedia = originalMatchMedia;
   });
 });

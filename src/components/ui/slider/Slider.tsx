@@ -99,14 +99,15 @@ export const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
             disabled={disabled}
             onChange={handleChange}
             className={cn(
-              'absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed'
+              'peer absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed'
             )}
             {...props}
           />
           <span
             aria-hidden="true"
             className={cn(
-              'pointer-events-none absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-foreground bg-primary shadow-xs transition-transform duration-100'
+              'pointer-events-none absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-foreground bg-primary shadow-xs transition-transform duration-100',
+              'peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background'
             )}
             style={{ left: `${percentage}%` }}
           />

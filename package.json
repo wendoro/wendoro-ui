@@ -19,10 +19,13 @@
       "import": "./dist/lib/wendoro-ui.js",
       "require": "./dist/lib/wendoro-ui.cjs"
     },
-    "./styles.css": "./src/styles/index.css",
+    "./styles.css": "./dist/lib/styles.css",
+    "./themes/light.css": "./src/themes/light.css",
+    "./themes/dark.css": "./src/themes/dark.css",
     "./tokens": {
       "types": "./dist/lib/tokens/index.d.ts",
-      "import": "./dist/lib/tokens/index.js"
+      "import": "./dist/lib/tokens/index.js",
+      "require": "./dist/lib/tokens/index.cjs"
     }
   },
   "files": [
@@ -48,13 +51,11 @@
     "build-storybook": "storybook build"
   },
   "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react": ">=18.0.0 <20.0.0",
+    "react-dom": ">=18.0.0 <20.0.0"
   },
   "dependencies": {
-    "lucide-react": "^0.469.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "lucide-react": "^0.469.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
@@ -66,12 +67,15 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^26.6.6",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.18.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "jsdom": "^25.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "storybook": "^8.5.8",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2",

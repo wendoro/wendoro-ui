@@ -75,9 +75,10 @@ export function NotificationCenter({
       <div className="flex items-center gap-1 border-b border-border px-4 py-2 bg-muted/40">
         <button
           type="button"
+          aria-pressed={filter === 'all'}
           onClick={() => setFilter('all')}
           className={cn(
-            'rounded-[var(--wdr-radius-small,4px)] px-2.5 py-1 text-xs font-medium transition-colors',
+            'rounded-[var(--wdr-radius-small,4px)] px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             filter === 'all' ? 'bg-surface text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
           )}
         >
@@ -85,9 +86,10 @@ export function NotificationCenter({
         </button>
         <button
           type="button"
+          aria-pressed={filter === 'unread'}
           onClick={() => setFilter('unread')}
           className={cn(
-            'rounded-[var(--wdr-radius-small,4px)] px-2.5 py-1 text-xs font-medium transition-colors',
+            'rounded-[var(--wdr-radius-small,4px)] px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             filter === 'unread' ? 'bg-surface text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
           )}
         >

@@ -9,10 +9,12 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, 'src'),
     },
+    dedupe: ['react', 'react-dom'],
   },
   build: {
     outDir: 'dist/lib',
     emptyOutDir: false,
+    cssCodeSplit: false,
     lib: {
       entry: {
         index: path.resolve(__dirname, 'src/index.ts'),
@@ -20,6 +22,7 @@ export default defineConfig({
       },
       name: 'WendoroUI',
       formats: ['es', 'cjs'],
+      cssFileName: 'styles',
       fileName: (format, entryName) => {
         if (entryName === 'tokens') {
           return format === 'es' ? 'tokens/index.js' : 'tokens/index.cjs';

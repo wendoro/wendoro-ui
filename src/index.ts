@@ -1,3 +1,5 @@
+import './styles/index.css';
+
 export * from './tokens';
 export * from './hooks';
 export * from './utils';
