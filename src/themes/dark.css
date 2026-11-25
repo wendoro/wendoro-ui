@@ -26,7 +26,7 @@
 
   /* Destructive (Wendoro Red) */
   --wdr-destructive: #DC2626;
-  --wdr-destructive-hover: #EF4444;
+  --wdr-destructive-hover: #B91C1C;
   --wdr-destructive-foreground: #FFFFFF;
   --wdr-destructive-subtle: rgba(220, 38, 38, 0.18);
   --wdr-destructive-subtle-foreground: #FCA5A5;
@@ -37,6 +37,15 @@
   --wdr-border: #2E2E2E;
   --wdr-input: #3D3D3D;
   --wdr-ring: #FACC15;
+
+  /* Interactive States */
+  --wdr-disabled: #1E1E1E;
+  --wdr-disabled-foreground: #A3A3A0;
+  --wdr-focus: #FACC15;
+  --wdr-hover: #242424;
+  --wdr-selected: rgba(250, 204, 21, 0.16);
+  --wdr-selected-foreground: #FAFAF7;
+  --wdr-active: #2E2E2E;
 
   /* Semantic Status (no blue/purple/indigo/teal) */
   --wdr-success: #22C55E;

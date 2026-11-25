@@ -93,7 +93,7 @@ export function TabsList({ className, children, ...props }: TabsListProps) {
       role="tablist"
       onKeyDown={handleKeyDown}
       className={cn(
-        'inline-flex items-center',
+        'inline-flex max-w-full items-center overflow-x-auto',
         ctx?.variant === 'segment'
           ? 'gap-1 rounded-[var(--wdr-radius-md)] bg-muted p-1'
           : 'w-full gap-6 border-b border-border',

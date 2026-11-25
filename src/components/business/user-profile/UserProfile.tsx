@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Mail, MoreVertical } from 'lucide-react';
 import { cn } from '../../../utils/cn';
+import { sanitizeUrl } from '../../../utils/url';
 import { Avatar, type AvatarProps } from '../../ui/avatar';
 import { Button, IconButton } from '../../ui/button';
 import { DropdownMenu, type DropdownMenuItem } from '../../ui/dropdown';
@@ -45,7 +46,8 @@ export function UserProfile({
 }: UserProfileProps) {
   const roleLine = [role, department].filter(Boolean).join(' · ');
   const secondaryLine = roleLine || affiliation;
-  const hasContact = Boolean(onContact || contactHref);
+  const safeContactHref = contactHref ? sanitizeUrl(contactHref) : undefined;
+  const hasContact = Boolean(onContact || safeContactHref);
 
   return (
     <div
@@ -79,9 +81,10 @@ export function UserProfile({
           )}
           {hasContact && (
             <div className="pt-2">
-              {contactHref ? (
+              {safeContactHref ? (
                 <a
-                  href={contactHref}
+                  href={safeContactHref}
+                  onClick={onContact}
                   className="inline-flex items-center gap-1.5 rounded-[var(--wdr-radius-md)] border border-border bg-surface px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <Mail className="h-3.5 w-3.5" aria-hidden="true" />

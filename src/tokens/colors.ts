@@ -53,6 +53,13 @@ export const semanticColorTokens = {
   infoSubtleForeground: 'var(--wdr-info-subtle-foreground)',
   surface: 'var(--wdr-surface)',
   surfaceElevated: 'var(--wdr-surface-elevated)',
+  disabled: 'var(--wdr-disabled)',
+  disabledForeground: 'var(--wdr-disabled-foreground)',
+  focus: 'var(--wdr-focus)',
+  hover: 'var(--wdr-hover)',
+  selected: 'var(--wdr-selected)',
+  selectedForeground: 'var(--wdr-selected-foreground)',
+  active: 'var(--wdr-active)',
 } as const;
 
 export type BrandColorKey = keyof typeof brandColors;

@@ -42,7 +42,7 @@ export function FilterBar({
       )}
       {...props}
     >
-      <div className="flex flex-1 flex-wrap items-center gap-2.5 min-w-[220px]">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2.5">
         {onSearchChange !== undefined && (
           <SearchBar
             value={searchValue ?? ''}

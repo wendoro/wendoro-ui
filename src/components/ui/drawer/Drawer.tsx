@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { X } from 'lucide-react';
 import { cn } from '../../../utils/cn';
+import { getFocusableElements } from '../../../utils/focus';
 import { useStableId } from '../../../hooks/use-id';
 
 export type DrawerPlacement = 'left' | 'right' | 'top' | 'bottom';
@@ -11,6 +12,7 @@ export interface DrawerProps {
   placement?: DrawerPlacement;
   title?: React.ReactNode;
   description?: React.ReactNode;
+  'aria-label'?: string;
   children: React.ReactNode;
   className?: string;
 }
@@ -22,28 +24,13 @@ const placementClasses: Record<DrawerPlacement, string> = {
   bottom: 'inset-x-0 bottom-0 w-full max-h-[85vh] border-t',
 };
 
-function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  const selectors = [
-    'a[href]',
-    'button:not([disabled])',
-    'textarea:not([disabled])',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
-  ].join(',');
-  return Array.from(container.querySelectorAll<HTMLElement>(selectors)).filter((el) => {
-    if (el.hasAttribute('disabled') || el.closest('[hidden]')) return false;
-    const style = window.getComputedStyle(el);
-    return style.display !== 'none' && style.visibility !== 'hidden';
-  });
-}
-
 export function Drawer({
   open,
   onOpenChange,
   placement = 'right',
   title,
   description,
+  'aria-label': ariaLabel,
   children,
   className,
 }: DrawerProps) {
@@ -53,8 +40,10 @@ export function Drawer({
   const previousFocusRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open || typeof document === 'undefined') return;
     previousFocusRef.current = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
     const timer = window.setTimeout(() => {
       if (drawerRef.current) {
@@ -69,6 +58,7 @@ export function Drawer({
 
     return () => {
       window.clearTimeout(timer);
+      document.body.style.overflow = prevOverflow;
       if (previousFocusRef.current?.isConnected) {
         previousFocusRef.current.focus();
       }
@@ -76,7 +66,7 @@ export function Drawer({
   }, [open]);
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open || typeof document === 'undefined') return;
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -88,14 +78,19 @@ export function Drawer({
         const focusables = getFocusableElements(drawerRef.current);
         if (focusables.length === 0) {
           e.preventDefault();
+          drawerRef.current.focus();
           return;
         }
         const first = focusables[0];
         const last = focusables[focusables.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
+        const active = document.activeElement;
+        if (active === drawerRef.current || !drawerRef.current.contains(active)) {
+          e.preventDefault();
+          (e.shiftKey ? last : first).focus();
+        } else if (e.shiftKey && active === first) {
           e.preventDefault();
           last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
+        } else if (!e.shiftKey && active === last) {
           e.preventDefault();
           first.focus();
         }
@@ -118,6 +113,7 @@ export function Drawer({
         ref={drawerRef}
         role="dialog"
         aria-modal="true"
+        aria-label={!title ? ariaLabel ?? 'Drawer' : ariaLabel}
         aria-labelledby={title ? titleId : undefined}
         aria-describedby={description ? descId : undefined}
         tabIndex={-1}

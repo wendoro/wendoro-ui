@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cn } from '../../../utils/cn';
+import { sanitizeImageUrl } from '../../../utils/url';
 
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
@@ -35,8 +36,14 @@ function getInitials(name: string): string {
 
 export const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
   ({ src, alt, fallback, size = 'md', status, className, ...props }, ref) => {
+    const safeSrc = sanitizeImageUrl(src);
     const [imgError, setImgError] = React.useState(false);
-    const showImage = Boolean(src && !imgError);
+
+    React.useEffect(() => {
+      setImgError(false);
+    }, [safeSrc]);
+
+    const showImage = Boolean(safeSrc && !imgError);
     const initials = fallback ?? getInitials(alt);
 
     return (
@@ -53,7 +60,7 @@ export const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         >
           {showImage ? (
             <img
-              src={src}
+              src={safeSrc}
               alt={alt}
               referrerPolicy="no-referrer"
               onError={() => setImgError(true)}
@@ -65,6 +72,7 @@ export const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         </div>
         {status && (
           <span
+            role="img"
             aria-label={`Status: ${status}`}
             title={status}
             className={cn(

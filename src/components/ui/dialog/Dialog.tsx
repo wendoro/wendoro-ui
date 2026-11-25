@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { X } from 'lucide-react';
 import { cn } from '../../../utils/cn';
+import { getFocusableElements } from '../../../utils/focus';
 import { useStableId } from '../../../hooks/use-id';
 
 export type DialogSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -10,6 +11,7 @@ export interface DialogProps {
   onOpenChange: (open: boolean) => void;
   title?: React.ReactNode;
   description?: React.ReactNode;
+  'aria-label'?: string;
   size?: DialogSize;
   closeOnOverlayClick?: boolean;
   showCloseButton?: boolean;
@@ -24,27 +26,12 @@ const sizeClasses: Record<DialogSize, string> = {
   xl: 'max-w-4xl',
 };
 
-function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  const selectors = [
-    'a[href]',
-    'button:not([disabled])',
-    'textarea:not([disabled])',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
-  ].join(',');
-  return Array.from(container.querySelectorAll<HTMLElement>(selectors)).filter((el) => {
-    if (el.hasAttribute('disabled') || el.closest('[hidden]')) return false;
-    const style = window.getComputedStyle(el);
-    return style.display !== 'none' && style.visibility !== 'hidden';
-  });
-}
-
 export function Dialog({
   open,
   onOpenChange,
   title,
   description,
+  'aria-label': ariaLabel,
   size = 'md',
   closeOnOverlayClick = true,
   showCloseButton = true,
@@ -57,8 +44,10 @@ export function Dialog({
   const previousFocusRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open || typeof document === 'undefined') return;
     previousFocusRef.current = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
     const timer = window.setTimeout(() => {
       if (dialogRef.current) {
@@ -73,6 +62,7 @@ export function Dialog({
 
     return () => {
       window.clearTimeout(timer);
+      document.body.style.overflow = prevOverflow;
       if (previousFocusRef.current?.isConnected) {
         previousFocusRef.current.focus();
       }
@@ -80,7 +70,7 @@ export function Dialog({
   }, [open]);
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open || typeof document === 'undefined') return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -93,14 +83,19 @@ export function Dialog({
         const focusables = getFocusableElements(dialogRef.current);
         if (focusables.length === 0) {
           event.preventDefault();
+          dialogRef.current.focus();
           return;
         }
         const first = focusables[0];
         const last = focusables[focusables.length - 1];
-        if (event.shiftKey && document.activeElement === first) {
+        const active = document.activeElement;
+        if (active === dialogRef.current || !dialogRef.current.contains(active)) {
+          event.preventDefault();
+          (event.shiftKey ? last : first).focus();
+        } else if (event.shiftKey && active === first) {
           event.preventDefault();
           last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
+        } else if (!event.shiftKey && active === last) {
           event.preventDefault();
           first.focus();
         }
@@ -124,11 +119,12 @@ export function Dialog({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
+        aria-label={!title ? ariaLabel ?? 'Dialog' : ariaLabel}
         aria-labelledby={title ? titleId : undefined}
         aria-describedby={description ? descId : undefined}
         tabIndex={-1}
         className={cn(
-          'relative z-10 w-full rounded-[var(--wdr-radius-lg)] border border-border bg-surface-elevated p-6 text-foreground shadow-[var(--wdr-shadow-lg)]',
+          'relative z-10 w-full max-h-[calc(100vh-2rem)] overflow-y-auto rounded-[var(--wdr-radius-lg)] border border-border bg-surface-elevated p-6 text-foreground shadow-[var(--wdr-shadow-lg)]',
           'focus:outline-none',
           sizeClasses[size],
           className

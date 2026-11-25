@@ -44,21 +44,29 @@ export function App() {
 
 ---
 
-## Theming
+## Theming & Scoped Isolation
 
-Switch between `light`, `dark`, and `system` themes at runtime without reloading via `useTheme()`. All components read semantic CSS variables (`--wdr-background`, `--wdr-surface`, `--wdr-primary`, `--wdr-border`, etc.) rather than hardcoded hex values.
+Switch between `light`, `dark`, and `system` themes at runtime without reloading via `useTheme()`. All components read semantic CSS variables (`--wdr-background`, `--wdr-surface`, `--wdr-primary`, `--wdr-border`, `--wdr-hover`, `--wdr-selected`, `--wdr-disabled`, etc.) rather than hardcoded hex values.
+
+For multi-consumer pages or embedded widgets, `<ThemeProvider scoped disableStorage>` applies theme attributes to a local container instead of `document.documentElement`.
+
+---
+
+## Architectural Separation (`@wendoro/ui` vs `@wendoro/sdk`)
+
+`@wendoro/ui` is strictly a presentation library. Product applications import UI components from `@wendoro/ui` and API clients from `@wendoro/sdk` as separate dependencies, passing fetched data, loading states, and error callbacks into UI props.
 
 ---
 
 ## Component Architecture
 
-- **Core**: `Button`, `IconButton`, `Input`, `Textarea`, `Label`, `Select`, `Checkbox`, `Radio`, `Switch`, `Slider`
-- **Feedback**: `Alert`, `Badge`, `Toast`, `Notification`, `Progress`, `Skeleton`, `Spinner`
+- **Core**: `Button`, `IconButton`, `Input`, `Textarea`, `Label`, `Select`, `Checkbox`, `Radio`, `RadioGroup`, `Switch`, `Slider`
+- **Feedback**: `Alert`, `Badge`, `ToastProvider`, `useToast`, `Notification`, `Progress`, `Skeleton`, `Spinner`
 - **Layout**: `Card`, `Separator`, `Container`, `Stack`, `Grid`, `Dialog`, `Drawer`, `Sheet`
 - **Navigation**: `Tabs`, `Breadcrumb`, `Pagination`, `Sidebar`, `DropdownMenu`, `NavigationMenu`
 - **Data Display**: `Avatar`, `AvatarGroup`, `Table`, `EmptyState`, `Tooltip`, `Popover`
 - **Advanced**: `CommandPalette`, `Calendar`, `DatePicker`, `Accordion`, `Collapsible`, `FormField`
-- **Business Patterns**: `MetricCard`, `KpiCard`, `StatusBadge`, `UserProfile`, `ActivityItem`, `ActivityFeed`, `DataTable`, `SearchBar`, `FilterBar`, `PageHeader`, `DashboardGrid`, `NotificationCenter`
+- **Business Patterns**: `MetricCard`, `KpiCard`, `StatusBadge`, `UserProfile`, `TeamDirectory`, `ActivityItem`, `ActivityFeed`, `DataTable`, `SearchBar`, `FilterBar`, `PageHeader`, `DashboardGrid`, `NotificationCenter`
 
 ---
 

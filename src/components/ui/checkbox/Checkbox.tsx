@@ -94,6 +94,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             defaultChecked={!isControlled ? defaultChecked : undefined}
             disabled={disabled}
             aria-invalid={error || undefined}
+            aria-checked={indeterminate ? 'mixed' : undefined}
             aria-describedby={descriptionId}
             onChange={handleChange}
             className="peer sr-only"

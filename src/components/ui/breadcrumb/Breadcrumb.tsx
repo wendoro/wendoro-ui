@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '../../../utils/cn';
+import { sanitizeUrl } from '../../../utils/url';
 
 export interface BreadcrumbItem {
   label: string;
@@ -19,6 +20,7 @@ export function Breadcrumb({ items, separator, className, ...props }: Breadcrumb
       <ol className="flex flex-wrap items-center gap-1.5 text-sm">
         {items.map((item, idx) => {
           const isLast = idx === items.length - 1;
+          const safeHref = item.href ? sanitizeUrl(item.href) : undefined;
           return (
             <li key={`${item.label}-${idx}`} className="inline-flex items-center gap-1.5">
               {idx > 0 && (
@@ -30,9 +32,9 @@ export function Breadcrumb({ items, separator, className, ...props }: Breadcrumb
                 <span aria-current="page" className="font-medium text-foreground">
                   {item.label}
                 </span>
-              ) : item.href ? (
+              ) : safeHref ? (
                 <a
-                  href={item.href}
+                  href={safeHref}
                   onClick={item.onClick}
                   className="text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-[var(--wdr-radius-small,4px)]"
                 >

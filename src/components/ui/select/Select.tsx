@@ -25,6 +25,8 @@ export interface SelectProps {
   name?: string;
   'aria-label'?: string;
   'aria-labelledby'?: string;
+  'aria-describedby'?: string;
+  'aria-required'?: boolean;
   className?: string;
 }
 
@@ -34,21 +36,26 @@ const sizeClasses: Record<SelectSize, string> = {
   lg: 'h-11 px-3.5 text-base',
 };
 
-export function Select({
-  options,
-  value,
-  defaultValue = '',
-  onValueChange,
-  placeholder = 'Select an option',
-  disabled = false,
-  error = false,
-  size = 'md',
-  id,
-  name,
-  'aria-label': ariaLabel,
-  'aria-labelledby': ariaLabelledBy,
-  className,
-}: SelectProps) {
+export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(function Select(
+  {
+    options,
+    value,
+    defaultValue = '',
+    onValueChange,
+    placeholder = 'Select an option',
+    disabled = false,
+    error = false,
+    size = 'md',
+    id,
+    name,
+    'aria-label': ariaLabel,
+    'aria-labelledby': ariaLabelledBy,
+    'aria-describedby': ariaDescribedBy,
+    'aria-required': ariaRequired,
+    className,
+  },
+  forwardedRef
+) {
   const triggerId = useStableId(id, 'wdr-select');
   const listboxId = `${triggerId}-listbox`;
 
@@ -58,7 +65,20 @@ export function Select({
   const [highlightedIndex, setHighlightedIndex] = React.useState<number>(-1);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null);
+  const optionRefs = React.useRef<Array<HTMLLIElement | null>>([]);
+
+  const setTriggerRef = React.useCallback(
+    (node: HTMLButtonElement | null) => {
+      triggerRef.current = node;
+      if (typeof forwardedRef === 'function') {
+        forwardedRef(node);
+      } else if (forwardedRef) {
+        forwardedRef.current = node;
+      }
+    },
+    [forwardedRef]
+  );
 
   const selectedOption = options.find((opt) => opt.value === currentValue);
 
@@ -77,7 +97,7 @@ export function Select({
   );
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open || typeof document === 'undefined') return;
     const handleOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setOpen(false);
@@ -86,6 +106,15 @@ export function Select({
     document.addEventListener('mousedown', handleOutside);
     return () => document.removeEventListener('mousedown', handleOutside);
   }, [open]);
+
+  React.useEffect(() => {
+    if (open && highlightedIndex >= 0) {
+      const el = optionRefs.current[highlightedIndex];
+      if (el && typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [highlightedIndex, open]);
 
   const findNextEnabledIndex = (start: number, direction: 1 | -1): number => {
     if (options.length === 0) return -1;
@@ -149,7 +178,7 @@ export function Select({
     <div ref={containerRef} className={cn('relative w-full', className)}>
       {name && <input type="hidden" name={name} value={currentValue} />}
       <button
-        ref={triggerRef}
+        ref={setTriggerRef}
         id={triggerId}
         type="button"
         role="combobox"
@@ -158,6 +187,8 @@ export function Select({
         aria-controls={listboxId}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
+        aria-describedby={ariaDescribedBy}
+        aria-required={ariaRequired}
         aria-invalid={error || undefined}
         aria-activedescendant={
           open && highlightedIndex >= 0 ? `${listboxId}-opt-${highlightedIndex}` : undefined
@@ -200,7 +231,8 @@ export function Select({
         <ul
           id={listboxId}
           role="listbox"
-          aria-labelledby={ariaLabelledBy ?? triggerId}
+          aria-label={!ariaLabelledBy ? ariaLabel : undefined}
+          aria-labelledby={ariaLabelledBy ?? (!ariaLabel ? triggerId : undefined)}
           className={cn(
             'absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-auto rounded-[var(--wdr-radius-md)] border border-border bg-surface-elevated p-1',
             'shadow-[var(--wdr-shadow-md)]'
@@ -215,6 +247,9 @@ export function Select({
               return (
                 <li
                   key={option.value}
+                  ref={(el) => {
+                    optionRefs.current[index] = el;
+                  }}
                   id={`${listboxId}-opt-${index}`}
                   role="option"
                   aria-selected={isSelected}
@@ -247,4 +282,6 @@ export function Select({
       )}
     </div>
   );
-}
+});
+
+Select.displayName = 'Select';

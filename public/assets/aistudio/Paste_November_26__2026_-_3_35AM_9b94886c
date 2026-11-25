@@ -1,0 +1,1082 @@
+# WENDORO UI — COMPREHENSIVE DESIGN SYSTEM AUDIT, HARDENING, IMPLEMENTATION & VERIFICATION
+
+## 1. ROLE AND OBJECTIVE
+
+Act as a principal frontend architect, design-system engineer, React/TypeScript library maintainer, accessibility specialist, UI security engineer and software quality auditor.
+
+Your task is to comprehensively audit, improve and verify the existing `@wendoro/ui` repository.
+
+This is an existing product foundation, not a greenfield rewrite.
+
+The objective is to make Wendoro UI a reliable, consistent, accessible, reusable and production-quality shared design system for the Wendoro ecosystem.
+
+Perform the audit and implement verified corrections in one pass wherever the available environment permits.
+
+Do not merely produce recommendations. Correct legitimate defects, add appropriate tests, improve documentation and verify the resulting package.
+
+---
+
+## 2. STRICT REPOSITORY BOUNDARIES
+
+### Repository permitted for modification
+
+`wendoro-ui`
+
+Repository:
+https://github.com/wendoro/wendoro-ui
+
+### Reference repositories — READ ONLY
+
+**Wendoro Platform**
+
+https://github.com/wendoro/wendoro-platform
+
+Reference commit:
+`7810cebacf73a6467c02c272c83227ea482e6624`
+
+**Wendoro SDK**
+
+https://github.com/wendoro/wendoro-sdk
+
+Latest independently verified commit:
+`2c73efd7b59f580fe6da8c6212e49a0c140b6ecd`
+
+These repositories may be inspected for architectural compatibility, but must not be modified.
+
+### Absolutely prohibited
+
+Do not:
+- Modify `wendoro-platform`.
+- Modify `wendoro-sdk`.
+- Modify `wendoro-infra`.
+- Modify `wendoro-docs`.
+- Modify any other Wendoro repository.
+- Change Firebase or Google Cloud resources.
+- Change Cloudflare, DNS or hosting.
+- Deploy any application.
+- Publish packages to npm.
+- Create releases or Git tags.
+- Change GitHub repository visibility.
+- Change organization or repository permissions.
+- Perform production migrations.
+- Introduce direct database connections into the UI library.
+
+Every implementation change must remain inside `wendoro-ui`.
+
+---
+
+## 3. ESTABLISH THE VERIFIED BASELINE
+
+The last independently inspected `main` commit is:
+
+`c8ac8b2da34cd0c0b4f0958c3442bc79d7b8d710`
+
+Its commit message describes:
+- Expanded semantic color tokens.
+- Integration test suite and CI pipeline updates.
+- UI component import-path refactoring.
+- Documentation and build-script updates.
+
+Verify the actual current workspace and GitHub state before making changes.
+
+Inspect:
+
+- `package.json`
+- `bun.lock`
+- `package-lock.json`, if present
+- `README.md`
+- `LICENSE`
+- `src/components`
+- `src/tokens`
+- `src/themes`
+- `src/styles`
+- `src/hooks`
+- `src/utils`
+- `src/data`
+- `stories`
+- `tests`
+- Vite configuration
+- TypeScript configuration
+- Vitest configuration
+- Storybook configuration
+- GitHub Actions workflows, if present
+
+The previously inspected repository tree contained no `.github/workflows` files and no `package-lock.json`, but did contain `bun.lock`. Recheck rather than assuming the current state is unchanged.
+
+Record the actual base commit and workspace state.
+
+Do not overwrite existing work.
+
+---
+
+## 4. ARCHITECTURAL POSITIONING
+
+Wendoro UI is the shared design system and reusable React component library for the Wendoro ecosystem.
+
+Its responsibilities include:
+
+- Brand identity and design tokens.
+- Shared typography and spacing.
+- Light, dark and system themes.
+- Accessible reusable components.
+- Layout and navigation primitives.
+- Business-oriented UI components.
+- Forms, feedback and data-display components.
+- Shared styling and component documentation.
+- External consumer compatibility.
+
+It is intended to serve products such as:
+- Wendoro Desk.
+- Wendoro Flow.
+- Wendoro Platform.
+- Wendoro Studio.
+- Wendoro Insights.
+- Wendoro Support.
+- Wendoro Commerce.
+- Wendoro People.
+
+Do not assume every product already exists or is production-ready.
+
+### Critical separation of responsibilities
+
+`@wendoro/ui` is a presentation library.
+
+`@wendoro/sdk` is the Platform API client.
+
+Product applications consume the UI library and the SDK as separate dependencies.
+
+Do not:
+- Add direct Platform API calls to UI components.
+- Add database clients.
+- Add Firebase initialization.
+- Add product-specific backend business logic.
+- Add tenant authorization logic to presentation components.
+- Couple UI components to a specific backend.
+- Add an unnecessary dependency on `@wendoro/sdk`.
+
+The UI must support normal React application patterns and remain independently usable.
+
+---
+
+## 5. BRAND IDENTITY AND DESIGN TOKEN AUDIT
+
+The existing documented Wendoro brand palette includes:
+
+- Primary Yellow: `#FACC15`
+- Primary Red: `#DC2626`
+- Deep Black: `#111111`
+- White: `#FFFFFF`
+- Warm White: `#FAFAF7`
+- Charcoal: `#242424`
+- Border Gray: `#E5E5E5`
+- Muted Gray: `#737373`
+
+The existing brand guidelines exclude blue, purple, indigo and teal as brand colors.
+
+Audit the entire repository for:
+- Hardcoded colors.
+- Inconsistent color definitions.
+- Duplicate tokens.
+- Missing semantic tokens.
+- Incorrect light/dark mappings.
+- Inconsistent component variants.
+- Inaccessible contrast.
+- Unintended Tailwind default colors.
+- Uncontrolled gradients.
+- Inconsistent borders, shadows and focus rings.
+
+Preserve the established brand identity.
+
+Do not introduce new brand colors without a clear documented reason.
+
+### Semantic token requirements
+
+Verify the availability and correct use of semantic tokens for:
+
+- Background.
+- Foreground.
+- Surface.
+- Elevated surface.
+- Muted foreground.
+- Border.
+- Input.
+- Ring.
+- Primary.
+- Secondary.
+- Destructive.
+- Success.
+- Warning.
+- Information.
+- Disabled.
+- Focus.
+- Hover.
+- Selected.
+- Active.
+
+Ensure that semantic tokens have appropriate light and dark values.
+
+Check consistency between:
+- TypeScript token definitions.
+- CSS custom properties.
+- Tailwind semantic utilities.
+- Component styles.
+- Storybook previews.
+
+Do not maintain multiple competing sources of truth.
+
+---
+
+## 6. THEME SYSTEM AUDIT
+
+Inspect:
+
+- `ThemeProvider`
+- `useTheme`
+- `src/themes/light.css`
+- `src/themes/dark.css`
+- Theme initialization.
+- System preference detection.
+- Theme persistence.
+- Theme switching.
+- Scoped theme support.
+
+Verify:
+
+1. Light theme works.
+2. Dark theme works.
+3. System theme follows `prefers-color-scheme`.
+4. Theme changes do not require page reloads.
+5. Theme persistence works where storage is available.
+6. Theme initialization avoids unnecessary flashing.
+7. Storage failures do not crash the application.
+8. Server-side rendering or non-browser environments do not crash.
+9. Multiple independent consumers do not create conflicting global theme state.
+10. Scoped theme behavior works as documented.
+11. All shared components respect semantic theme tokens.
+
+Do not assume browser APIs exist in every execution environment.
+
+Test localStorage failures and missing browser globals.
+
+Do not break the existing public `ThemeProvider` or `useTheme` API without clear justification.
+
+---
+
+## 7. COMPLETE COMPONENT INVENTORY AND QUALITY AUDIT
+
+Inspect every exported component.
+
+The documented catalog includes:
+
+### Core components
+- Button
+- IconButton
+- Input
+- Textarea
+- Label
+- Select
+- Checkbox
+- Radio
+- RadioGroup
+- Switch
+- Slider
+
+### Feedback components
+- Alert
+- Badge
+- ToastProvider
+- useToast
+- Notification
+- Progress
+- Skeleton
+- Spinner
+
+### Layout components
+- Card
+- Separator
+- Container
+- Stack
+- Grid
+- Dialog
+- Drawer
+- Sheet
+
+### Navigation components
+- Tabs
+- Breadcrumb
+- Pagination
+- Sidebar
+- DropdownMenu
+- NavigationMenu
+
+### Data-display components
+- Avatar
+- AvatarGroup
+- Table
+- EmptyState
+- Tooltip
+- Popover
+
+### Advanced components
+- CommandPalette
+- Calendar
+- DatePicker
+- Accordion
+- Collapsible
+- FormField
+
+### Business components
+- MetricCard
+- KpiCard
+- StatusBadge
+- UserProfile
+- TeamDirectory
+- ActivityItem
+- ActivityFeed
+- DataTable
+- SearchBar
+- FilterBar
+- PageHeader
+- DashboardGrid
+- NotificationCenter
+
+The actual source code is authoritative. Do not assume this list is complete or that every listed component is correctly implemented.
+
+Create a complete component inventory.
+
+For every component verify:
+
+- Correct public exports.
+- TypeScript prop definitions.
+- Consistent naming.
+- Sensible defaults.
+- Variant correctness.
+- Size variants.
+- Disabled behavior.
+- Loading behavior where appropriate.
+- Controlled and uncontrolled behavior.
+- Event callback correctness.
+- Keyboard interaction.
+- Focus behavior.
+- Screen-reader semantics.
+- Responsive layout.
+- Light/dark compatibility.
+- Error and empty states.
+- Styling consistency.
+- No unnecessary rerenders.
+- No console warnings.
+- No inaccessible interactions.
+
+Avoid unnecessary component rewrites.
+
+Preserve backwards compatibility wherever possible.
+
+---
+
+## 8. ACCESSIBILITY AUDIT
+
+Target WCAG 2.2 AA where applicable.
+
+Check:
+
+- Semantic HTML.
+- Accessible names.
+- Labels and descriptions.
+- Keyboard-only navigation.
+- Focus visibility.
+- Focus trapping.
+- Focus restoration.
+- Dialog and drawer semantics.
+- Escape-key behavior.
+- Menu keyboard navigation.
+- Tabs keyboard navigation.
+- Form error announcements.
+- Toast announcements.
+- Loading announcements.
+- Status announcements.
+- Color contrast.
+- Reduced motion.
+- Touch target sizes.
+- Screen-reader behavior.
+
+For overlays verify:
+- Correct dialog roles.
+- Accessible titles.
+- Focus containment.
+- Escape behavior.
+- Correct close behavior.
+- Focus restoration to the triggering element.
+- Background interaction prevention where appropriate.
+
+For tables verify:
+- Appropriate table semantics.
+- Accessible column headers.
+- Sortable header announcements.
+- Keyboard accessibility.
+- Empty state.
+- Loading state.
+- Responsive behavior.
+
+For status indicators, never rely on color alone.
+
+Add or improve automated accessibility tests.
+
+Where automated tools cannot establish actual assistive-technology behavior, clearly state that manual verification remains required.
+
+---
+
+## 9. BUSINESS COMPONENTS AND DATA INTEGRITY
+
+The business components must remain reusable presentation components.
+
+Audit:
+- MetricCard.
+- KpiCard.
+- StatusBadge.
+- UserProfile.
+- TeamDirectory.
+- ActivityItem.
+- ActivityFeed.
+- DataTable.
+- SearchBar.
+- FilterBar.
+- PageHeader.
+- DashboardGrid.
+- NotificationCenter.
+
+Verify:
+- Generic and reusable prop contracts.
+- Stable row keys.
+- Sorting behavior.
+- Filtering behavior.
+- Empty states.
+- Loading states.
+- Error states.
+- Pagination behavior.
+- Responsive layout.
+- Accessibility.
+- Consistent status variants.
+- No fabricated live business state.
+
+### Demo data
+
+Inspect:
+- `src/data/wendoro-demo-data.ts`
+- Storybook stories.
+- Test fixtures.
+- Consumer examples.
+
+The existing README says demo records must be clearly labeled and must not fabricate personal details or business transactions.
+
+Verify this policy throughout the repository.
+
+Replace unnecessary realistic personal details, emails, settlement amounts, transaction identifiers or sensitive-looking activity with clearly synthetic examples.
+
+Use labels such as:
+- Sample data.
+- Demo workspace.
+- Illustrative record.
+- Example activity.
+
+Never make demo records appear to be live Platform data.
+
+Do not introduce real user credentials, access tokens, organization IDs or production records.
+
+---
+
+## 10. RESPONSIVE DESIGN
+
+Audit components at representative viewport sizes:
+
+- 320px mobile.
+- 375px mobile.
+- 768px tablet.
+- 1024px laptop.
+- 1280px desktop.
+- 1440px large desktop.
+
+Check:
+- Horizontal overflow.
+- Table overflow.
+- Sidebar behavior.
+- Navigation collapse.
+- Dialog sizing.
+- Drawer sizing.
+- Form layouts.
+- Grid behavior.
+- Typography scaling.
+- Touch targets.
+- Long text wrapping.
+- Empty and loading layouts.
+
+Do not fix responsive problems by hiding important information.
+
+Preserve useful desktop density while ensuring mobile usability.
+
+---
+
+## 11. SECURITY AND COMPONENT ROBUSTNESS
+
+Although this is a frontend library, inspect for:
+
+- Unsafe HTML injection.
+- Unnecessary `dangerouslySetInnerHTML`.
+- Untrusted URL rendering.
+- Unsafe link targets.
+- Secret exposure.
+- Insecure storage assumptions.
+- Unsafe CSS injection.
+- Unvalidated dynamic styles.
+- Prototype pollution risks in utilities.
+- Unsafe object spreading.
+- Inappropriate use of browser globals.
+- Dependency vulnerabilities.
+
+Ensure components do not assume that arbitrary HTML or user-provided strings are trusted.
+
+Do not introduce authentication or authorization behavior into this library.
+
+Do not add API keys or environment secrets.
+
+---
+
+## 12. TYPESCRIPT AND PUBLIC API QUALITY
+
+Inspect all public exports and declaration generation.
+
+Verify:
+- Strict type safety.
+- No accidental `any`.
+- No unsafe public type assertions.
+- Correct generic component types.
+- Correct event handler types.
+- Correct React ref forwarding where expected.
+- Stable public prop contracts.
+- No internal path aliases in emitted declarations.
+- Correct token exports.
+- Correct component exports.
+- No missing declaration files.
+
+Check `src/index.ts` and every nested barrel export.
+
+Avoid exposing internal implementation details unnecessarily.
+
+Preserve tree-shaking compatibility.
+
+---
+
+## 13. PACKAGE AND DISTRIBUTION AUDIT
+
+The current package identity is:
+
+`@wendoro/ui`
+
+Previously inspected package metadata included:
+
+- Version: `0.1.0`
+- `"private": true`
+- React peer dependency: `>=18.0.0 <20.0.0`
+- React DOM peer dependency: `>=18.0.0 <20.0.0`
+- Runtime dependency: `lucide-react`
+- ESM and CJS library output.
+- TypeScript declarations.
+- Standalone CSS export.
+- Light and dark theme CSS exports.
+- Token subpath export.
+
+Verify all of these against the current files.
+
+Test:
+
+1. Main ESM import.
+2. Main CJS import.
+3. TypeScript declarations.
+4. `@wendoro/ui/styles.css`.
+5. `@wendoro/ui/themes/light.css`.
+6. `@wendoro/ui/themes/dark.css`.
+7. `@wendoro/ui/tokens`.
+8. Actual package tarball contents.
+9. External consumer compatibility.
+10. React peer dependency behavior.
+11. CSS loading without requiring consumers to configure Tailwind.
+12. No accidental packaging of tests, stories or showcase source.
+
+Do not change:
+- Package name.
+- Package version `0.1.0`, unless a verified technical reason requires it.
+- `"private": true`.
+- Release governance.
+- Package publication status.
+
+Do not publish the package.
+
+### License and repository visibility governance
+
+The current repository is publicly accessible and the package metadata and repository contain an MIT license declaration.
+
+Wendoro's broader software licensing strategy is proprietary with a selectively published Community Edition.
+
+This is a governance issue that must be explicitly documented.
+
+Do not:
+- Change repository visibility.
+- Remove or replace the LICENSE file.
+- Change the package license declaration.
+- Claim the library is proprietary or open source without legal confirmation.
+- Create a new license.
+
+Report the exact mismatch and recommend a separate explicit licensing decision before any public distribution.
+
+---
+
+## 14. SDK AND PLATFORM ARCHITECTURAL COMPATIBILITY
+
+Inspect the SDK only as a read-only reference.
+
+SDK reference commit:
+
+`2c73efd7b59f580fe6da8c6212e49a0c140b6ecd`
+
+Verify that Wendoro UI can be consumed alongside the SDK without coupling the two packages.
+
+A typical product application should be able to:
+
+- Import shared UI components from `@wendoro/ui`.
+- Import Platform API client functionality from `@wendoro/sdk`.
+- Compose them inside its own application.
+- Provide application-level authentication state.
+- Provide organization context.
+- Render loading, error and empty states.
+
+The UI library must not:
+- Instantiate Platform clients automatically.
+- Store Platform tokens.
+- Implement refresh-token rotation.
+- Call Platform endpoints.
+- Contain tenant authorization logic.
+
+If useful, add a small architecture example showing how a consumer application composes the SDK and UI separately.
+
+Use mocks and synthetic data.
+
+Do not add a direct SDK dependency merely to demonstrate this architecture.
+
+Do not claim live Platform integration has been verified.
+
+---
+
+## 15. STORYBOOK AND DESIGN SYSTEM DOCUMENTATION
+
+Audit Storybook configuration and all existing stories.
+
+Ensure every exported component has useful documentation and representative examples.
+
+Where appropriate, demonstrate:
+- Default.
+- Variants.
+- Sizes.
+- Disabled state.
+- Loading state.
+- Error state.
+- Empty state.
+- Light theme.
+- Dark theme.
+- Responsive behavior.
+- Keyboard interaction.
+
+Enable and preserve accessibility checks.
+
+Ensure Storybook can build in a clean environment.
+
+Update the introduction and component documentation where implementation changes require it.
+
+Keep examples aligned with actual public APIs.
+
+Do not document nonexistent props or unsupported functionality.
+
+---
+
+## 16. TESTING AND INTEGRATION COVERAGE
+
+Inspect existing tests and add missing coverage.
+
+Test categories:
+
+### Unit tests
+- Token definitions.
+- Theme utilities.
+- Class-name utilities.
+- Hooks.
+- State helpers.
+
+### Component tests
+- Rendering.
+- Props.
+- Variants.
+- Interactions.
+- Controlled state.
+- Disabled behavior.
+- Keyboard navigation.
+- Accessibility semantics.
+
+### Integration tests
+- External consumer imports.
+- ESM distribution.
+- CJS distribution.
+- CSS distribution.
+- Token subpath.
+- TypeScript declarations.
+- React peer dependency behavior.
+
+### Regression tests
+- Theme switching.
+- Theme persistence failures.
+- Dialog focus restoration.
+- Drawer dismissal.
+- Toast lifecycle.
+- DataTable sorting and filtering.
+- Pagination boundaries.
+- Responsive overflow where testable.
+- No fabricated live data.
+
+Do not remove tests to obtain a passing result.
+
+Do not weaken assertions without a documented reason.
+
+---
+
+## 17. REPOSITORY-LOCAL CI AND SUPPLY-CHAIN SECURITY
+
+The previously inspected repository tree did not contain `.github/workflows` files.
+
+Recheck the current repository.
+
+If CI is absent or incomplete, establish a repository-local GitHub Actions workflow.
+
+Do not depend on reusable workflows from `wendoro-infra`.
+
+Do not modify `wendoro-infra`.
+
+### Package manager
+
+The repository previously contained `bun.lock` but no `package-lock.json`.
+
+Choose a reproducible package installation strategy.
+
+Preferred options:
+- Use Bun with frozen lockfile installation and a repository-local CI workflow.
+- Or add a valid npm lockfile if npm CI is deliberately selected.
+
+If supporting both Bun and npm, keep both lockfiles consistent.
+
+Never configure `actions/setup-node` with `cache: npm` when no valid npm lockfile exists.
+
+### CI requirements
+
+The CI workflow should include:
+
+1. Checkout.
+2. Runtime setup.
+3. Frozen/reproducible dependency installation.
+4. Typecheck.
+5. Lint.
+6. Unit tests.
+7. Integration tests.
+8. Library build.
+9. Showcase build.
+10. Storybook build.
+11. Package export verification.
+12. npm pack dry-run.
+13. Dependency audit.
+14. Filesystem/security scanning where practical.
+
+Pin third-party GitHub Actions to verified immutable commit SHAs.
+
+Do not disable security scanning to make CI pass.
+
+Use least-privilege workflow permissions.
+
+Do not expose secrets to pull requests.
+
+Do not invent action SHAs.
+
+If a security scanner cannot run in the available environment, document the limitation.
+
+---
+
+## 18. PERFORMANCE AND MAINTAINABILITY
+
+Audit:
+- Unnecessary dependencies.
+- Bundle size.
+- Duplicate component implementations.
+- Excessive CSS.
+- Repeated theme logic.
+- Unnecessary runtime work.
+- Unnecessary rerenders.
+- Large icon imports.
+- Circular imports.
+- Dead code.
+- Unused exports.
+- Unused styles.
+- Build output duplication.
+
+Preserve React compatibility.
+
+Avoid premature optimization.
+
+Do not introduce new frameworks or heavy dependencies without clear justification.
+
+Document meaningful package size changes.
+
+---
+
+## 19. IMPLEMENTATION CHANGE CONTROL
+
+Before editing:
+
+1. Establish the exact baseline.
+2. Inspect the complete repository.
+3. Create a findings list.
+4. Classify each finding by severity.
+5. Identify the exact files involved.
+6. Explain the intended corrections.
+
+Then implement legitimate fixes.
+
+Prioritize:
+- Critical security or accessibility defects.
+- Broken public exports.
+- Theme defects.
+- Component behavior defects.
+- Type safety.
+- Packaging failures.
+- Missing CI.
+- Documentation inconsistencies.
+
+Make focused changes.
+
+Preserve existing working components and APIs.
+
+Do not rewrite the entire library.
+
+Do not add unrelated features.
+
+Do not change package release governance.
+
+After implementation:
+- Inspect the full diff.
+- Check for accidental files.
+- Check generated artifacts.
+- Check secrets.
+- Check lockfile consistency.
+- Check public exports.
+- Check package tarball contents.
+
+---
+
+## 20. REQUIRED VERIFICATION
+
+Run the repository's actual scripts and report exact outputs.
+
+At minimum, where supported:
+
+1. Clean dependency installation.
+2. TypeScript typecheck.
+3. ESLint.
+4. Unit/component tests.
+5. Integration tests.
+6. Library build.
+7. Showcase application build.
+8. Storybook build.
+9. Package export verification.
+10. External consumer TypeScript compilation.
+11. `npm pack --dry-run`.
+12. Dependency vulnerability audit.
+13. Frozen Bun lockfile verification, if Bun is available.
+
+The existing scripts include:
+
+- `npm run typecheck`
+- `npm run lint`
+- `npm run test:run`
+- `npm run test:integration`
+- `npm run build`
+- `npm run build:lib`
+- `npm run build-storybook`
+- `npm run test:ci`
+
+Verify these scripts exist before using them.
+
+Do not invent test results.
+
+If a command is unavailable, mark it NOT RUN.
+
+If a command fails:
+- Capture the exact error.
+- Identify the cause.
+- Fix it if in scope.
+- Rerun it.
+- Report remaining issues.
+
+---
+
+## 21. GIT AND PUSH POLICY
+
+Do not assume the AI Studio environment has Git metadata or GitHub credentials.
+
+If Git is available:
+- Record the baseline commit.
+- Inspect the working tree.
+- Preserve existing changes.
+- Do not force-push.
+- Do not rewrite history.
+- Do not create release tags.
+- Do not publish packages.
+
+Do not push changes automatically without explicit user authorization.
+
+If Git is unavailable:
+- Report all modified files.
+- Provide complete file contents or a reliable transfer method.
+- Explain how to transfer the changes to the actual repository.
+
+---
+
+## 22. FINAL REPORT — REQUIRED FORMAT
+
+Return a detailed report with these sections.
+
+### A. Executive Summary
+- Overall repository condition.
+- Major improvements.
+- Critical unresolved issues.
+- Overall readiness.
+
+### B. Repository Baseline
+- Exact base commit.
+- Package version.
+- Repository structure.
+- Package manager.
+- Existing workflows.
+- Existing test coverage.
+
+### C. Design System Audit
+- Brand tokens.
+- Theme implementation.
+- Component inventory.
+- Accessibility.
+- Responsive behavior.
+- Business components.
+- Demo data integrity.
+
+### D. Component Coverage Matrix
+
+| Component | Export status | Type safety | Accessibility | Tests | Result |
+|---|---|---|---|---|---|
+
+Include every exported component.
+
+### E. Findings and Severity
+
+Separate:
+- Critical.
+- High.
+- Moderate.
+- Low.
+- Governance decisions.
+- Deferred enhancements.
+
+### F. Changes Implemented
+
+For every modified file:
+- Exact path.
+- Reason.
+- Implementation.
+- Tests.
+
+### G. Package and Consumer Compatibility
+- ESM.
+- CJS.
+- Types.
+- CSS.
+- Themes.
+- Tokens.
+- External consumer tests.
+- Tarball contents.
+
+### H. Security and Accessibility Review
+- Findings.
+- Fixes.
+- Remaining limitations.
+- Manual verification requirements.
+
+### I. CI and Supply Chain
+- Workflow configuration.
+- Immutable action references.
+- Dependency audit.
+- Filesystem scan.
+- Actual CI availability.
+
+### J. Verification Results
+
+| Check | Result | Evidence |
+|---|---|---|
+| Dependency install | | |
+| Typecheck | | |
+| Lint | | |
+| Unit tests | | |
+| Integration tests | | |
+| Library build | | |
+| Showcase build | | |
+| Storybook build | | |
+| Package exports | | |
+| External consumer | | |
+| npm pack | | |
+| Dependency audit | | |
+| Frozen lockfile | | |
+
+Use PASS, FAIL, BLOCKED or NOT RUN accurately.
+
+### K. Licensing and Governance
+Explain the public repository and MIT license declaration and why it needs an explicit decision.
+
+Do not change licensing or visibility.
+
+### L. Final Readiness Assessment
+
+Choose one:
+
+1. NOT READY — critical defects remain.
+2. PARTIALLY READY — important issues remain.
+3. READY FOR INTERNAL PRODUCT INTEGRATION — local package, component and consumer verification passed.
+4. READY FOR STAGING CONSUMER INTEGRATION — required external consumer and staging checks passed.
+
+Do not claim production readiness based only on local tests.
+
+### M. Next Step
+Identify what should happen before the next Wendoro repository is started.
+
+---
+
+## 23. FINAL INSTRUCTIONS
+
+Be evidence-driven and conservative.
+
+Do not assume that existing documentation is accurate.
+
+Do not confuse:
+- A component rendering with accessibility compliance.
+- A successful build with external consumer compatibility.
+- A Storybook preview with production behavior.
+- A passing unit test with full browser verification.
+- A public GitHub repository with permission to change licensing.
+- A shared design system with a backend integration layer.
+
+Keep the responsibilities of `wendoro-ui`, `wendoro-sdk` and `wendoro-platform` separate.
+
+Complete the audit, implementation and verification in one pass wherever possible.
+
+If a critical prerequisite is unavailable, report the blocker instead of inventing a result.
+
+The final report must distinguish verified facts, actual changes, unverified assumptions and remaining work.

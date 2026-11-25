@@ -38,6 +38,8 @@ export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
       label,
       showValue = false,
       className,
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledBy,
       ...props
     },
     ref
@@ -58,7 +60,8 @@ export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
         )}
         <div
           role="progressbar"
-          aria-label={label ?? 'Progress'}
+          aria-label={ariaLabel ?? (ariaLabelledBy ? undefined : label ?? 'Progress')}
+          aria-labelledby={ariaLabelledBy}
           aria-valuemin={0}
           aria-valuemax={safeMax}
           aria-valuenow={indeterminate ? undefined : clamped}

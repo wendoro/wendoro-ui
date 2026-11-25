@@ -128,7 +128,7 @@ describe('Package Distribution & External Consumer Integration', () => {
     expect(screen.getByText('Failed')).toBeInTheDocument();
 
     // Sidebar navigation renders TeamDirectory
-    await user.click(screen.getByRole('button', { name: 'Founders' }));
+    await user.click(screen.getByRole('button', { name: 'Directory' }));
     expect(screen.getByPlaceholderText('Search team members…')).toBeInTheDocument();
 
     // Input interaction

@@ -97,7 +97,7 @@ export function NotificationCenter({
         </button>
       </div>
 
-      <div className="max-h-96 space-y-2 overflow-y-auto p-3">
+      <div className="max-h-[min(24rem,60vh)] space-y-2 overflow-y-auto p-3">
         {visibleItems.length === 0 ? (
           <EmptyState
             compact

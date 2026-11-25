@@ -8,6 +8,8 @@ export interface SearchBarProps {
   onSubmit?: (value: string) => void;
   placeholder?: string;
   shortcutHint?: string;
+  id?: string;
+  disabled?: boolean;
   'aria-label'?: string;
   className?: string;
 }
@@ -18,6 +20,8 @@ export function SearchBar({
   onSubmit,
   placeholder = 'Search…',
   shortcutHint,
+  id,
+  disabled = false,
   'aria-label': ariaLabel = 'Search',
   className,
 }: SearchBarProps) {
@@ -26,19 +30,23 @@ export function SearchBar({
       role="search"
       onSubmit={(e) => {
         e.preventDefault();
-        onSubmit?.(value);
+        if (!disabled) {
+          onSubmit?.(value);
+        }
       }}
       className={cn('relative w-full', className)}
     >
       <Input
+        id={id}
         type="search"
         value={value}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label={ariaLabel}
         leftAdornment={<Search className="h-4 w-4" aria-hidden="true" />}
         rightAdornment={
-          value ? (
+          value && !disabled ? (
             <button
               type="button"
               onClick={() => onChange('')}

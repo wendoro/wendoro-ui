@@ -117,7 +117,7 @@ export function BusinessShowcaseSection() {
     <div className="space-y-6">
       <PageHeader
         title="Business Application Components"
-        description="Illustrative design-system demonstration of TeamDirectory, UserProfile, ActivityFeed, DataTable, MetricCard, and KpiCard using Wendoro team showcase data."
+        description="Illustrative design-system demonstration of TeamDirectory, UserProfile, ActivityFeed, DataTable, MetricCard, and KpiCard using synthetic demo data."
         breadcrumbs={[{ label: 'Wendoro' }, { label: 'Business Patterns' }]}
         actions={
           <Button
@@ -256,17 +256,17 @@ export function BusinessShowcaseSection() {
           <div className="space-y-4">
             <UserProfile
               variant="card"
-              name="Ananya Rao"
-              role="Principal Systems Lead"
-              department="Wendoro Platform"
-              email="ananya@wendoro.in"
+              name="Demo Lead"
+              role="Sample Systems Lead"
+              department="Demo Workspace"
+              email="lead@demo.invalid"
               status="online"
               statusBadge="completed"
               statusLabel="Verified"
               onContact={() =>
                 toast({
-                  title: 'Contact Ananya Rao',
-                  description: 'ananya@wendoro.in',
+                  title: 'Contact Demo Lead',
+                  description: 'lead@demo.invalid',
                   variant: 'default',
                 })
               }
@@ -274,7 +274,7 @@ export function BusinessShowcaseSection() {
                 {
                   id: 'copy-email',
                   label: 'Copy email address',
-                  onSelect: () => toast({ title: 'Copied ananya@wendoro.in' }),
+                  onSelect: () => toast({ title: 'Copied lead@demo.invalid' }),
                 },
               ]}
             />

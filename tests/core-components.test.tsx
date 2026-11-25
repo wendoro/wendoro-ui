@@ -50,26 +50,28 @@ describe('Core Components', () => {
     expect(screen.getByRole('button', { name: 'Add workspace' })).toBeInTheDocument();
   });
 
-  it('supports controlled and uncontrolled Input with FormField error state', async () => {
+  it('supports controlled and uncontrolled Input with FormField error state and aria-required forwarding', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
 
     render(
-      <FormField label="Work Email" required error="Invalid corporate domain">
-        <Input placeholder="name@wendoro.in" onChange={onChange} />
+      <FormField label="Work Email" required error="Invalid domain">
+        <Input placeholder="member@demo.invalid" aria-describedby="ext-help" onChange={onChange} />
       </FormField>
     );
 
     const input = screen.getByLabelText(/Work Email/i);
     expect(input).toHaveAttribute('aria-invalid', 'true');
-    expect(screen.getByRole('alert')).toHaveTextContent('Invalid corporate domain');
+    expect(input).toHaveAttribute('aria-required', 'true');
+    expect(input.getAttribute('aria-describedby')).toContain('ext-help');
+    expect(screen.getByRole('alert')).toHaveTextContent('Invalid domain');
 
-    await user.type(input, 'ananya@wendoro.in');
-    expect(input).toHaveValue('ananya@wendoro.in');
+    await user.type(input, 'lead@demo.invalid');
+    expect(input).toHaveValue('lead@demo.invalid');
     expect(onChange).toHaveBeenCalled();
   });
 
-  it('supports keyboard navigation, disabled options, and Escape on Select', async () => {
+  it('supports keyboard navigation, disabled options, listbox aria-label, and Escape on Select', async () => {
     const user = userEvent.setup();
     const onValueChange = vi.fn();
 
@@ -87,7 +89,9 @@ describe('Core Components', () => {
 
     const trigger = screen.getByRole('combobox', { name: 'Product' });
     trigger.focus();
-    await user.keyboard('{ArrowDown}{ArrowDown}{Enter}');
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByRole('listbox', { name: 'Product' })).toBeInTheDocument();
+    await user.keyboard('{ArrowDown}{Enter}');
     expect(onValueChange).toHaveBeenCalledWith('flow');
 
     await user.keyboard('{ArrowDown}');
@@ -115,12 +119,20 @@ describe('Core Components', () => {
             { value: 'pro', label: 'Pro' },
           ]}
         />
-        <Slider label="Threshold" defaultValue={50} min={0} max={100} onValueChange={onSlider} />
+        <Slider
+          label="Threshold"
+          defaultValue={50}
+          min={0}
+          max={100}
+          formatValue={(v) => `${v}%`}
+          onValueChange={onSlider}
+        />
       </div>
     );
 
     const checkbox = screen.getByLabelText('Accept terms') as HTMLInputElement;
     expect(checkbox.indeterminate).toBe(true);
+    expect(checkbox).toHaveAttribute('aria-checked', 'mixed');
     await user.click(checkbox);
     expect(onCheck).toHaveBeenCalledWith(true);
 
@@ -134,11 +146,12 @@ describe('Core Components', () => {
     expect(onRadio).toHaveBeenCalledWith('pro');
 
     const slider = screen.getByLabelText('Threshold');
+    expect(slider).toHaveAttribute('aria-valuetext', '50%');
     fireEvent.change(slider, { target: { value: '80' } });
     expect(onSlider).toHaveBeenCalledWith(80);
   });
 
-  it('selects and clears dates with Calendar and DatePicker', async () => {
+  it('selects and clears dates with Calendar and DatePicker and restores trigger focus', async () => {
     const user = userEvent.setup();
     const onCalSelect = vi.fn();
 
@@ -168,6 +181,7 @@ describe('Core Components', () => {
     const targetDay = dayButtons.find((b) => b.getAttribute('aria-label')?.includes('18'));
     expect(targetDay).toBeDefined();
     await user.click(targetDay!);
+    await vi.waitFor(() => expect(pickerTrigger).toHaveFocus());
     await user.click(screen.getByRole('button', { name: 'Clear selected date' }));
     expect(pickerTrigger).toHaveTextContent('Select date');
   });

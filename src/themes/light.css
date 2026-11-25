@@ -1,4 +1,5 @@
 :root,
+.light,
 [data-theme='light'] {
   color-scheme: light;
 
@@ -37,6 +38,15 @@
   --wdr-border: #E5E5E5;
   --wdr-input: #D4D4D0;
   --wdr-ring: #111111;
+
+  /* Interactive States */
+  --wdr-disabled: #F2F2ED;
+  --wdr-disabled-foreground: #666662;
+  --wdr-focus: #111111;
+  --wdr-hover: #F2F2ED;
+  --wdr-selected: #FEF9C3;
+  --wdr-selected-foreground: #111111;
+  --wdr-active: #E5E5DF;
 
   /* Semantic Status (no blue/purple/indigo/teal) */
   --wdr-success: #15803D;

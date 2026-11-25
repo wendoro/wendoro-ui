@@ -93,8 +93,11 @@ Wrap your app in `ThemeProvider` and call `useTheme()` anywhere inside:
 - `resolvedTheme`: `'light' | 'dark'`
 - `setTheme(theme)` & `toggleTheme()`
 - `storageKey`: customizable `localStorage` key (defaults to `'wendoro-ui-theme'`)
+- `scoped`: when `true`, scopes `.light`/`.dark` and `data-theme` to a wrapper `<div>` without mutating `document.documentElement` (ideal for embedded widgets or multi-consumer previews)
+- `forcedTheme` / `disableStorage`: deterministic controlled theme overrides without reading or writing browser storage
+- `getThemeInitScript(storageKey?, defaultTheme?)`: generates a pre-hydration theme script helper to minimize initial theme flash
 
-Light theme (`src/themes/light.css`) pairs Warm White (`#FAFAF7`) background, Crisp White (`#FFFFFF`) elevated surfaces, and Deep Black (`#111111`) foreground. Dark theme (`src/themes/dark.css`) pairs Deep Black (`#111111`) background, Charcoal (`#242424`) elevated surfaces, and Warm White (`#FAFAF7`) foreground. Both themes activate via `.dark` or `[data-theme='dark']` on `<html>` or a scoped container.
+Light theme (`src/themes/light.css`) pairs Warm White (`#FAFAF7`) background, Crisp White (`#FFFFFF`) elevated surfaces, and Deep Black (`#111111`) foreground. Dark theme (`src/themes/dark.css`) pairs Deep Black (`#111111`) background, Charcoal (`#242424`) elevated surfaces, and Warm White (`#FAFAF7`) foreground. Both themes activate via `.light` / `.dark` or `[data-theme='light' | 'dark']` on `<html>` or a scoped container, and expose semantic interactive state tokens (`--wdr-disabled`, `--wdr-focus`, `--wdr-hover`, `--wdr-selected`, `--wdr-active`).
 
 ### Programmatic Tokens
 
@@ -164,7 +167,7 @@ function DeskWorkspace() {
       </Sidebar>
       <main className="flex-1 space-y-6 p-6">
         <div className="flex items-center justify-between">
-          <UserProfile variant="inline" name="Ananya Rao" role="Principal Systems Lead" department="Wendoro Platform" />
+          <UserProfile variant="inline" name="Demo Lead" role="Sample Systems Lead" department="Demo Workspace" />
           <div className="flex gap-2">
             <Button variant="outline" onClick={toggleTheme}>Toggle Theme</Button>
             <Button variant="primary" onClick={() => setOpen(true)}>Inspect</Button>
@@ -196,6 +199,52 @@ export function App() {
     <ThemeProvider defaultTheme="light">
       <DeskWorkspace />
     </ThemeProvider>
+  );
+}
+```
+
+### Composing `@wendoro/ui` Alongside `@wendoro/sdk` (Decoupled Pattern)
+
+`@wendoro/ui` does **not** depend on `@wendoro/sdk`, store auth tokens, or perform API calls. Consuming product applications wire SDK client queries into presentation props:
+
+```tsx
+import { DataTable, EmptyState, PageHeader, StatusBadge, type DataTableColumn } from '@wendoro/ui';
+// In a product app: import { createWendoroClient } from '@wendoro/sdk';
+
+interface ExampleWorkspaceRow {
+  id: string;
+  name: string;
+  status: 'active' | 'pending';
+}
+
+const columns: DataTableColumn<ExampleWorkspaceRow>[] = [
+  { key: 'name', header: 'Workspace', accessor: (r) => r.name, cell: (r) => r.name },
+  { key: 'status', header: 'State', cell: (r) => <StatusBadge status={r.status} /> },
+];
+
+export function ProductRecordsScreen({
+  rows,
+  isLoading,
+  errorMessage,
+  onReload,
+}: {
+  rows: ExampleWorkspaceRow[];
+  isLoading: boolean;
+  errorMessage?: string;
+  onReload: () => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <PageHeader title="Sample Workspaces" description="Fetched by host app using @wendoro/sdk." />
+      <DataTable
+        data={rows}
+        columns={columns}
+        getRowId={(r) => r.id}
+        loading={isLoading}
+        error={errorMessage}
+        onRetry={onReload}
+      />
+    </div>
   );
 }
 ```

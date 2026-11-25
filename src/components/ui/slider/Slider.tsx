@@ -96,6 +96,7 @@ export const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
             max={max}
             step={step}
             value={clampedValue}
+            aria-valuetext={formatValue(clampedValue)}
             disabled={disabled}
             onChange={handleChange}
             className={cn(

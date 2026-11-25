@@ -1,6 +1,8 @@
 import * as React from 'react';
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import { AlertCircle, ArrowDown, ArrowUp, ArrowUpDown, RotateCcw } from 'lucide-react';
 import { cn } from '../../../utils/cn';
+import { Alert } from '../../ui/alert';
+import { Button } from '../../ui/button';
 import { Checkbox } from '../../ui/checkbox';
 import { EmptyState } from '../../ui/empty-state';
 import { Pagination } from '../../ui/pagination';
@@ -28,7 +30,12 @@ export interface DataTableProps<T> {
   data: T[];
   columns: DataTableColumn<T>[];
   getRowId: (row: T) => string;
+  getRowLabel?: (row: T) => string;
   loading?: boolean;
+  error?: React.ReactNode | boolean;
+  errorTitle?: string;
+  onRetry?: () => void;
+  retryLabel?: string;
   selectable?: boolean;
   selectedIds?: string[];
   onSelectedIdsChange?: (ids: string[]) => void;
@@ -46,7 +53,12 @@ export function DataTable<T>({
   data,
   columns,
   getRowId,
+  getRowLabel,
   loading = false,
+  error = false,
+  errorTitle = 'Unable to load records',
+  onRetry,
+  retryLabel = 'Retry',
   selectable = false,
   selectedIds = [],
   onSelectedIdsChange,
@@ -60,6 +72,8 @@ export function DataTable<T>({
   const [sortKey, setSortKey] = React.useState<string | null>(null);
   const [sortDir, setSortDir] = React.useState<SortDirection>(null);
   const [page, setPage] = React.useState(1);
+
+  const safePageSize = Math.max(1, pageSize);
 
   const sortedData = React.useMemo(() => {
     if (!sortKey || !sortDir) return data;
@@ -82,12 +96,12 @@ export function DataTable<T>({
     return copy;
   }, [columns, data, sortDir, sortKey]);
 
-  const totalPages = Math.max(1, Math.ceil(sortedData.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(sortedData.length / safePageSize));
   const safePage = Math.min(page, totalPages);
   const pageData = React.useMemo(() => {
-    const start = (safePage - 1) * pageSize;
-    return sortedData.slice(start, start + pageSize);
-  }, [pageSize, safePage, sortedData]);
+    const start = (safePage - 1) * safePageSize;
+    return sortedData.slice(start, start + safePageSize);
+  }, [safePage, safePageSize, sortedData]);
 
   React.useEffect(() => {
     if (page > totalPages) setPage(1);
@@ -139,6 +153,35 @@ export function DataTable<T>({
           <Skeleton key={idx} height={40} className="w-full" />
         ))}
       </div>
+    );
+  }
+
+  if (error) {
+    const errorMessage =
+      typeof error === 'boolean'
+        ? 'An error occurred while loading table records.'
+        : error;
+    return (
+      <Alert
+        variant="destructive"
+        title={errorTitle}
+        icon={<AlertCircle className="h-4 w-4 shrink-0" />}
+        action={
+          onRetry ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRetry}
+              leftIcon={<RotateCcw className="h-3.5 w-3.5" />}
+            >
+              {retryLabel}
+            </Button>
+          ) : undefined
+        }
+        className={className}
+      >
+        {errorMessage}
+      </Alert>
     );
   }
 
@@ -212,6 +255,7 @@ export function DataTable<T>({
         <TableBody>
           {pageData.map((row) => {
             const id = getRowId(row);
+            const rowLabel = getRowLabel ? getRowLabel(row) : id;
             const isSelected = selectedIds.includes(id);
 
             return (
@@ -219,7 +263,7 @@ export function DataTable<T>({
                 {selectable && (
                   <TableCell className="w-11">
                     <Checkbox
-                      aria-label={`Select row ${id}`}
+                      aria-label={`Select row ${rowLabel}`}
                       checked={isSelected}
                       onCheckedChange={(checked) => toggleRow(id, checked)}
                     />
@@ -239,7 +283,7 @@ export function DataTable<T>({
       {totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground tabular-nums">
-            Showing {(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, sortedData.length)} of{' '}
+            Showing {(safePage - 1) * safePageSize + 1}–{Math.min(safePage * safePageSize, sortedData.length)} of{' '}
             {sortedData.length} records
           </p>
           <Pagination page={safePage} totalPages={totalPages} onPageChange={setPage} />

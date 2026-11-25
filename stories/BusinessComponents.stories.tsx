@@ -10,7 +10,9 @@ import { StatusBadge } from '../src/components/business/status-badge';
 import { UserProfile } from '../src/components/business/user-profile';
 import { DataTable, type DataTableColumn } from '../src/components/business/data-table';
 import { FilterBar } from '../src/components/business/filter-bar';
+import { NotificationCenter } from '../src/components/business/notification-center';
 import { PageHeader } from '../src/components/business/page-header';
+import { SearchBar } from '../src/components/business/search-bar';
 import { DashboardGrid, DashboardGridItem } from '../src/components/business/dashboard-grid';
 import { WENDORO_DEMO_MODULES, type EcosystemModuleRow } from '../src/data/wendoro-demo-data';
 
@@ -92,16 +94,39 @@ function EnterpriseWorkspaceDemo() {
         <DashboardGridItem span={4}>
           <UserProfile
             variant="card"
-            name="Ananya Rao"
-            role="Principal Systems Lead"
-            department="Wendoro Platform"
-            email="ananya@wendoro.in"
+            name="Demo Lead"
+            role="Sample Systems Lead"
+            department="Demo Workspace"
+            email="lead@demo.invalid"
             status="online"
             statusBadge="completed"
             statusLabel="Verified"
           />
         </DashboardGridItem>
       </DashboardGrid>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Quick search modules…"
+          shortcutHint="/"
+          className="max-w-xs"
+        />
+        <NotificationCenter
+          items={[
+            {
+              id: 'story-n1',
+              title: 'Sample UI alert',
+              description: 'Illustrative notification item for Storybook verification.',
+              timestamp: '2m ago',
+              source: 'Wendoro Studio (Demo)',
+              tone: 'neutral',
+              unread: true,
+            },
+          ]}
+        />
+      </div>
 
       <FilterBar
         searchValue={search}
@@ -178,6 +203,18 @@ export const EmptyTable: StoryObj = {
       emptyTitle="No matching ecosystem modules"
       emptyDescription="Adjust filters or add a new workspace integration."
       emptyAction={<Button variant="outline" size="sm">Reset Filters</Button>}
+    />
+  ),
+};
+
+export const ErrorTable: StoryObj = {
+  render: () => (
+    <DataTable
+      data={[]}
+      columns={columns}
+      getRowId={(r) => r.id}
+      error="Sample request timed out while fetching workspace modules."
+      onRetry={() => {}}
     />
   ),
 };

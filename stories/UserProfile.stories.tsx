@@ -23,14 +23,14 @@ export const PopulatedProfile: Story = {
     <div className="max-w-md">
       <UserProfile
         variant="card"
-        name="Ananya Rao"
-        role="Principal Systems Lead"
-        department="Wendoro Platform"
-        email="ananya@wendoro.in"
+        name="Demo Lead"
+        role="Sample Systems Lead"
+        department="Demo Workspace"
+        email="lead@demo.invalid"
         status="online"
         statusBadge="completed"
         statusLabel="Verified"
-        contactHref="mailto:ananya@wendoro.in"
+        contactHref="mailto:lead@demo.invalid"
         actions={[
           { id: 'copy', label: 'Copy email', onSelect: () => {} },
           { id: 'audit', label: 'View permissions', onSelect: () => {} },
@@ -43,9 +43,9 @@ export const PopulatedProfile: Story = {
 export const NameOnlyProfiles: Story = {
   render: () => (
     <div className="grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3">
-      <UserProfile variant="card" name="Sumita Singh" affiliation="Wendoro · Team member" />
-      <UserProfile variant="card" name="Suraj Singh" affiliation="Wendoro · Team member" />
-      <UserProfile variant="card" name="Rohan Mehta" affiliation="Wendoro · Team member" />
+      <UserProfile variant="card" name="Sample Member A" affiliation="Demo Workspace · Sample member" />
+      <UserProfile variant="card" name="Sample Member B" affiliation="Demo Workspace · Sample member" />
+      <UserProfile variant="card" name="Sample Member C" affiliation="Demo Workspace · Sample member" />
     </div>
   ),
 };
@@ -55,9 +55,9 @@ export const InlineVariant: Story = {
     <div className="max-w-md rounded-[var(--wdr-radius-md)] border border-border p-3">
       <UserProfile
         variant="inline"
-        name="Ananya Rao"
-        role="Principal Systems Lead"
-        department="Wendoro Platform"
+        name="Demo Lead"
+        role="Sample Systems Lead"
+        department="Demo Workspace"
         statusBadge="completed"
         statusLabel="Verified"
       />
@@ -73,14 +73,14 @@ export const DarkTheme: Story = {
     >
       <UserProfile
         variant="card"
-        name="Ananya Rao"
-        role="Principal Systems Lead"
-        department="Wendoro Platform"
-        email="ananya@wendoro.in"
+        name="Demo Lead"
+        role="Sample Systems Lead"
+        department="Demo Workspace"
+        email="lead@demo.invalid"
         status="online"
         statusBadge="completed"
         statusLabel="Verified"
-        contactHref="mailto:ananya@wendoro.in"
+        contactHref="mailto:lead@demo.invalid"
       />
     </div>
   ),

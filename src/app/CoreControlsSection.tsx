@@ -94,7 +94,7 @@ export function CoreControlsSection() {
             <FormField label="Work Email" required hint="Notifications route to this address.">
               <Input
                 type="email"
-                placeholder="ops@wendoro.in"
+                placeholder="member@demo.invalid"
                 leftAdornment={<Mail className="h-4 w-4" />}
               />
             </FormField>

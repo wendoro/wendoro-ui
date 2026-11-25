@@ -1,13 +1,16 @@
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Info, Terminal } from 'lucide-react';
+import { Avatar, AvatarGroup } from '../src/components/ui/avatar';
 import { Button } from '../src/components/ui/button';
 import { Calendar } from '../src/components/ui/calendar';
+import { Collapsible } from '../src/components/ui/collapsible';
 import { CommandPalette } from '../src/components/ui/command';
 import { DatePicker } from '../src/components/ui/date-picker';
 import { Dialog, DialogFooter } from '../src/components/ui/dialog';
 import { Drawer } from '../src/components/ui/drawer';
 import { Popover } from '../src/components/ui/popover';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../src/components/ui/table';
 import { Tooltip } from '../src/components/ui/tooltip';
 
 const meta: Meta = {
@@ -61,6 +64,38 @@ function OverlaysInteractiveDemo() {
         <DatePicker value={date} onValueChange={setDate} />
         <Calendar selected={date} onSelect={setDate} />
       </div>
+
+      <div className="flex flex-wrap items-center gap-4">
+        <Avatar alt="Demo Lead" status="online" />
+        <AvatarGroup
+          items={[
+            { id: '1', alt: 'Demo Lead' },
+            { id: '2', alt: 'Sample Member A' },
+            { id: '3', alt: 'Sample Member B' },
+            { id: '4', alt: 'Sample Member C' },
+          ]}
+          max={3}
+        />
+      </div>
+
+      <Collapsible trigger="Collapsible disclosure details">
+        Supports keyboard Space/Enter toggling and expanded ARIA state.
+      </Collapsible>
+
+      <Table aria-label="Sample summary table">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Component</TableHead>
+            <TableHead>Layer</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell>Table</TableCell>
+            <TableCell>Data Display</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
 
       <Dialog
         open={dialogOpen}

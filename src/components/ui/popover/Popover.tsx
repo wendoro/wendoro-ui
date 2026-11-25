@@ -9,6 +9,7 @@ export interface PopoverProps {
   onOpenChange?: (open: boolean) => void;
   align?: 'start' | 'center' | 'end';
   side?: 'bottom' | 'top';
+  'aria-label'?: string;
   className?: string;
 }
 
@@ -38,6 +39,7 @@ export function Popover({
   onOpenChange,
   align = 'start',
   side = 'bottom',
+  'aria-label': ariaLabel,
   className,
 }: PopoverProps) {
   const [internalOpen, setInternalOpen] = React.useState(false);
@@ -125,8 +127,9 @@ export function Popover({
         <div
           id={popoverId}
           role="dialog"
+          aria-label={ariaLabel}
           className={cn(
-            'absolute z-50 min-w-[240px] rounded-[var(--wdr-radius-lg)] border border-border bg-surface-elevated p-4 text-foreground shadow-[var(--wdr-shadow-md)]',
+            'absolute z-50 min-w-[240px] max-w-[calc(100vw-2rem)] rounded-[var(--wdr-radius-lg)] border border-border bg-surface-elevated p-4 text-foreground shadow-[var(--wdr-shadow-md)]',
             side === 'bottom' ? 'top-full mt-2' : 'bottom-full mb-2',
             alignClasses[align],
             className

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '../../../utils/cn';
+import { sanitizeUrl } from '../../../utils/url';
 
 export interface NavigationMenuSubItem {
   label: string;
@@ -56,7 +57,7 @@ export function NavigationMenu({ items, className, ...props }: NavigationMenuPro
       className={cn('relative flex items-center gap-1', className)}
       {...props}
     >
-      <ul className="flex items-center gap-1">
+      <ul className="flex flex-wrap items-center gap-1">
         {items.map((item) => {
           const hasChildren = Boolean(item.items && item.items.length > 0);
           const isOpen = openId === item.id;
@@ -93,51 +94,88 @@ export function NavigationMenu({ items, className, ...props }: NavigationMenuPro
                     />
                   </button>
                   {isOpen && item.items && (
-                    <div className="absolute left-0 top-full z-50 mt-1.5 w-72 rounded-[var(--wdr-radius-lg)] border border-border bg-surface-elevated p-2 shadow-[var(--wdr-shadow-md)]">
+                    <div className="absolute left-0 top-full z-50 mt-1.5 w-72 max-w-[calc(100vw-2rem)] rounded-[var(--wdr-radius-lg)] border border-border bg-surface-elevated p-2 shadow-[var(--wdr-shadow-md)]">
                       <ul className="space-y-1">
-                        {item.items.map((sub) => (
-                          <li key={sub.label}>
-                            <a
-                              href={sub.href ?? '#'}
-                              onClick={(e) => {
-                                if (!sub.href) e.preventDefault();
-                                sub.onClick?.();
-                                setOpenId(null);
-                              }}
-                              className="block rounded-[var(--wdr-radius-md)] px-3 py-2 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                            >
-                              <div className="text-sm font-medium text-foreground">{sub.label}</div>
-                              {sub.description && (
-                                <div className="mt-0.5 text-xs text-muted-foreground">
-                                  {sub.description}
-                                </div>
+                        {item.items.map((sub) => {
+                          const safeSubHref = sub.href ? sanitizeUrl(sub.href) : undefined;
+                          const itemClasses =
+                            'block w-full text-left rounded-[var(--wdr-radius-md)] px-3 py-2 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+                          return (
+                            <li key={sub.label}>
+                              {safeSubHref ? (
+                                <a
+                                  href={safeSubHref}
+                                  onClick={() => {
+                                    sub.onClick?.();
+                                    setOpenId(null);
+                                  }}
+                                  className={itemClasses}
+                                >
+                                  <div className="text-sm font-medium text-foreground">{sub.label}</div>
+                                  {sub.description && (
+                                    <div className="mt-0.5 text-xs text-muted-foreground">
+                                      {sub.description}
+                                    </div>
+                                  )}
+                                </a>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    sub.onClick?.();
+                                    setOpenId(null);
+                                  }}
+                                  className={itemClasses}
+                                >
+                                  <div className="text-sm font-medium text-foreground">{sub.label}</div>
+                                  {sub.description && (
+                                    <div className="mt-0.5 text-xs text-muted-foreground">
+                                      {sub.description}
+                                    </div>
+                                  )}
+                                </button>
                               )}
-                            </a>
-                          </li>
-                        ))}
+                            </li>
+                          );
+                        })}
                       </ul>
                     </div>
                   )}
                 </>
-              ) : (
-                <a
-                  href={item.href ?? '#'}
-                  aria-current={item.active ? 'page' : undefined}
-                  onClick={(e) => {
-                    if (!item.href) e.preventDefault();
-                    item.onClick?.();
-                  }}
-                  className={cn(
-                    'inline-flex items-center rounded-[var(--wdr-radius-md)] px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    item.active
-                      ? 'text-foreground underline decoration-primary decoration-2 underline-offset-8'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  {item.label}
-                </a>
-              )}
+              ) : (() => {
+                const safeHref = item.href ? sanitizeUrl(item.href) : undefined;
+                const leafClasses = cn(
+                  'inline-flex items-center rounded-[var(--wdr-radius-md)] px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  item.active
+                    ? 'text-foreground underline decoration-primary decoration-2 underline-offset-8'
+                    : 'text-muted-foreground hover:text-foreground'
+                );
+
+                return safeHref ? (
+                  <a
+                    href={safeHref}
+                    aria-current={item.active ? 'page' : undefined}
+                    onClick={() => {
+                      item.onClick?.();
+                    }}
+                    className={leafClasses}
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    aria-current={item.active ? 'page' : undefined}
+                    onClick={() => {
+                      item.onClick?.();
+                    }}
+                    className={leafClasses}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })()}
             </li>
           );
         })}

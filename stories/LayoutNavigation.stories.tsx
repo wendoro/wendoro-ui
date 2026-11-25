@@ -3,8 +3,12 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Home, Layers, Settings } from 'lucide-react';
 import { Button } from '../src/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../src/components/ui/card';
+import { Container } from '../src/components/ui/container';
 import { Dialog, DialogFooter } from '../src/components/ui/dialog';
+import { Grid } from '../src/components/ui/grid';
+import { Separator } from '../src/components/ui/separator';
 import { Sheet } from '../src/components/ui/sheet';
+import { Stack } from '../src/components/ui/stack';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../src/components/ui/tabs';
 import { Breadcrumb } from '../src/components/ui/breadcrumb';
 import { Pagination } from '../src/components/ui/pagination';
@@ -96,6 +100,17 @@ function InteractiveLayoutAndNavDemo() {
             <p className="text-sm text-muted-foreground">Audit events are tracked with tabular timestamps.</p>
           </TabsContent>
         </Tabs>
+
+        <Container size="lg" className="px-0">
+          <Stack gap={4}>
+            <Separator label="Layout Primitives" />
+            <Grid cols={3} gap={3}>
+              <div className="rounded-[var(--wdr-radius-md)] border border-border bg-surface p-3 text-xs">Grid Cell 1</div>
+              <div className="rounded-[var(--wdr-radius-md)] border border-border bg-surface p-3 text-xs">Grid Cell 2</div>
+              <div className="rounded-[var(--wdr-radius-md)] border border-border bg-surface p-3 text-xs">Grid Cell 3</div>
+            </Grid>
+          </Stack>
+        </Container>
 
         <div className="h-64 overflow-hidden rounded-[var(--wdr-radius-lg)] border border-border">
           <Sidebar

@@ -1,0 +1,91 @@
+name: Wendoro UI CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Build, Test & Security Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.0.2
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5 # v2.0.1
+        with:
+          bun-version: "1.4.4"
+
+      - name: Verify frozen Bun lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Install dependencies via frozen npm lockfile
+        run: npm ci
+
+      - name: Typecheck application, stories, and unit tests
+        run: npm run typecheck
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run unit and component tests
+        run: npm run test:run
+
+      - name: Run integration tests and external consumer typecheck
+        run: npm run test:integration
+
+      - name: Build showcase application
+        run: npm run build
+
+      - name: Build Storybook static documentation
+        run: npm run build-storybook
+
+      - name: Verify package exports and tarball contents
+        run: |
+          test -f dist/lib/wendoro-ui.js
+          test -f dist/lib/wendoro-ui.cjs
+          test -f dist/lib/index.d.ts
+          test -f dist/lib/styles.css
+          test -f dist/lib/tokens/index.js
+          test -f dist/lib/tokens/index.cjs
+          test -f dist/lib/tokens/index.d.ts
+          test -f src/themes/light.css
+          test -f src/themes/dark.css
+          npm pack --dry-run
+
+      - name: Static security and brand-token scan
+        run: |
+          if grep -rnE "dangerouslySetInnerHTML|eval\(|new Function|-----BEGIN (RSA|EC|OPENSSH|PRIVATE) KEY-----" src; then
+            echo "Unsafe code pattern or key material detected in src/"
+            exit 1
+          fi
+          if grep -rnE "text-(blue|purple|indigo|teal|cyan|violet)-|bg-(blue|purple|indigo|teal|cyan|violet)-|border-(blue|purple|indigo|teal|cyan|violet)-" src/components src/styles src/themes src/tokens; then
+            echo "Forbidden brand color utility detected"
+            exit 1
+          fi
+
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+
+      - name: Full dependency vulnerability audit
+        run: npm audit --audit-level=moderate

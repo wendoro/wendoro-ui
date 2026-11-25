@@ -33,8 +33,8 @@ function ToastTriggerDemo() {
         size="sm"
         onClick={() =>
           toast({
-            title: 'Deployment queued',
-            description: 'Wendoro Flow pipeline #482 has started.',
+            title: 'Sample workflow queued',
+            description: 'Demo Wendoro Flow run #01 has started.',
             variant: 'success',
           })
         }
@@ -46,8 +46,8 @@ function ToastTriggerDemo() {
         size="sm"
         onClick={() =>
           toast({
-            title: 'Sync failed',
-            description: 'Check ERP webhook credentials in Settings.',
+            title: 'Sample sync failed',
+            description: 'Check demo webhook settings in workspace configuration.',
             variant: 'destructive',
           })
         }
@@ -62,17 +62,17 @@ function FeedbackShowcaseContent() {
   return (
     <div className="max-w-2xl space-y-6">
       <div className="space-y-3">
-        <Alert variant="neutral" title="Scheduled Maintenance">
-          Wendoro Platform ledger indexing runs Sunday 02:00 UTC.
+        <Alert variant="neutral" title="Scheduled Maintenance (Demo)">
+          Sample Wendoro Platform indexing notice (illustrative).
         </Alert>
-        <Alert variant="success" title="Invoice Batch Settled">
-          142 payouts cleared without exceptions.
+        <Alert variant="success" title="Validation Sample Settled">
+          Sample batch verification passed in demo preview.
         </Alert>
-        <Alert variant="warning" title="API Rate Limit Approaching">
-          84% of hourly quota consumed for workspace wdr-prod.
+        <Alert variant="warning" title="Quota Threshold Approaching (Demo)">
+          84% of sample quota consumed in demo workspace.
         </Alert>
-        <Alert variant="destructive" title="Webhook Signature Mismatch" dismissible>
-          Incoming Commerce events were rejected due to an expired secret.
+        <Alert variant="destructive" title="Webhook Signature Mismatch (Demo)" dismissible>
+          Sample Commerce events were rejected in this illustrative scenario.
         </Alert>
       </div>
 
@@ -89,9 +89,9 @@ function FeedbackShowcaseContent() {
       <ToastTriggerDemo />
 
       <Notification
-        title="New escalation assigned"
-        description="Enterprise ticket #WDR-904 requires tier-2 review."
-        source="Wendoro Support"
+        title="Sample escalation assigned"
+        description="Illustrative ticket #DEMO-01 requires reviewer attention."
+        source="Wendoro Support (Demo)"
         timestamp="4m ago"
         tone="warning"
         unread

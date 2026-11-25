@@ -47,20 +47,20 @@ export function FeedbackAndNavSection() {
             <Alert variant="neutral" title="Workspace Sync Ready">
               Connected to Wendoro Platform identity provider.
             </Alert>
-            <Alert variant="success" title="Payroll Run Verified">
-              All 318 line items passed validation checks.
+            <Alert variant="success" title="Validation Sample Passed">
+              Sample validation run completed with zero schema issues (demo).
             </Alert>
             <Alert variant="warning" title="Certificate Expiring Soon">
-              Webhook signing certificate renews in 7 days.
+              Sample signing certificate renews in 7 days (illustrative).
             </Alert>
             {showDismissedAlert ? (
               <Alert
                 variant="destructive"
-                title="Payment Gateway Timeout"
+                title="Webhook Retry Queued"
                 dismissible
                 onDismiss={() => setShowDismissedAlert(false)}
               >
-                Retry queued for Wendoro Commerce settlement batch #88.
+                Sample retry queued for Wendoro Commerce demo batch #01.
               </Alert>
             ) : (
               <Button variant="outline" size="sm" onClick={() => setShowDismissedAlert(true)}>
@@ -290,10 +290,10 @@ export function FeedbackAndNavSection() {
       >
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <Avatar alt="Ananya Rao" status="online" />
+            <Avatar alt="Demo Lead" status="online" />
             <div>
-              <div className="text-sm font-semibold">Ananya Rao</div>
-              <div className="text-xs text-muted-foreground">Principal Systems Lead · Wendoro Platform</div>
+              <div className="text-sm font-semibold">Demo Lead</div>
+              <div className="text-xs text-muted-foreground">Sample Systems Lead · Demo Workspace</div>
             </div>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">

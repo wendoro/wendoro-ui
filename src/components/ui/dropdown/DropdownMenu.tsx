@@ -179,7 +179,7 @@ export function DropdownMenu({ trigger, items, align = 'end', className }: Dropd
           role="menu"
           onKeyDown={handleMenuKeyDown}
           className={cn(
-            'absolute z-50 mt-1.5 min-w-[200px] rounded-[var(--wdr-radius-md)] border border-border bg-surface-elevated p-1 shadow-[var(--wdr-shadow-md)]',
+            'absolute z-50 mt-1.5 min-w-[200px] max-w-[calc(100vw-2rem)] rounded-[var(--wdr-radius-md)] border border-border bg-surface-elevated p-1 shadow-[var(--wdr-shadow-md)]',
             align === 'end' ? 'right-0' : 'left-0'
           )}
         >

@@ -19,6 +19,8 @@ export interface RadioGroupProps {
   disabled?: boolean;
   'aria-label'?: string;
   'aria-labelledby'?: string;
+  'aria-describedby'?: string;
+  'aria-required'?: boolean;
   className?: string;
   children?: React.ReactNode;
 }
@@ -42,6 +44,8 @@ export function RadioGroup({
   disabled = false,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy,
+  'aria-describedby': ariaDescribedBy,
+  'aria-required': ariaRequired,
   className,
   children,
 }: RadioGroupProps) {
@@ -72,6 +76,8 @@ export function RadioGroup({
         role="radiogroup"
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
+        aria-describedby={ariaDescribedBy}
+        aria-required={ariaRequired}
         aria-orientation={orientation}
         className={cn(
           'flex',

@@ -62,7 +62,7 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         </span>
         <div className="min-w-0 flex-1 space-y-1">
           {title && <div className="font-semibold leading-snug">{title}</div>}
-          {children && <div className="text-sm opacity-90 leading-relaxed">{children}</div>}
+          {children && <div className="text-sm leading-relaxed">{children}</div>}
           {action && <div className="pt-2">{action}</div>}
         </div>
         {dismissible && (

@@ -61,15 +61,15 @@ const SERVICE_COLUMNS: DataTableColumn<ServiceRow>[] = [
 ];
 
 const TEAM_MEMBERS: TeamMember[] = [
-  { id: 'suraj', name: 'Suraj Singh', affiliation: 'Wendoro · Founder' },
-  { id: 'sumita', name: 'Sumita Singh', affiliation: 'Wendoro · Founder' },
+  { id: 'member-a', name: 'Sample Member A', affiliation: 'Demo Workspace · Sample member' },
+  { id: 'member-b', name: 'Sample Member B', affiliation: 'Demo Workspace · Sample member' },
 ];
 
 const ACTIVITY_ITEMS: ActivityFeedEntry[] = [
   {
     id: 'act-1',
-    actor: 'Suraj Singh',
-    actorSubtitle: 'Founder · Wendoro',
+    actor: 'Sample Member A',
+    actorSubtitle: 'Demo Workspace',
     action: 'reviewed',
     entity: 'Wendoro Desk UI integration',
     timestamp: 'Just now',
@@ -108,14 +108,14 @@ function ConsumerWorkspace() {
             Overview
           </SidebarItem>
           <SidebarItem active={activeNav === 'team'} onClick={() => setActiveNav('team')}>
-            Founders
+            Directory
           </SidebarItem>
         </SidebarSection>
       </Sidebar>
 
       <main className="flex-1 space-y-6 p-6">
         <div className="flex items-center justify-between gap-4">
-          <UserProfile variant="inline" name="Suraj Singh" affiliation="Wendoro · Founder" />
+          <UserProfile variant="inline" name="Demo Lead" affiliation="Demo Workspace" />
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={toggleTheme}>
               Switch Theme

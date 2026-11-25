@@ -33,15 +33,8 @@ const preview: Preview = {
     (Story, context) => {
       const selectedTheme = (context.globals.theme as 'light' | 'dark') || 'light';
 
-      React.useEffect(() => {
-        const root = document.documentElement;
-        root.classList.remove('light', 'dark');
-        root.classList.add(selectedTheme);
-        root.setAttribute('data-theme', selectedTheme);
-      }, [selectedTheme]);
-
       return (
-        <ThemeProvider defaultTheme={selectedTheme}>
+        <ThemeProvider forcedTheme={selectedTheme} disableStorage>
           <ToastProvider>
             <div className="bg-background text-foreground p-4">
               <Story />

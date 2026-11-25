@@ -9,6 +9,8 @@ import { Drawer } from '@/components/ui/drawer';
 import { DropdownMenu } from '@/components/ui/dropdown';
 import { Pagination } from '@/components/ui/pagination';
 import { Popover } from '@/components/ui/popover';
+import { Progress } from '@/components/ui/progress';
+import { Sidebar, SidebarItem, SidebarSection } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ToastProvider, useToast } from '@/components/ui/toast';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -58,6 +60,7 @@ describe('Overlays, Navigation & Feedback Components', () => {
     await user.click(launchBtn);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Security Notice')).toBeInTheDocument();
+    expect(document.body.style.overflow).toBe('hidden');
 
     const closeBtn = screen.getByRole('button', { name: 'Close dialog' });
     const confirmBtn = screen.getByRole('button', { name: 'Confirm Action' });
@@ -69,6 +72,7 @@ describe('Overlays, Navigation & Feedback Components', () => {
 
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(document.body.style.overflow).toBe('');
     await vi.waitFor(() => expect(launchBtn).toHaveFocus());
   });
 
@@ -249,5 +253,82 @@ describe('Overlays, Navigation & Feedback Components', () => {
     await user.keyboard('{Enter}');
     expect(onRun).toHaveBeenCalledTimes(1);
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('navigates Accordion triggers with ArrowDown, ArrowUp, Home, and End keys', async () => {
+    const user = userEvent.setup();
+    render(
+      <Accordion>
+        <AccordionItem value="a">
+          <AccordionTrigger>Item A</AccordionTrigger>
+          <AccordionContent>Content A</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="b">
+          <AccordionTrigger>Item B</AccordionTrigger>
+          <AccordionContent>Content B</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="c">
+          <AccordionTrigger>Item C</AccordionTrigger>
+          <AccordionContent>Content C</AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    );
+
+    const triggerA = screen.getByRole('button', { name: 'Item A' });
+    const triggerB = screen.getByRole('button', { name: 'Item B' });
+    const triggerC = screen.getByRole('button', { name: 'Item C' });
+
+    triggerA.focus();
+    await user.keyboard('{ArrowDown}');
+    expect(triggerB).toHaveFocus();
+    await user.keyboard('{End}');
+    expect(triggerC).toHaveFocus();
+    await user.keyboard('{ArrowUp}');
+    expect(triggerB).toHaveFocus();
+    await user.keyboard('{Home}');
+    expect(triggerA).toHaveFocus();
+  });
+
+  it('clears scheduled Toast timers on dismiss and unmount without leaking', async () => {
+    const clearTimeoutSpy = vi.spyOn(window, 'clearTimeout');
+    const user = userEvent.setup();
+
+    const { unmount } = render(
+      <ToastProvider>
+        <ToastHarness />
+      </ToastProvider>
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Show Toast' }));
+    await user.click(screen.getByRole('button', { name: 'Show Toast' }));
+    await user.click(screen.getAllByRole('button', { name: 'Close notification' })[0]);
+    expect(clearTimeoutSpy).toHaveBeenCalled();
+
+    unmount();
+    expect(clearTimeoutSpy.mock.calls.length).toBeGreaterThanOrEqual(2);
+    clearTimeoutSpy.mockRestore();
+  });
+
+  it('preserves accessible names in collapsed SidebarItem and binds Progress aria-label cleanly', () => {
+    render(
+      <div>
+        <Sidebar collapsible collapsed onCollapsedChange={vi.fn()}>
+          <SidebarSection title="Main">
+            <SidebarItem active>Overview</SidebarItem>
+          </SidebarSection>
+        </Sidebar>
+        <Progress aria-label="Migration completion" value={75} max={100} />
+      </div>
+    );
+
+    expect(screen.getByRole('button', { name: 'Expand sidebar' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    );
+    expect(screen.getByRole('button', { name: 'Overview' })).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Migration completion' })).toHaveAttribute(
+      'aria-valuenow',
+      '75'
+    );
   });
 });

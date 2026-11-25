@@ -31,13 +31,17 @@ export function FormField({
   const resolvedId = (childProps.id as string | undefined) ?? fieldId;
   const hintId = hint ? `${resolvedId}-hint` : undefined;
   const errorId = error ? `${resolvedId}-error` : undefined;
-  const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
+  const existingDescribedBy =
+    typeof childProps['aria-describedby'] === 'string' ? childProps['aria-describedby'] : undefined;
+  const describedBy =
+    [existingDescribedBy, hintId, errorId].filter(Boolean).join(' ') || undefined;
 
   const isIntrinsicElement = typeof children.type === 'string';
   const injectedProps: Record<string, unknown> = {
     id: resolvedId,
     'aria-describedby': describedBy,
     'aria-invalid': error ? true : childProps['aria-invalid'],
+    'aria-required': required ? true : childProps['aria-required'],
     disabled: disabled || Boolean(childProps.disabled),
   };
   if (!isIntrinsicElement) {

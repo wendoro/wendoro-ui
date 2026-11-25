@@ -6,6 +6,7 @@ import { DataTable, type DataTableColumn } from '@/components/business/data-tabl
 import { KpiCard } from '@/components/business/kpi-card';
 import { MetricCard } from '@/components/business/metric-card';
 import { NotificationCenter } from '@/components/business/notification-center';
+import { SearchBar } from '@/components/business/search-bar';
 import { StatusBadge } from '@/components/business/status-badge';
 import { TeamDirectory } from '@/components/business/team-directory';
 import { UserProfile } from '@/components/business/user-profile';
@@ -22,28 +23,34 @@ const rows: RowItem[] = [
   { id: '2', name: 'Alpha Module', total: 500 },
 ];
 
-const columns: DataTableColumn<RowItem>[] = [
-  { key: 'name', header: 'Name', sortable: true, accessor: (r) => r.name, cell: (r) => r.name },
-  { key: 'total', header: 'Total', sortable: true, accessor: (r) => r.total, cell: (r) => `$${r.total}` },
+const paginatedRows: RowItem[] = [
+  { id: 'r1', name: 'Item 1', total: 10 },
+  { id: 'r2', name: 'Item 2', total: 20 },
+  { id: 'r3', name: 'Item 3', total: 30 },
 ];
 
-describe('Business Components & Wendoro Team Showcase', () => {
+const columns: DataTableColumn<RowItem>[] = [
+  { key: 'name', header: 'Name', sortable: true, accessor: (r) => r.name, cell: (r) => r.name },
+  { key: 'total', header: 'Total', sortable: true, accessor: (r) => r.total, cell: (r) => `${r.total} units` },
+];
+
+describe('Business Components & Wendoro Demo Showcase', () => {
   it('renders MetricCard, KpiCard, and StatusBadge with explicit labels', () => {
     render(
       <div>
-        <MetricCard label="Revenue" value="$12,400" delta="+10%" trend="up" />
+        <MetricCard label="Sample Metric" value="1,240" delta="+10%" trend="up" />
         <KpiCard title="Onboarding" actual="8" target="10" completion={80} status="on_track" />
         <StatusBadge status="pending" />
       </div>
     );
 
-    expect(screen.getByText('Revenue')).toBeInTheDocument();
-    expect(screen.getByText('$12,400')).toBeInTheDocument();
+    expect(screen.getByText('Sample Metric')).toBeInTheDocument();
+    expect(screen.getByText('1,240')).toBeInTheDocument();
     expect(screen.getByText('On track')).toBeInTheDocument();
     expect(screen.getByText('Pending')).toBeInTheDocument();
   });
 
-  it('renders TeamDirectory with Wendoro team members, search, and grid/list views without inventing missing details', async () => {
+  it('renders TeamDirectory with synthetic demo members, search, and grid/list views without inventing missing details', async () => {
     const user = userEvent.setup();
     render(
       <TeamDirectory
@@ -52,12 +59,15 @@ describe('Business Components & Wendoro Team Showcase', () => {
       />
     );
 
-    expect(screen.getByText('Ananya Rao')).toBeInTheDocument();
-    expect(screen.getByText('Principal Systems Lead · Wendoro Platform')).toBeInTheDocument();
-    expect(screen.getByText('ananya@wendoro.in')).toBeInTheDocument();
-    expect(screen.getByText('Sumita Singh')).toBeInTheDocument();
-    expect(screen.getByText('Suraj Singh')).toBeInTheDocument();
-    expect(screen.getByText('Rohan Mehta')).toBeInTheDocument();
+    expect(screen.getByText('Demo Lead')).toBeInTheDocument();
+    expect(screen.getByText('Sample Systems Lead · Wendoro Platform (Demo)')).toBeInTheDocument();
+    expect(screen.getByText('lead@demo.invalid')).toBeInTheDocument();
+    expect(screen.getByText('Sample Member A')).toBeInTheDocument();
+    expect(screen.getByText('Sample Member B')).toBeInTheDocument();
+    expect(screen.getByText('Sample Member C')).toBeInTheDocument();
+
+    // Verify demo records avoid personal/real email patterns
+    expect(WENDORO_TEAM_MEMBERS.every((m) => !m.email || m.email.endsWith('.invalid'))).toBe(true);
 
     // Switch to List view
     const listBtn = screen.getByRole('button', { name: 'List view' });
@@ -66,9 +76,9 @@ describe('Business Components & Wendoro Team Showcase', () => {
 
     // Search filter
     const searchInput = screen.getByRole('searchbox');
-    await user.type(searchInput, 'Sumita');
-    expect(screen.getByText('Sumita Singh')).toBeInTheDocument();
-    expect(screen.queryByText('Ananya Rao')).not.toBeInTheDocument();
+    await user.type(searchInput, 'Member A');
+    expect(screen.getByText('Sample Member A')).toBeInTheDocument();
+    expect(screen.queryByText('Demo Lead')).not.toBeInTheDocument();
   });
 
   it('renders UserProfile with contact and dropdown actions', async () => {
@@ -79,10 +89,10 @@ describe('Business Components & Wendoro Team Showcase', () => {
     render(
       <UserProfile
         variant="card"
-        name="Ananya Rao"
-        role="Principal Systems Lead"
-        department="Wendoro Platform"
-        email="ananya@wendoro.in"
+        name="Demo Lead"
+        role="Sample Systems Lead"
+        department="Demo Workspace"
+        email="lead@demo.invalid"
         statusBadge="completed"
         statusLabel="Verified"
         onContact={onContact}
@@ -94,12 +104,12 @@ describe('Business Components & Wendoro Team Showcase', () => {
     await user.click(screen.getByRole('button', { name: 'Contact' }));
     expect(onContact).toHaveBeenCalledTimes(1);
 
-    await user.click(screen.getByRole('button', { name: 'Actions for Ananya Rao' }));
+    await user.click(screen.getByRole('button', { name: 'Actions for Demo Lead' }));
     await user.click(screen.getByRole('menuitem', { name: 'Copy email' }));
     expect(onCopy).toHaveBeenCalledTimes(1);
   });
 
-  it('renders ActivityFeed with sample demonstration label and provided events', () => {
+  it('renders ActivityFeed with sample demonstration label and provided synthetic events', () => {
     render(
       <ActivityFeed
         items={WENDORO_DEMO_ACTIVITY}
@@ -108,16 +118,17 @@ describe('Business Components & Wendoro Team Showcase', () => {
     );
 
     expect(screen.getByText('Demo data — illustrative component preview only.')).toBeInTheDocument();
-    expect(screen.getAllByText('Suraj Singh').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Sumita Singh').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Founder · Wendoro')).toHaveLength(2);
-    expect(screen.getByText('#SL-4092')).toBeInTheDocument();
-    expect(screen.getByText('$48,200 cleared')).toBeInTheDocument();
+    expect(screen.getAllByText('Sample Member B').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Sample Member A').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('Demo Workspace Lead')).toBeInTheDocument();
+    expect(screen.getByText('Sample Record #01')).toBeInTheDocument();
+    expect(screen.getByText('120 sample units')).toBeInTheDocument();
   });
 
-  it('sorts DataTable columns, selects rows, and handles empty state', async () => {
+  it('sorts DataTable columns, selects rows, paginates safely, and renders empty/error states', async () => {
     const user = userEvent.setup();
     const onSelected = vi.fn();
+    const onRetry = vi.fn();
     const { rerender } = render(
       <DataTable
         data={rows}
@@ -138,6 +149,34 @@ describe('Business Components & Wendoro Team Showcase', () => {
     await user.click(screen.getByLabelText('Select row 2'));
     expect(onSelected).toHaveBeenCalledWith(['2']);
 
+    // Pagination + pageSize <= 0 guard
+    rerender(
+      <DataTable
+        data={paginatedRows}
+        columns={columns}
+        getRowId={(r) => r.id}
+        pageSize={0}
+      />
+    );
+    expect(screen.getByText('Item 1')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '2' }));
+    expect(screen.getByText('Item 2')).toBeInTheDocument();
+
+    // Error state with Retry callback
+    rerender(
+      <DataTable
+        data={[]}
+        columns={columns}
+        getRowId={(r) => r.id}
+        error="Failed to load sample records"
+        onRetry={onRetry}
+      />
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent('Failed to load sample records');
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+
+    // Empty state
     rerender(<DataTable data={[]} columns={columns} getRowId={(r) => r.id} emptyTitle="No entries" />);
     expect(screen.getByText('No entries')).toBeInTheDocument();
   });
@@ -174,7 +213,7 @@ describe('Business Components & Wendoro Team Showcase', () => {
         items={[]}
         className="custom-feed-class"
         data-testid="empty-activity-feed"
-        aria-label="Founder activity feed"
+        aria-label="Sample activity feed"
         demoLabel="Demo data — empty preview"
         emptyTitle="Nothing yet"
       />
@@ -182,7 +221,7 @@ describe('Business Components & Wendoro Team Showcase', () => {
 
     const container = screen.getByTestId('empty-activity-feed');
     expect(container).toHaveClass('custom-feed-class');
-    expect(container).toHaveAttribute('aria-label', 'Founder activity feed');
+    expect(container).toHaveAttribute('aria-label', 'Sample activity feed');
     expect(screen.getByText('Demo data — empty preview')).toBeInTheDocument();
     expect(screen.getByText('Nothing yet')).toBeInTheDocument();
   });
@@ -194,21 +233,22 @@ describe('Business Components & Wendoro Team Showcase', () => {
     const statusTrigger = screen.getByRole('combobox', { name: 'Status' });
     await user.click(statusTrigger);
     await user.click(screen.getByRole('option', { name: 'Completed' }));
-    expect(screen.getByText('Ananya Rao')).toBeInTheDocument();
-    expect(screen.queryByText('Sumita Singh')).not.toBeInTheDocument();
+    expect(screen.getByText('Demo Lead')).toBeInTheDocument();
+    expect(screen.queryByText('Sample Member A')).not.toBeInTheDocument();
 
     await user.type(screen.getByRole('searchbox'), 'NoSuchMember');
     expect(screen.getByText('No matching team members')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Reset Filters' }));
-    expect(screen.getByText('Suraj Singh')).toBeInTheDocument();
-    expect(screen.getByText('Ananya Rao')).toBeInTheDocument();
+    expect(screen.getByText('Sample Member B')).toBeInTheDocument();
+    expect(screen.getByText('Demo Lead')).toBeInTheDocument();
   });
 
-  it('supports DataTable loading status, select-all rows, and NotificationCenter dismissal', async () => {
+  it('supports DataTable loading status, select-all rows, SearchBar disabled, and NotificationCenter dismissal', async () => {
     const user = userEvent.setup();
     const onSelected = vi.fn();
     const onDismiss = vi.fn();
+    const onSearch = vi.fn();
 
     const { rerender } = render(
       <DataTable
@@ -222,6 +262,7 @@ describe('Business Components & Wendoro Team Showcase', () => {
 
     rerender(
       <div>
+        <SearchBar value="locked" onChange={onSearch} disabled aria-label="Disabled search" />
         <DataTable
           data={rows}
           columns={columns}
@@ -237,6 +278,9 @@ describe('Business Components & Wendoro Team Showcase', () => {
       </div>
     );
 
+    expect(screen.getByLabelText('Disabled search')).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+
     await user.click(screen.getByLabelText('Select all rows on page'));
     expect(onSelected).toHaveBeenCalledWith(['1', '2']);
 
@@ -245,4 +289,3 @@ describe('Business Components & Wendoro Team Showcase', () => {
     expect(onDismiss).toHaveBeenCalledWith('n1');
   });
 });
-

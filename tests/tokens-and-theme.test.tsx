@@ -1,8 +1,9 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { ThemeProvider, useTheme } from '@/hooks/use-theme';
-import { brandColors, radius, spacing, typographyScale } from '@/tokens';
+import { ThemeProvider, getThemeInitScript, useTheme } from '@/hooks/use-theme';
+import { brandColors, radius, semanticColorTokens, spacing, typographyScale } from '@/tokens';
+import { cn } from '@/utils/cn';
 
 function ThemeProbe() {
   const { theme, resolvedTheme, setTheme, toggleTheme } = useTheme();
@@ -30,6 +31,16 @@ describe('Design Tokens & Theming', () => {
     expect(brandColors.mutedGray).toBe('#737373');
   });
 
+  it('defines interactive state semantic tokens alongside core tokens', () => {
+    expect(semanticColorTokens.disabled).toBe('var(--wdr-disabled)');
+    expect(semanticColorTokens.disabledForeground).toBe('var(--wdr-disabled-foreground)');
+    expect(semanticColorTokens.focus).toBe('var(--wdr-focus)');
+    expect(semanticColorTokens.hover).toBe('var(--wdr-hover)');
+    expect(semanticColorTokens.selected).toBe('var(--wdr-selected)');
+    expect(semanticColorTokens.selectedForeground).toBe('var(--wdr-selected-foreground)');
+    expect(semanticColorTokens.active).toBe('var(--wdr-active)');
+  });
+
   it('provides full typography, spacing, and radius token scales', () => {
     expect(Object.keys(typographyScale)).toEqual([
       'display',
@@ -52,6 +63,11 @@ describe('Design Tokens & Theming', () => {
       'extraLarge',
       'full',
     ]);
+  });
+
+  it('merges class names cleanly via cn utility', () => {
+    const disabled = false;
+    expect(cn('px-2', disabled && 'opacity-50', undefined, 'text-sm')).toBe('px-2 text-sm');
   });
 
   it('switches between light and dark themes and persists under a custom storageKey', async () => {
@@ -79,8 +95,9 @@ describe('Design Tokens & Theming', () => {
     expect(window.localStorage.getItem('custom-wdr-theme')).toBe('light');
   });
 
-  it('reacts to OS system preference changes in system mode', () => {
-    let changeHandler: ((event: MediaQueryListEvent) => void) | undefined;
+  it('reacts to OS system preference changes in system mode including legacy addListener fallback', () => {
+    let modernHandler: ((event: MediaQueryListEvent) => void) | undefined;
+    let legacyHandler: ((event: MediaQueryListEvent) => void) | undefined;
     const originalMatchMedia = window.matchMedia;
 
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
@@ -90,14 +107,14 @@ describe('Design Tokens & Theming', () => {
       addListener: vi.fn(),
       removeListener: vi.fn(),
       addEventListener: (_event: string, cb: (e: MediaQueryListEvent) => void) => {
-        changeHandler = cb;
+        modernHandler = cb;
       },
       removeEventListener: vi.fn(),
       dispatchEvent: vi.fn(),
     }));
 
     window.localStorage.removeItem('system-test-key');
-    render(
+    const { unmount } = render(
       <ThemeProvider defaultTheme="system" storageKey="system-test-key">
         <ThemeProbe />
       </ThemeProvider>
@@ -107,11 +124,35 @@ describe('Design Tokens & Theming', () => {
     expect(screen.getByTestId('resolved-theme')).toHaveTextContent('light');
 
     act(() => {
-      changeHandler?.({ matches: true } as MediaQueryListEvent);
+      modernHandler?.({ matches: true } as MediaQueryListEvent);
     });
 
     expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark');
     expect(document.documentElement).toHaveClass('dark');
+    unmount();
+
+    // Legacy browser MediaQueryList without addEventListener
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: (cb: (e: MediaQueryListEvent) => void) => {
+        legacyHandler = cb;
+      },
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    render(
+      <ThemeProvider defaultTheme="system" storageKey="system-test-key-legacy">
+        <ThemeProbe />
+      </ThemeProvider>
+    );
+
+    act(() => {
+      legacyHandler?.({ matches: true } as MediaQueryListEvent);
+    });
+    expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark');
 
     window.matchMedia = originalMatchMedia;
   });
@@ -129,5 +170,58 @@ describe('Design Tokens & Theming', () => {
     expect(document.documentElement).toHaveClass('dark');
     window.localStorage.removeItem('hydrated-wdr-theme');
   });
-});
 
+  it('survives localStorage read/write failures without throwing', async () => {
+    const user = userEvent.setup();
+    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('SecurityError: storage blocked');
+    });
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError');
+    });
+
+    render(
+      <ThemeProvider defaultTheme="light" storageKey="blocked-key">
+        <ThemeProbe />
+      </ThemeProvider>
+    );
+
+    expect(screen.getByTestId('resolved-theme')).toHaveTextContent('light');
+    await user.click(screen.getByRole('button', { name: 'Set Dark' }));
+    expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark');
+
+    getItemSpy.mockRestore();
+    setItemSpy.mockRestore();
+  });
+
+  it('isolates scoped ThemeProvider consumers from document.documentElement', async () => {
+    const user = userEvent.setup();
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+    document.documentElement.setAttribute('data-theme', 'light');
+
+    const { container } = render(
+      <ThemeProvider scoped disableStorage defaultTheme="light">
+        <ThemeProbe />
+      </ThemeProvider>
+    );
+
+    const scopedWrapper = container.firstElementChild as HTMLElement;
+    expect(scopedWrapper).toHaveAttribute('data-theme', 'light');
+    expect(scopedWrapper).toHaveClass('light');
+
+    await user.click(screen.getByRole('button', { name: 'Set Dark' }));
+    expect(scopedWrapper).toHaveAttribute('data-theme', 'dark');
+    expect(scopedWrapper).toHaveClass('dark');
+    // Global document root remains untouched
+    expect(document.documentElement).toHaveClass('light');
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
+  });
+
+  it('generates safe bootstrap init script string for SSR pre-hydration', () => {
+    const script = getThemeInitScript('custom-key', 'dark');
+    expect(script).toContain('"custom-key"');
+    expect(script).toContain('"dark"');
+    expect(script).toContain('data-theme');
+  });
+});

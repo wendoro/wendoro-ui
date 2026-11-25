@@ -2,10 +2,11 @@ import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Mail } from 'lucide-react';
 import { Input } from '../src/components/ui/input';
+import { Label } from '../src/components/ui/label';
 import { Textarea } from '../src/components/ui/textarea';
 import { Select } from '../src/components/ui/select';
 import { Checkbox } from '../src/components/ui/checkbox';
-import { RadioGroup } from '../src/components/ui/radio';
+import { Radio, RadioGroup } from '../src/components/ui/radio';
 import { Switch } from '../src/components/ui/switch';
 import { Slider } from '../src/components/ui/slider';
 import { FormField } from '../src/components/ui/form-field';
@@ -36,7 +37,7 @@ function AllControlsDemo() {
         <FormField label="Workspace Email" required hint="Used for audit alerts and SSO routing.">
           <Input
             type="email"
-            placeholder="ops@wendoro.in"
+            placeholder="member@demo.invalid"
             leftAdornment={<Mail className="h-4 w-4" />}
           />
         </FormField>
@@ -92,8 +93,21 @@ function AllControlsDemo() {
         />
 
         <FormField label="Read-only / Disabled Control" hint="Locked by workspace policy.">
-          <Input defaultValue="wendoro-prod-01" disabled />
+          <Input defaultValue="demo-workspace-01" disabled />
         </FormField>
+
+        <div className="space-y-2 border-t border-border pt-4">
+          <Label htmlFor="standalone-radio-opt" optional>
+            Standalone Label &amp; Radio
+          </Label>
+          <Radio
+            id="standalone-radio-opt"
+            name="standalone-demo"
+            value="demo"
+            label="Use illustrative defaults"
+            defaultChecked
+          />
+        </div>
       </div>
   );
 }
@@ -105,11 +119,11 @@ export const AllControls: StoryObj = {
 export const ValidationAndDisabled: StoryObj = {
   render: () => (
     <div className="max-w-xl space-y-5">
-      <FormField label="Billing Domain" required error="Enter a valid verified domain (e.g. wendoro.in).">
+      <FormField label="Workspace Domain" required error="Enter a valid domain (e.g. demo.invalid).">
         <Input defaultValue="invalid" />
       </FormField>
-      <FormField label="Locked Workspace ID" hint="Managed by Wendoro Platform administrator.">
-        <Input defaultValue="wdr-platform-prod" disabled />
+      <FormField label="Locked Workspace ID" hint="Managed by demo workspace policy.">
+        <Input defaultValue="wdr-demo-workspace" disabled />
       </FormField>
       <Select
         disabled

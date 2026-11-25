@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Search, X } from 'lucide-react';
 import { cn } from '../../../utils/cn';
+import { getFocusableElements } from '../../../utils/focus';
 import { useStableId } from '../../../hooks/use-id';
 
 export interface CommandItem {
@@ -21,22 +22,6 @@ export interface CommandPaletteProps {
   placeholder?: string;
   emptyMessage?: string;
   enableGlobalShortcut?: boolean;
-}
-
-function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  const selectors = [
-    'a[href]',
-    'button:not([disabled])',
-    'textarea:not([disabled])',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
-  ].join(',');
-  return Array.from(container.querySelectorAll<HTMLElement>(selectors)).filter((el) => {
-    if (el.hasAttribute('disabled') || el.closest('[hidden]')) return false;
-    const style = window.getComputedStyle(el);
-    return style.display !== 'none' && style.visibility !== 'hidden';
-  });
 }
 
 export function CommandPalette({
@@ -67,13 +52,16 @@ export function CommandPalette({
   }, [enableGlobalShortcut, onOpenChange, open]);
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open || typeof document === 'undefined') return;
     previousFocusRef.current = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     setQuery('');
     setActiveIndex(0);
     const timer = window.setTimeout(() => inputRef.current?.focus(), 0);
     return () => {
       window.clearTimeout(timer);
+      document.body.style.overflow = prevOverflow;
       if (previousFocusRef.current?.isConnected) {
         previousFocusRef.current.focus();
       }

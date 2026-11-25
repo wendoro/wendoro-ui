@@ -40,6 +40,7 @@ export function Sidebar({
               <button
                 type="button"
                 onClick={() => onCollapsedChange?.(!collapsed)}
+                aria-expanded={!collapsed}
                 aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                 className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--wdr-radius-md)] text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
@@ -115,7 +116,11 @@ export function SidebarItem({
           {icon}
         </span>
       )}
-      {!collapsed && <span className="flex-1 truncate text-left">{children}</span>}
+      {collapsed ? (
+        <span className="sr-only">{children}</span>
+      ) : (
+        <span className="flex-1 truncate text-left">{children}</span>
+      )}
       {!collapsed && badge && <span className="shrink-0">{badge}</span>}
     </button>
   );

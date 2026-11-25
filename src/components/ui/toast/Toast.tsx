@@ -47,12 +47,40 @@ export interface ToastProviderProps {
 export function ToastProvider({ children, maxToasts = 5 }: ToastProviderProps) {
   const [toasts, setToasts] = React.useState<ToastItem[]>([]);
   const counterRef = React.useRef(0);
+  const timersRef = React.useRef<Map<string, number>>(new Map());
+  const safeMaxToasts = Math.max(1, maxToasts);
 
-  const dismiss = React.useCallback((id: string) => {
-    setToasts((prev) => prev.filter((item) => item.id !== id));
+  const clearTimer = React.useCallback((id: string) => {
+    const timer = timersRef.current.get(id);
+    if (timer !== undefined && typeof window !== 'undefined') {
+      window.clearTimeout(timer);
+    }
+    timersRef.current.delete(id);
   }, []);
 
+  React.useEffect(() => {
+    const activeTimers = timersRef.current;
+    return () => {
+      if (typeof window !== 'undefined') {
+        activeTimers.forEach((timer) => window.clearTimeout(timer));
+      }
+      activeTimers.clear();
+    };
+  }, []);
+
+  const dismiss = React.useCallback(
+    (id: string) => {
+      clearTimer(id);
+      setToasts((prev) => prev.filter((item) => item.id !== id));
+    },
+    [clearTimer]
+  );
+
   const dismissAll = React.useCallback(() => {
+    if (typeof window !== 'undefined') {
+      timersRef.current.forEach((timer) => window.clearTimeout(timer));
+    }
+    timersRef.current.clear();
     setToasts([]);
   }, []);
 
@@ -61,16 +89,27 @@ export function ToastProvider({ children, maxToasts = 5 }: ToastProviderProps) {
       counterRef.current += 1;
       const id = `wdr-toast-${counterRef.current}`;
       const duration = item.duration ?? 5000;
-      setToasts((prev) => [{ ...item, id }, ...prev].slice(0, maxToasts));
 
-      if (duration > 0) {
-        window.setTimeout(() => {
+      setToasts((prev) => {
+        const next = [{ ...item, id }, ...prev];
+        if (next.length > safeMaxToasts) {
+          for (const evicted of next.slice(safeMaxToasts)) {
+            clearTimer(evicted.id);
+          }
+          return next.slice(0, safeMaxToasts);
+        }
+        return next;
+      });
+
+      if (duration > 0 && typeof window !== 'undefined') {
+        const timerId = window.setTimeout(() => {
           dismiss(id);
         }, duration);
+        timersRef.current.set(id, timerId);
       }
       return id;
     },
-    [dismiss, maxToasts]
+    [clearTimer, dismiss, safeMaxToasts]
   );
 
   const value = React.useMemo<ToastContextValue>(
@@ -117,7 +156,12 @@ export function ToastCard({ item, onDismiss }: ToastCardProps) {
       <div className="min-w-0 flex-1 space-y-1">
         <div className="text-sm font-semibold leading-snug">{item.title}</div>
         {item.description && (
-          <p className={cn('text-xs leading-relaxed', variant === 'destructive' ? 'opacity-90' : 'text-muted-foreground')}>
+          <p
+            className={cn(
+              'text-xs leading-relaxed',
+              variant === 'destructive' ? 'text-destructive-foreground' : 'text-muted-foreground'
+            )}
+          >
             {item.description}
           </p>
         )}
@@ -137,7 +181,12 @@ export function ToastCard({ item, onDismiss }: ToastCardProps) {
         type="button"
         onClick={onDismiss}
         aria-label="Close notification"
-        className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--wdr-radius-sm)] opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className={cn(
+          'inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--wdr-radius-sm)] transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          variant === 'destructive'
+            ? 'text-destructive-foreground hover:opacity-85'
+            : 'opacity-70 hover:opacity-100'
+        )}
       >
         <X className="h-3.5 w-3.5" aria-hidden="true" />
       </button>

@@ -36,7 +36,7 @@ const INITIAL_NOTIFICATIONS: NotificationCenterItem[] = [
   {
     id: 'n2',
     title: 'Sample routing rule updated',
-    description: 'Rohan Mehta updated dual-control payout sign-off in Wendoro Flow (demo).',
+    description: 'Sample Member C updated an example approval rule in Wendoro Flow (demo).',
     timestamp: '34m ago',
     source: 'Wendoro Flow',
     tone: 'warning',
