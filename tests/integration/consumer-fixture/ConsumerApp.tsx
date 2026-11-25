@@ -21,6 +21,12 @@ import {
   ActivityFeed,
   DataTable,
   BottomSheet,
+  RangeSlider,
+  SegmentedControl,
+  AppLauncher,
+  ScrollArea,
+  ConnectionStatusBanner,
+  AutosaveIndicator,
   type DataTableColumn,
   type TeamMember,
   type ActivityFeedEntry,
@@ -40,7 +46,15 @@ import {
 } from '@wendoro/ui/tokens';
 import { LineChart, GaugeChart, ExternalChart } from '@wendoro/ui/charts';
 import { FunnelChart, GeoRegionChart } from '@wendoro/ui/charts/advanced';
-import { AnalyticsSummaryCard, WorkflowBuilder } from '@wendoro/ui/business';
+import {
+  AnalyticsSummaryCard,
+  WorkflowBuilder,
+  SetupWizard,
+  WorkspaceModeContainer,
+  PresenceAvatarStack,
+  PromptComposerBar,
+  WENDORO_MODULE_CONTRACT_VERSION,
+} from '@wendoro/ui/business';
 import { DensityProvider, useReducedMotion, useBreakpoint } from '@wendoro/ui/hooks';
 
 interface ServiceRow {
@@ -223,6 +237,34 @@ function ConsumerWorkspace() {
         {activeNav === 'team' && <TeamDirectory members={TEAM_MEMBERS} />}
 
         <ActivityFeed items={ACTIVITY_ITEMS} demoLabel="Consumer fixture demo data" />
+
+        <div data-module-contract={WENDORO_MODULE_CONTRACT_VERSION} className="space-y-3">
+          <ConnectionStatusBanner status="online" detail="Consumer sync verified" />
+          <div className="flex flex-wrap items-center gap-3">
+            <AutosaveIndicator status="saved" savedAtLabel="Now" />
+            <SegmentedControl
+              defaultValue="grid"
+              options={[
+                { value: 'grid', label: 'Grid' },
+                { value: 'list', label: 'List' },
+              ]}
+            />
+            <AppLauncher
+              entries={[{ id: 'desk', name: 'Wendoro Desk', category: 'product', onLaunch: () => {} }]}
+            />
+            <PresenceAvatarStack collaborators={[{ id: 'c1', name: 'Demo Lead', state: 'editing' }]} />
+          </div>
+          <RangeSlider label="Consumer range" defaultValue={[10, 90]} />
+          <ScrollArea maxHeight={80}>
+            <div className="text-xs text-muted-foreground">Scrollable consumer container</div>
+          </ScrollArea>
+          <WorkspaceModeContainer title="Consumer Workspace Mode">
+            <PromptComposerBar value="" onValueChange={() => {}} onSubmit={() => {}} />
+          </WorkspaceModeContainer>
+          <SetupWizard
+            steps={[{ id: 's1', title: 'Confirm', content: <div className="text-xs">Ready</div> }]}
+          />
+        </div>
 
         <BottomSheet open={sheetOpen} onOpenChange={setSheetOpen} title="Consumer Mobile Sheet">
           <p className="text-sm text-muted-foreground">BottomSheet integration verified.</p>

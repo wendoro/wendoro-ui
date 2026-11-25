@@ -16,3 +16,6 @@ export * from './status-badge';
 export * from './team-directory';
 export * from './user-profile';
 export * from './workflow-builder';
+export * from './installer';
+export * from './workspace';
+export * from './future-modules';

@@ -935,3 +935,136 @@ export function MobileCommandBar({
     </div>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* FullscreenMobileMenu                                                       */
+/* -------------------------------------------------------------------------- */
+
+export interface FullscreenMobileMenuGroup {
+  id: string;
+  title: string;
+  items: Array<{
+    id: string;
+    label: string;
+    description?: string;
+    icon?: React.ReactNode;
+    active?: boolean;
+    onSelect: () => void;
+  }>;
+}
+
+export function FullscreenMobileMenu({
+  open,
+  onOpenChange,
+  title = 'Menu',
+  groups,
+  footer,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title?: string;
+  groups: FullscreenMobileMenuGroup[];
+  footer?: React.ReactNode;
+}) {
+  const [query, setQuery] = React.useState('');
+
+  React.useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onOpenChange(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, onOpenChange]);
+
+  if (!open) return null;
+
+  const q = query.trim().toLowerCase();
+  const filteredGroups = groups
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((it) =>
+        `${it.label} ${it.description ?? ''}`.toLowerCase().includes(q)
+      ),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      className="fixed inset-0 z-50 flex flex-col bg-background text-foreground"
+    >
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-surface px-4 py-3.5">
+        <span className="text-base font-bold">{title}</span>
+        <button
+          type="button"
+          aria-label="Close fullscreen menu"
+          onClick={() => onOpenChange(false)}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--wdr-radius-md)] border border-border bg-surface text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <X className="h-5 w-5" aria-hidden="true" />
+        </button>
+      </div>
+
+      <div className="border-b border-border bg-surface px-4 py-2.5">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filter navigation…"
+            aria-label="Filter navigation"
+            className="h-11 w-full rounded-[var(--wdr-radius-md)] border border-input bg-background pl-9 pr-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
+      </div>
+
+      <nav aria-label="Fullscreen mobile navigation" className="wdr-scrollbar flex-1 space-y-5 overflow-y-auto p-4">
+        {filteredGroups.map((group) => (
+          <div key={group.id} className="space-y-2">
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {group.title}
+            </div>
+            <div className="space-y-1.5">
+              {group.items.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-current={item.active ? 'page' : undefined}
+                  onClick={() => {
+                    item.onSelect();
+                    onOpenChange(false);
+                  }}
+                  className={cn(
+                    'flex min-h-[48px] w-full items-center gap-3 rounded-[var(--wdr-radius-md)] border px-3.5 py-2.5 text-left transition-colors',
+                    item.active
+                      ? 'border-foreground bg-primary text-primary-foreground font-semibold'
+                      : 'border-border bg-surface text-foreground hover:bg-muted'
+                  )}
+                >
+                  {item.icon && <span aria-hidden="true" className="shrink-0">{item.icon}</span>}
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm">{item.label}</div>
+                    {item.description && (
+                      <div className={cn('truncate text-xs', item.active ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
+                        {item.description}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+        {filteredGroups.length === 0 && (
+          <div className="py-10 text-center text-sm text-muted-foreground">No matching destinations.</div>
+        )}
+      </nav>
+
+      {footer && <div className="border-t border-border bg-surface p-4">{footer}</div>}
+    </div>
+  );
+}

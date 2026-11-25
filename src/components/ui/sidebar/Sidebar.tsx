@@ -1,11 +1,15 @@
 import * as React from 'react';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 
 export interface SidebarProps extends React.HTMLAttributes<HTMLElement> {
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
   collapsible?: boolean;
+  resizable?: boolean;
+  defaultWidth?: number;
+  minWidth?: number;
+  maxWidth?: number;
   header?: React.ReactNode;
   footer?: React.ReactNode;
 }
@@ -16,19 +20,51 @@ export function Sidebar({
   collapsed = false,
   onCollapsedChange,
   collapsible = false,
+  resizable = false,
+  defaultWidth = 256,
+  minWidth = 200,
+  maxWidth = 380,
   header,
   footer,
   className,
+  style,
   children,
   ...props
 }: SidebarProps) {
+  const [width, setWidth] = React.useState(defaultWidth);
+  const asideRef = React.useRef<HTMLElement>(null);
+
+  const clampWidth = (val: number) => Math.max(minWidth, Math.min(maxWidth, val));
+
+  const startResize = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!resizable || collapsed) return;
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = width;
+    const onMove = (moveEvt: PointerEvent) => {
+      setWidth(clampWidth(Math.round(startWidth + (moveEvt.clientX - startX))));
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
   return (
     <SidebarContext.Provider value={{ collapsed }}>
       <aside
+        ref={asideRef}
         aria-label="Sidebar navigation"
+        style={
+          !collapsed && resizable
+            ? { width: `${width}px`, ...style }
+            : style
+        }
         className={cn(
-          'flex h-full flex-col border-r border-border bg-surface transition-[width] duration-200',
-          collapsed ? 'w-16' : 'w-64',
+          'relative flex h-full flex-col border-r border-border bg-surface transition-[width] duration-200',
+          collapsed ? 'w-16' : !resizable && 'w-64',
           className
         )}
         {...props}
@@ -54,9 +90,32 @@ export function Sidebar({
           </div>
         )}
 
-        <nav className="flex-1 space-y-5 overflow-y-auto px-2.5 py-4">{children}</nav>
+        <nav className="wdr-scrollbar-thin flex-1 space-y-5 overflow-y-auto px-2.5 py-4">{children}</nav>
 
         {footer && <div className="border-t border-border p-3">{footer}</div>}
+
+        {resizable && !collapsed && (
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize sidebar"
+            aria-valuemin={minWidth}
+            aria-valuemax={maxWidth}
+            aria-valuenow={width}
+            tabIndex={0}
+            onPointerDown={startResize}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                setWidth((w) => clampWidth(w + 16));
+              } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                setWidth((w) => clampWidth(w - 16));
+              }
+            }}
+            className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize bg-transparent hover:bg-primary/40 focus-visible:bg-primary focus-visible:outline-none"
+          />
+        )}
       </aside>
     </SidebarContext.Provider>
   );
@@ -123,5 +182,58 @@ export function SidebarItem({
       )}
       {!collapsed && badge && <span className="shrink-0">{badge}</span>}
     </button>
+  );
+}
+
+export interface SidebarNestedGroupProps {
+  label: string;
+  icon?: React.ReactNode;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export function SidebarNestedGroup({
+  label,
+  icon,
+  defaultOpen = false,
+  children,
+  className,
+}: SidebarNestedGroupProps) {
+  const { collapsed } = React.useContext(SidebarContext);
+  const [open, setOpen] = React.useState(defaultOpen);
+
+  return (
+    <div className={cn('space-y-0.5', className)}>
+      <button
+        type="button"
+        aria-expanded={open}
+        title={collapsed ? label : undefined}
+        onClick={() => setOpen((o) => !o)}
+        className={cn(
+          'flex w-full items-center gap-2.5 rounded-[var(--wdr-radius-md)] px-2.5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          collapsed && 'justify-center px-0'
+        )}
+      >
+        {icon && <span aria-hidden="true" className="inline-flex shrink-0 items-center">{icon}</span>}
+        {collapsed ? (
+          <span className="sr-only">{label}</span>
+        ) : (
+          <>
+            <span className="flex-1 truncate text-left">{label}</span>
+            {open ? (
+              <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            )}
+          </>
+        )}
+      </button>
+      {open && !collapsed && (
+        <div className="ml-4 space-y-0.5 border-l border-border pl-2.5">
+          {children}
+        </div>
+      )}
+    </div>
   );
 }

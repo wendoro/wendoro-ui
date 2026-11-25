@@ -88,13 +88,15 @@ export function InlineAlert({
 }
 
 export function CircularProgress({
-  value,
+  value = 0,
+  indeterminate = false,
   size = 56,
   strokeWidth = 6,
   label,
   className,
 }: {
-  value: number;
+  value?: number;
+  indeterminate?: boolean;
   size?: number;
   strokeWidth?: number;
   label?: string;
@@ -103,7 +105,7 @@ export function CircularProgress({
   const clamped = Math.max(0, Math.min(100, value));
   const r = (size - strokeWidth) / 2;
   const circ = 2 * Math.PI * r;
-  const offset = circ * (1 - clamped / 100);
+  const offset = indeterminate ? circ * 0.72 : circ * (1 - clamped / 100);
 
   return (
     <div
@@ -111,11 +113,11 @@ export function CircularProgress({
       aria-label={label ?? 'Progress'}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-valuenow={clamped}
+      aria-valuenow={indeterminate ? undefined : clamped}
       className={cn('relative inline-flex items-center justify-center', className)}
       style={{ width: size, height: size }}
     >
-      <svg width={size} height={size} className="-rotate-90">
+      <svg width={size} height={size} className={cn('-rotate-90', indeterminate && 'animate-spin')}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--wdr-muted)" strokeWidth={strokeWidth} />
         <circle
           cx={size / 2}
@@ -129,8 +131,220 @@ export function CircularProgress({
           strokeDashoffset={offset}
         />
       </svg>
-      <span className="absolute text-xs font-bold tabular-nums text-foreground">{Math.round(clamped)}%</span>
+      {!indeterminate && (
+        <span className="absolute text-xs font-bold tabular-nums text-foreground">{Math.round(clamped)}%</span>
+      )}
     </div>
+  );
+}
+
+export function InlineLoader({
+  label = 'Loading…',
+  className,
+}: {
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <span role="status" className={cn('inline-flex items-center gap-2 text-xs font-medium text-muted-foreground', className)}>
+      <Spinner size="xs" />
+      <span>{label}</span>
+    </span>
+  );
+}
+
+export function FullScreenLoader({
+  open,
+  title = 'Preparing workspace…',
+  description,
+  onCancel,
+  cancelLabel = 'Cancel',
+}: {
+  open: boolean;
+  title?: string;
+  description?: string;
+  onCancel?: () => void;
+  cancelLabel?: string;
+}) {
+  if (!open) return null;
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/92 px-6 text-center backdrop-blur-xs"
+    >
+      <Spinner size="lg" />
+      <div className="space-y-1">
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        {description && <p className="max-w-sm text-xs text-muted-foreground">{description}</p>}
+      </div>
+      {onCancel && (
+        <Button variant="outline" size="sm" onClick={onCancel}>
+          {cancelLabel}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+export interface ProgressStepItem {
+  id: string;
+  label: string;
+  detail?: string;
+  status: 'completed' | 'active' | 'pending' | 'failed';
+}
+
+export function MultiStepProgress({
+  steps,
+  title = 'Execution progress',
+  className,
+}: {
+  steps: ProgressStepItem[];
+  title?: string;
+  className?: string;
+}) {
+  const completedCount = steps.filter((s) => s.status === 'completed').length;
+  const pct = steps.length > 0 ? Math.round((completedCount / steps.length) * 100) : 0;
+
+  return (
+    <Card className={cn('p-4 space-y-3', className)}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold text-foreground">{title}</span>
+        <span className="font-mono text-xs tabular-nums text-muted-foreground">
+          {completedCount}/{steps.length} ({pct}%)
+        </span>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+        <div className="h-full bg-primary transition-[width] duration-200" style={{ width: `${pct}%` }} />
+      </div>
+      <ol className="space-y-2">
+        {steps.map((step) => (
+          <li key={step.id} className="flex items-start gap-2.5 text-xs">
+            <span className="mt-0.5 shrink-0">
+              {step.status === 'completed' ? (
+                <CheckCircle2 className="h-4 w-4 text-success" aria-hidden="true" />
+              ) : step.status === 'failed' ? (
+                <AlertCircle className="h-4 w-4 text-destructive" aria-hidden="true" />
+              ) : step.status === 'active' ? (
+                <Spinner size="xs" />
+              ) : (
+                <span className="inline-block h-3.5 w-3.5 rounded-full border border-border bg-muted" aria-hidden="true" />
+              )}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className={cn('font-medium', step.status === 'failed' ? 'text-destructive' : 'text-foreground')}>
+                {step.label}
+              </div>
+              {step.detail && <div className="text-[11px] text-muted-foreground">{step.detail}</div>}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </Card>
+  );
+}
+
+export interface TransferProgressCardProps {
+  mode?: 'upload' | 'download' | 'install' | 'task';
+  title: string;
+  subtitle?: string;
+  progress: number;
+  indeterminate?: boolean;
+  status?: 'active' | 'paused' | 'completed' | 'failed';
+  metaLabel?: string;
+  onPauseToggle?: () => void;
+  onRetry?: () => void;
+  onCancel?: () => void;
+  className?: string;
+}
+
+export function TransferProgressCard({
+  mode = 'upload',
+  title,
+  subtitle,
+  progress,
+  indeterminate = false,
+  status = 'active',
+  metaLabel,
+  onPauseToggle,
+  onRetry,
+  onCancel,
+  className,
+}: TransferProgressCardProps) {
+  const clamped = Math.max(0, Math.min(100, progress));
+  const modeLabel =
+    mode === 'download'
+      ? 'Download'
+      : mode === 'install'
+        ? 'Install'
+        : mode === 'task'
+          ? 'Background task'
+          : 'Upload';
+
+  return (
+    <Card className={cn('p-4 space-y-2.5', className)}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {modeLabel}
+            </span>
+            <span className="truncate text-sm font-semibold text-foreground">{title}</span>
+          </div>
+          {subtitle && <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {status === 'failed' && onRetry && (
+            <Button size="sm" variant="outline" onClick={onRetry} leftIcon={<RotateCcw className="h-3 w-3" />}>
+              Retry
+            </Button>
+          )}
+          {(status === 'active' || status === 'paused') && onPauseToggle && (
+            <Button size="sm" variant="outline" onClick={onPauseToggle}>
+              {status === 'paused' ? 'Resume' : 'Pause'}
+            </Button>
+          )}
+          {status !== 'completed' && onCancel && (
+            <button
+              type="button"
+              aria-label={`Cancel ${title}`}
+              onClick={onCancel}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-[var(--wdr-radius-sm)] text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div
+        role="progressbar"
+        aria-label={`${modeLabel} ${title}`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={indeterminate ? undefined : clamped}
+        className="h-2 w-full overflow-hidden rounded-full bg-muted"
+      >
+        <div
+          className={cn(
+            'h-full rounded-full transition-[width] duration-200',
+            status === 'failed'
+              ? 'bg-destructive'
+              : status === 'completed'
+                ? 'bg-success'
+                : 'bg-primary',
+            indeterminate && 'w-2/5 animate-pulse'
+          )}
+          style={indeterminate ? undefined : { width: `${clamped}%` }}
+        />
+      </div>
+
+      <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground tabular-nums">
+        <span>{metaLabel ?? (status === 'completed' ? 'Completed' : status === 'failed' ? 'Failed' : status === 'paused' ? 'Paused' : 'In progress')}</span>
+        {!indeterminate && <span className="font-mono font-semibold text-foreground">{Math.round(clamped)}%</span>}
+      </div>
+    </Card>
   );
 }
 

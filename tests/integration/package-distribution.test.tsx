@@ -131,6 +131,15 @@ describe('Package Distribution & External Consumer Integration', () => {
     expect(typeof esmHooks.useKeyboardShortcuts).toBe('function');
     expect(typeof cjsMain.BottomSheet).toBe('function');
     expect(typeof esmMain.RichTextEditor).toBe('function');
+    expect(typeof esmMain.RangeSlider).toBe('function');
+    expect(typeof esmMain.SegmentedControl).toBe('function');
+    expect(typeof esmMain.VirtualizedList).toBe('function');
+    expect(typeof esmMain.AppLauncher).toBe('function');
+    expect(typeof esmMain.ConnectionStatusBanner).toBe('function');
+    expect(typeof esmBusiness.SetupWizard).toBe('function');
+    expect(typeof esmBusiness.WorkspaceModeContainer).toBe('function');
+    expect(typeof esmBusiness.PromptComposerBar).toBe('function');
+    expect(esmBusiness.WENDORO_MODULE_CONTRACT_VERSION).toBe('2.0.0');
 
     expect(cjsTokens.brandColors.primaryYellow).toBe('#FACC15');
     expect(esmTokens.semanticColorTokens.destructiveSubtleForeground).toBe(
