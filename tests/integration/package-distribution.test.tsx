@@ -53,6 +53,7 @@ describe('Package Distribution & External Consumer Integration', () => {
     }
     expect(fs.existsSync(path.resolve(process.cwd(), 'src/themes/light.css'))).toBe(true);
     expect(fs.existsSync(path.resolve(process.cwd(), 'src/themes/dark.css'))).toBe(true);
+    expect(fs.existsSync(path.resolve(process.cwd(), 'src/themes/high-contrast.css'))).toBe(true);
 
     const dtsFiles = collectDtsFiles(distDir);
     expect(dtsFiles.length).toBeGreaterThan(25);
@@ -73,6 +74,7 @@ describe('Package Distribution & External Consumer Integration', () => {
     expect(css).toMatch(/--wdr-destructive:\s*#dc2626/i);
     expect(css).toMatch(/--wdr-chart-1:/i);
     expect(css).toContain('prefers-reduced-motion');
+    expect(css).toContain('high');
     expect(css).toMatch(/--wdr-destructive-subtle-foreground:\s*#991b1b/i);
     expect(css).toMatch(/--wdr-destructive-subtle-foreground:\s*#fca5a5/i);
     expect(css).toContain('--color-destructive-subtle-foreground:var(--wdr-destructive-subtle-foreground)');
@@ -116,12 +118,19 @@ describe('Package Distribution & External Consumer Integration', () => {
 
     expect(typeof cjsCharts.LineChart).toBe('function');
     expect(typeof esmCharts.GaugeChart).toBe('function');
+    expect(typeof esmCharts.ExternalChart).toBe('function');
     expect(typeof cjsAdvCharts.FunnelChart).toBe('function');
     expect(typeof esmAdvCharts.ViolinChart).toBe('function');
+    expect(typeof esmAdvCharts.GeoRegionChart).toBe('function');
     expect(typeof cjsBusiness.KanbanBoard).toBe('function');
     expect(typeof esmBusiness.AppShell).toBe('function');
+    expect(typeof esmBusiness.WorkflowBuilder).toBe('function');
+    expect(typeof esmBusiness.AgencyWorkspacePattern).toBe('function');
     expect(typeof cjsHooks.useDensity).toBe('function');
     expect(typeof esmHooks.useReducedMotion).toBe('function');
+    expect(typeof esmHooks.useKeyboardShortcuts).toBe('function');
+    expect(typeof cjsMain.BottomSheet).toBe('function');
+    expect(typeof esmMain.RichTextEditor).toBe('function');
 
     expect(cjsTokens.brandColors.primaryYellow).toBe('#FACC15');
     expect(esmTokens.semanticColorTokens.destructiveSubtleForeground).toBe(

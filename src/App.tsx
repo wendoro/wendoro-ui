@@ -3,6 +3,8 @@ import {
   BarChart3,
   Briefcase,
   Command,
+  Contrast,
+  Globe2,
   Layers,
   Monitor,
   Moon,
@@ -15,6 +17,7 @@ import { CoreControlsSection } from './app/CoreControlsSection';
 import { FeedbackAndNavSection } from './app/FeedbackAndNavSection';
 import { BusinessShowcaseSection } from './app/BusinessShowcaseSection';
 import { VisualizationAndEnterpriseSection } from './app/VisualizationAndEnterpriseSection';
+import { Universal20Section } from './app/Universal20Section';
 import { NotificationCenter, type NotificationCenterItem } from './components/business/notification-center';
 import { Button } from './components/ui/button';
 import { CommandPalette, type CommandItem } from './components/ui/command';
@@ -25,7 +28,7 @@ import { DensityProvider, useDensity } from './hooks/use-density';
 import { ThemeProvider, useTheme, type ThemeMode } from './hooks/use-theme';
 import type { DensityMode } from './tokens/spacing';
 
-type PreviewSectionId = 'foundations' | 'core' | 'feedback' | 'business' | 'visualization';
+type PreviewSectionId = 'foundations' | 'core' | 'feedback' | 'business' | 'visualization' | 'universal';
 
 const INITIAL_NOTIFICATIONS: NotificationCenterItem[] = [
   {
@@ -58,7 +61,7 @@ const INITIAL_NOTIFICATIONS: NotificationCenterItem[] = [
 ];
 
 function ThemeSwitcher() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, contrast, toggleContrast } = useTheme();
   const options: Array<{ mode: ThemeMode; label: string; icon: React.ReactNode }> = [
     { mode: 'light', label: 'Light', icon: <Sun className="h-3.5 w-3.5" aria-hidden="true" /> },
     { mode: 'dark', label: 'Dark', icon: <Moon className="h-3.5 w-3.5" aria-hidden="true" /> },
@@ -66,30 +69,46 @@ function ThemeSwitcher() {
   ];
 
   return (
-    <div
-      role="group"
-      aria-label="Theme mode"
-      className="inline-flex items-center gap-0.5 rounded-[var(--wdr-radius-md)] border border-border bg-muted p-0.5"
-    >
-      {options.map((opt) => {
-        const active = theme === opt.mode;
-        return (
-          <button
-            key={opt.mode}
-            type="button"
-            aria-pressed={active}
-            onClick={() => setTheme(opt.mode)}
-            className={`inline-flex items-center gap-1.5 rounded-[var(--wdr-radius-small,4px)] px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-              active
-                ? 'bg-surface text-foreground shadow-[var(--wdr-shadow-sm)]'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {opt.icon}
-            <span>{opt.label}</span>
-          </button>
-        );
-      })}
+    <div className="flex items-center gap-1.5">
+      <div
+        role="group"
+        aria-label="Theme mode"
+        className="inline-flex items-center gap-0.5 rounded-[var(--wdr-radius-md)] border border-border bg-muted p-0.5"
+      >
+        {options.map((opt) => {
+          const active = theme === opt.mode;
+          return (
+            <button
+              key={opt.mode}
+              type="button"
+              aria-pressed={active}
+              onClick={() => setTheme(opt.mode)}
+              className={`inline-flex items-center gap-1.5 rounded-[var(--wdr-radius-small,4px)] px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                active
+                  ? 'bg-surface text-foreground shadow-[var(--wdr-shadow-sm)]'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {opt.icon}
+              <span>{opt.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      <button
+        type="button"
+        aria-pressed={contrast === 'high'}
+        aria-label="Toggle high contrast mode"
+        onClick={toggleContrast}
+        className={`inline-flex items-center gap-1.5 rounded-[var(--wdr-radius-md)] border px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+          contrast === 'high'
+            ? 'border-foreground bg-foreground text-background'
+            : 'border-border bg-surface text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <Contrast className="h-3.5 w-3.5" aria-hidden="true" />
+        <span className="hidden xl:inline">High Contrast</span>
+      </button>
     </div>
   );
 }
@@ -180,6 +199,14 @@ function DesignSystemWorkspace() {
         onSelect: () => setActiveSection('visualization'),
       },
       {
+        id: 'nav-universal',
+        label: 'View Universal 2.0 (Mobile & Industries)',
+        group: 'Navigation',
+        icon: <Globe2 className="h-4 w-4" />,
+        shortcut: '6',
+        onSelect: () => setActiveSection('universal'),
+      },
+      {
         id: 'theme-light',
         label: 'Switch to Light Theme',
         group: 'Theme',
@@ -262,7 +289,14 @@ function DesignSystemWorkspace() {
               active={activeSection === 'visualization'}
               onClick={() => setActiveSection('visualization')}
             >
-              Charts & Enterprise 2.0
+              Charts & Analytics
+            </SidebarItem>
+            <SidebarItem
+              icon={<Globe2 className="h-4 w-4" />}
+              active={activeSection === 'universal'}
+              onClick={() => setActiveSection('universal')}
+            >
+              Universal 2.0
             </SidebarItem>
           </SidebarSection>
         </Sidebar>
@@ -318,7 +352,8 @@ function DesignSystemWorkspace() {
                 ['core', 'Core & Forms'],
                 ['feedback', 'Feedback & Nav'],
                 ['business', 'Business'],
-                ['visualization', 'Charts & 2.0'],
+                ['visualization', 'Charts'],
+                ['universal', 'Universal 2.0'],
               ] as const
             ).map(([id, label]) => (
               <button
@@ -352,12 +387,12 @@ function DesignSystemWorkspace() {
                     Production primitives, semantic CSS tokens, accessible interactions, and reusable business patterns built for Desk, Flow, Platform, Studio, Insights, Support, Commerce, and People.
                   </p>
                 </div>
-                <div className="flex shrink-0 items-center gap-2.5">
-                  <Button variant="primary" onClick={() => setActiveSection('business')}>
-                    Inspect Business Suite
+                <div className="flex shrink-0 flex-wrap items-center gap-2.5">
+                  <Button variant="primary" onClick={() => setActiveSection('universal')}>
+                    Explore Universal 2.0
                   </Button>
-                  <Button variant="outline" onClick={() => setActiveSection('core')}>
-                    Explore Primitives
+                  <Button variant="outline" onClick={() => setActiveSection('business')}>
+                    Business Suite
                   </Button>
                 </div>
               </div>
@@ -368,6 +403,7 @@ function DesignSystemWorkspace() {
             {activeSection === 'feedback' && <FeedbackAndNavSection />}
             {activeSection === 'business' && <BusinessShowcaseSection />}
             {activeSection === 'visualization' && <VisualizationAndEnterpriseSection />}
+            {activeSection === 'universal' && <Universal20Section />}
           </Container>
         </main>
       </div>

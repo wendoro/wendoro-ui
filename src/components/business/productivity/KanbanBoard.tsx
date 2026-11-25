@@ -1,5 +1,14 @@
 import * as React from 'react';
-import { AlertCircle, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, GripVertical, RotateCcw } from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  GripVertical,
+  Plus,
+  RotateCcw,
+} from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { Alert } from '../../ui/alert';
 import { Button } from '../../ui/button';
@@ -29,6 +38,7 @@ export interface KanbanBoardProps {
   cards: KanbanCardItem[];
   onMoveCard?: (cardId: string, toColumnId: string, toIndex: number) => void;
   onCardSelect?: (card: KanbanCardItem) => void;
+  onAddCard?: (columnId: string) => void;
   loading?: boolean;
   error?: React.ReactNode;
   onRetry?: () => void;
@@ -87,6 +97,19 @@ export function KanbanCard({
 
       {card.description && (
         <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">{card.description}</p>
+      )}
+
+      {card.tags && card.tags.length > 0 && (
+        <div className="mt-2.5 flex flex-wrap gap-1">
+          {card.tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-[var(--wdr-radius-sm)] border border-border bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
       )}
 
       {(card.priority || card.dueDate || card.assignee) && (
@@ -153,10 +176,13 @@ export interface KanbanColumnProps {
   column: KanbanColumnSpec;
   count: number;
   onDropCard?: (cardId: string) => void;
+  onAddCard?: () => void;
   children: React.ReactNode;
 }
 
-export function KanbanColumn({ column, count, onDropCard, children }: KanbanColumnProps) {
+export function KanbanColumn({ column, count, onDropCard, onAddCard, children }: KanbanColumnProps) {
+  const overWip = column.wipLimit !== undefined && count > column.wipLimit;
+
   return (
     <Card
       aria-label={`${column.title} column, ${count} items`}
@@ -170,10 +196,29 @@ export function KanbanColumn({ column, count, onDropCard, children }: KanbanColu
     >
       <div className="mb-3 flex items-center justify-between gap-2 px-1">
         <h3 className="text-sm font-semibold text-foreground">{column.title}</h3>
-        <span className="rounded-[var(--wdr-radius-sm)] bg-surface px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground border border-border">
-          {count}
-          {column.wipLimit !== undefined ? ` / ${column.wipLimit}` : ''}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span
+            className={cn(
+              'rounded-[var(--wdr-radius-sm)] px-2 py-0.5 text-xs font-medium tabular-nums border',
+              overWip
+                ? 'border-destructive/40 bg-destructive-subtle text-destructive-subtle-foreground'
+                : 'border-border bg-surface text-muted-foreground'
+            )}
+          >
+            {count}
+            {column.wipLimit !== undefined ? ` / ${column.wipLimit}` : ''}
+          </span>
+          {onAddCard && (
+            <button
+              type="button"
+              aria-label={`Add card to ${column.title}`}
+              onClick={onAddCard}
+              className="inline-flex h-6 w-6 items-center justify-center rounded border border-border bg-surface text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </div>
       <div className="flex-1 space-y-2.5">{children}</div>
     </Card>
@@ -185,6 +230,7 @@ export function KanbanBoard({
   cards,
   onMoveCard,
   onCardSelect,
+  onAddCard,
   loading = false,
   error,
   onRetry,
@@ -236,6 +282,7 @@ export function KanbanBoard({
               key={col.id}
               column={col}
               count={colCards.length}
+              onAddCard={onAddCard ? () => onAddCard(col.id) : undefined}
               onDropCard={(cardId) => {
                 onMoveCard?.(cardId, col.id, colCards.length);
                 setLiveStatus(`Moved card to ${col.title}`);

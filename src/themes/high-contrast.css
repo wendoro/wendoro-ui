@@ -1,0 +1,49 @@
+/* High-Contrast Accessibility Overrides (Light & Dark) */
+[data-contrast='high'],
+.high-contrast {
+  --wdr-background: #FFFFFF;
+  --wdr-foreground: #000000;
+  --wdr-surface: #FFFFFF;
+  --wdr-surface-elevated: #FFFFFF;
+  --wdr-muted: #F0F0EA;
+  --wdr-muted-foreground: #1F1F1D;
+  --wdr-border: #111111;
+  --wdr-input: #111111;
+  --wdr-ring: #000000;
+  --wdr-focus: #000000;
+  --wdr-primary: #FACC15;
+  --wdr-primary-foreground: #000000;
+  --wdr-destructive: #B91C1C;
+  --wdr-destructive-foreground: #FFFFFF;
+  --wdr-success: #14532D;
+  --wdr-success-foreground: #FFFFFF;
+  --wdr-warning: #78350F;
+  --wdr-warning-foreground: #FFFFFF;
+  --wdr-shadow-focus: 0 0 0 2px #FFFFFF, 0 0 0 5px #000000;
+}
+
+.dark[data-contrast='high'],
+[data-theme='dark'][data-contrast='high'],
+.dark .high-contrast,
+[data-theme='dark'] .high-contrast,
+.high-contrast.dark {
+  --wdr-background: #000000;
+  --wdr-foreground: #FFFFFF;
+  --wdr-surface: #0A0A0A;
+  --wdr-surface-elevated: #141414;
+  --wdr-muted: #1A1A1A;
+  --wdr-muted-foreground: #E5E5E0;
+  --wdr-border: #FFFFFF;
+  --wdr-input: #FFFFFF;
+  --wdr-ring: #FACC15;
+  --wdr-focus: #FACC15;
+  --wdr-primary: #FACC15;
+  --wdr-primary-foreground: #000000;
+  --wdr-destructive: #EF4444;
+  --wdr-destructive-foreground: #000000;
+  --wdr-success: #4ADE80;
+  --wdr-success-foreground: #000000;
+  --wdr-warning: #FDE047;
+  --wdr-warning-foreground: #000000;
+  --wdr-shadow-focus: 0 0 0 2px #000000, 0 0 0 5px #FACC15;
+}

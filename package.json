@@ -22,6 +22,7 @@
     "./styles.css": "./dist/lib/styles.css",
     "./themes/light.css": "./src/themes/light.css",
     "./themes/dark.css": "./src/themes/dark.css",
+    "./themes/high-contrast.css": "./src/themes/high-contrast.css",
     "./tokens": {
       "types": "./dist/lib/tokens/index.d.ts",
       "import": "./dist/lib/tokens/index.js",

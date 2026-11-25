@@ -1,8 +1,19 @@
 import * as React from 'react';
-import { ChevronDown, Clock, Search, Star, X } from 'lucide-react';
+import {
+  Building2,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Plus,
+  Search,
+  Star,
+  X,
+} from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { sanitizeUrl } from '../../../utils/url';
 import { Card } from '../card';
+import { BottomSheet } from '../mobile/MobilePrimitives';
 
 export function KeyboardShortcutHint({
   keys,
@@ -146,6 +157,7 @@ export interface ContextMenuItem {
   label: string;
   shortcut?: string;
   destructive?: boolean;
+  disabled?: boolean;
   onSelect: () => void;
 }
 
@@ -159,18 +171,42 @@ export function ContextMenu({
   className?: string;
 }) {
   const [open, setOpen] = React.useState(false);
+  const [coords, setCoords] = React.useState<{ x: number; y: number } | null>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+    const onDocClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [open]);
 
   return (
     <div
+      ref={containerRef}
       tabIndex={0}
       aria-label="Context actions target"
       onContextMenu={(e) => {
         e.preventDefault();
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (rect) {
+          setCoords({
+            x: Math.max(0, Math.min(rect.width - 140, e.clientX - rect.left)),
+            y: Math.max(0, e.clientY - rect.top),
+          });
+        } else {
+          setCoords(null);
+        }
         setOpen(true);
       }}
       onKeyDown={(e) => {
         if ((e.shiftKey && e.key === 'F10') || e.key === 'ContextMenu') {
           e.preventDefault();
+          setCoords(null);
           setOpen((o) => !o);
         } else if (e.key === 'Escape') {
           setOpen(false);
@@ -182,19 +218,24 @@ export function ContextMenu({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-40 mt-1.5 min-w-[180px] rounded-[var(--wdr-radius-md)] border border-border bg-surface-elevated p-1 shadow-[var(--wdr-shadow-lg)]"
+          style={coords ? { left: `${coords.x}px`, top: `${coords.y}px` } : undefined}
+          className={cn(
+            'absolute z-40 min-w-[190px] rounded-[var(--wdr-radius-md)] border border-border bg-surface-elevated p-1 shadow-[var(--wdr-shadow-lg)]',
+            !coords && 'right-0 top-full mt-1.5'
+          )}
         >
           {items.map((item) => (
             <button
               key={item.id}
               type="button"
               role="menuitem"
+              disabled={item.disabled}
               onClick={() => {
                 item.onSelect();
                 setOpen(false);
               }}
               className={cn(
-                'flex w-full items-center justify-between gap-4 rounded-[var(--wdr-radius-sm)] px-2.5 py-1.5 text-left text-xs font-medium hover:bg-muted',
+                'flex w-full items-center justify-between gap-4 rounded-[var(--wdr-radius-sm)] px-2.5 py-1.5 text-left text-xs font-medium hover:bg-muted disabled:opacity-45',
                 item.destructive ? 'text-destructive' : 'text-foreground'
               )}
             >
@@ -462,5 +503,435 @@ export function FavoritesList({
         ))}
       </ul>
     </Card>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* WorkspaceSwitcher (Multi-Tenant / Multi-Client / Multi-Store)              */
+/* -------------------------------------------------------------------------- */
+
+export interface WorkspaceOption {
+  id: string;
+  name: string;
+  subtitle?: string;
+  role?: string;
+  badge?: string;
+}
+
+export interface WorkspaceSwitcherProps {
+  workspaces: WorkspaceOption[];
+  activeWorkspaceId: string;
+  onSelectWorkspace: (id: string) => void;
+  onCreateWorkspace?: () => void;
+  createLabel?: string;
+  label?: string;
+  className?: string;
+}
+
+export function WorkspaceSwitcher({
+  workspaces,
+  activeWorkspaceId,
+  onSelectWorkspace,
+  onCreateWorkspace,
+  createLabel = 'New workspace',
+  label = 'Switch workspace',
+  className,
+}: WorkspaceSwitcherProps) {
+  const [open, setOpen] = React.useState(false);
+  const [query, setQuery] = React.useState('');
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+    const onDocClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const active = workspaces.find((w) => w.id === activeWorkspaceId) ?? workspaces[0];
+  const filtered = workspaces.filter((w) =>
+    `${w.name} ${w.subtitle ?? ''} ${w.role ?? ''}`.toLowerCase().includes(query.trim().toLowerCase())
+  );
+
+  return (
+    <div ref={containerRef} className={cn('relative inline-block w-full max-w-xs', className)}>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-label={label}
+        onClick={() => setOpen((o) => !o)}
+        className="flex min-h-[42px] w-full items-center justify-between gap-2 rounded-[var(--wdr-radius-md)] border border-border bg-surface px-3 py-1.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--wdr-radius-sm)] bg-primary text-xs font-bold text-primary-foreground">
+            {active ? active.name.slice(0, 2).toUpperCase() : <Building2 className="h-3.5 w-3.5" />}
+          </span>
+          <div className="min-w-0">
+            <div className="truncate text-xs font-semibold text-foreground">{active?.name ?? 'Select workspace'}</div>
+            {active?.subtitle && <div className="truncate text-[11px] text-muted-foreground">{active.subtitle}</div>}
+          </div>
+        </div>
+        <ChevronDown className={cn('h-4 w-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')} aria-hidden="true" />
+      </button>
+
+      {open && (
+        <div
+          role="dialog"
+          aria-label={label}
+          className="absolute left-0 top-full z-40 mt-1.5 w-full min-w-[260px] rounded-[var(--wdr-radius-lg)] border border-border bg-surface-elevated p-2 shadow-[var(--wdr-shadow-lg)]"
+        >
+          <div className="relative mb-2">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Filter workspaces…"
+              aria-label="Filter workspaces"
+              className="h-8 w-full rounded-[var(--wdr-radius-sm)] border border-input bg-surface pl-8 pr-2 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </div>
+
+          <ul role="listbox" aria-label="Available workspaces" className="max-h-56 space-y-0.5 overflow-y-auto">
+            {filtered.map((ws) => {
+              const selected = ws.id === activeWorkspaceId;
+              return (
+                <li key={ws.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    onClick={() => {
+                      onSelectWorkspace(ws.id);
+                      setOpen(false);
+                      setQuery('');
+                    }}
+                    className={cn(
+                      'flex w-full items-center justify-between gap-2 rounded-[var(--wdr-radius-sm)] px-2.5 py-2 text-left text-xs transition-colors hover:bg-muted',
+                      selected && 'bg-primary-subtle text-primary-subtle-foreground font-semibold'
+                    )}
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate font-medium text-foreground">{ws.name}</div>
+                      {(ws.subtitle || ws.role) && (
+                        <div className="truncate text-[11px] text-muted-foreground">
+                          {[ws.subtitle, ws.role].filter(Boolean).join(' · ')}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {ws.badge && (
+                        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          {ws.badge}
+                        </span>
+                      )}
+                      {selected && <Check className="h-3.5 w-3.5 text-foreground" aria-hidden="true" />}
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+            {filtered.length === 0 && (
+              <li className="px-2.5 py-3 text-center text-xs text-muted-foreground">No matching workspaces</li>
+            )}
+          </ul>
+
+          {onCreateWorkspace && (
+            <button
+              type="button"
+              onClick={() => {
+                onCreateWorkspace();
+                setOpen(false);
+              }}
+              className="mt-2 flex w-full items-center gap-2 rounded-[var(--wdr-radius-sm)] border-t border-border px-2.5 pt-2.5 pb-1 text-left text-xs font-semibold text-foreground hover:text-primary-active"
+            >
+              <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>{createLabel}</span>
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* QuickCreateMenu                                                            */
+/* -------------------------------------------------------------------------- */
+
+export interface QuickCreateItem {
+  id: string;
+  label: string;
+  description?: string;
+  shortcut?: string[];
+  icon?: React.ReactNode;
+  onSelect: () => void;
+}
+
+export function QuickCreateMenu({
+  items,
+  label = 'Create',
+  className,
+}: {
+  items: QuickCreateItem[];
+  label?: string;
+  className?: string;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+    const onDocClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className={cn('relative inline-block', className)}>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onClick={() => setOpen((o) => !o)}
+        className="inline-flex h-9 items-center gap-1.5 rounded-[var(--wdr-radius-md)] bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-[var(--wdr-shadow-sm)] hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+        <span>{label}</span>
+        <ChevronDown className="h-3 w-3" aria-hidden="true" />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          aria-label={`${label} options`}
+          className="absolute right-0 top-full z-40 mt-1.5 w-64 rounded-[var(--wdr-radius-md)] border border-border bg-surface-elevated p-1.5 shadow-[var(--wdr-shadow-lg)]"
+        >
+          {items.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                item.onSelect();
+                setOpen(false);
+              }}
+              className="flex w-full items-start justify-between gap-2 rounded-[var(--wdr-radius-sm)] px-2.5 py-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <div className="flex min-w-0 items-start gap-2">
+                {item.icon && <span className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true">{item.icon}</span>}
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-foreground">{item.label}</div>
+                  {item.description && <div className="text-[11px] text-muted-foreground">{item.description}</div>}
+                </div>
+              </div>
+              {item.shortcut && <KeyboardShortcutHint keys={item.shortcut} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* NestedMenu (Multi-level hierarchical navigation)                           */
+/* -------------------------------------------------------------------------- */
+
+export interface NestedMenuItem {
+  id: string;
+  label: string;
+  icon?: React.ReactNode;
+  badge?: string | number;
+  active?: boolean;
+  onSelect?: () => void;
+  children?: NestedMenuItem[];
+}
+
+export function NestedMenu({
+  items,
+  defaultExpandedIds = [],
+  'aria-label': ariaLabel = 'Multi-level menu',
+  className,
+}: {
+  items: NestedMenuItem[];
+  defaultExpandedIds?: string[];
+  'aria-label'?: string;
+  className?: string;
+}) {
+  const [expanded, setExpanded] = React.useState<Set<string>>(() => new Set(defaultExpandedIds));
+
+  const toggle = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const renderNodes = (nodes: NestedMenuItem[], depth = 0) => (
+    <ul className="space-y-0.5" role={depth === 0 ? 'menu' : 'group'}>
+      {nodes.map((node) => {
+        const hasChildren = Boolean(node.children && node.children.length > 0);
+        const isExpanded = expanded.has(node.id);
+        return (
+          <li key={node.id} role="none">
+            <div
+              className={cn(
+                'flex items-center justify-between gap-2 rounded-[var(--wdr-radius-sm)] px-2 py-1.5 text-xs transition-colors',
+                node.active ? 'bg-primary text-primary-foreground font-semibold' : 'text-foreground hover:bg-muted'
+              )}
+              style={{ paddingLeft: `${8 + depth * 14}px` }}
+            >
+              <button
+                type="button"
+                role="menuitem"
+                aria-expanded={hasChildren ? isExpanded : undefined}
+                onClick={() => {
+                  if (hasChildren) toggle(node.id);
+                  node.onSelect?.();
+                }}
+                className="flex min-w-0 flex-1 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+              >
+                {hasChildren ? (
+                  isExpanded ? (
+                    <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  )
+                ) : (
+                  node.icon && <span className="shrink-0" aria-hidden="true">{node.icon}</span>
+                )}
+                <span className="truncate">{node.label}</span>
+              </button>
+              {node.badge !== undefined && (
+                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
+                  {node.badge}
+                </span>
+              )}
+            </div>
+            {hasChildren && isExpanded && renderNodes(node.children!, depth + 1)}
+          </li>
+        );
+      })}
+    </ul>
+  );
+
+  return (
+    <nav aria-label={ariaLabel} className={cn('rounded-[var(--wdr-radius-md)] border border-border bg-surface p-2', className)}>
+      {renderNodes(items)}
+    </nav>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* MobileCommandBar                                                           */
+/* -------------------------------------------------------------------------- */
+
+export interface MobileCommandEntry {
+  id: string;
+  label: string;
+  group?: string;
+  onSelect: () => void;
+}
+
+export function MobileCommandBar({
+  items,
+  placeholder = 'Search or run command…',
+  triggerLabel = 'Search',
+  className,
+}: {
+  items: MobileCommandEntry[];
+  placeholder?: string;
+  triggerLabel?: string;
+  className?: string;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [query, setQuery] = React.useState('');
+
+  const filtered = items.filter((item) =>
+    `${item.label} ${item.group ?? ''}`.toLowerCase().includes(query.trim().toLowerCase())
+  );
+
+  return (
+    <div className={cn('w-full', className)}>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex min-h-[44px] w-full items-center gap-2.5 rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3.5 text-left text-sm text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <span className="truncate flex-1">{triggerLabel}</span>
+      </button>
+
+      <BottomSheet
+        open={open}
+        onOpenChange={setOpen}
+        title="Quick Search & Commands"
+        snap="full"
+      >
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <input
+              type="search"
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={placeholder}
+              aria-label={placeholder}
+              className="h-11 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface pl-9 pr-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </div>
+
+          <ul className="space-y-1" role="listbox" aria-label="Command results">
+            {filtered.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={false}
+                  onClick={() => {
+                    item.onSelect();
+                    setOpen(false);
+                    setQuery('');
+                  }}
+                  className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-[var(--wdr-radius-md)] border border-border bg-surface px-3 py-2 text-left text-sm font-medium text-foreground hover:bg-muted"
+                >
+                  <span className="truncate">{item.label}</span>
+                  {item.group && <span className="text-xs text-muted-foreground">{item.group}</span>}
+                </button>
+              </li>
+            ))}
+            {filtered.length === 0 && (
+              <li className="py-6 text-center text-xs text-muted-foreground">No commands found</li>
+            )}
+          </ul>
+        </div>
+      </BottomSheet>
+    </div>
   );
 }

@@ -42,3 +42,5 @@ export * from './tabs';
 export * from './textarea';
 export * from './toast';
 export * from './tooltip';
+export * from './mobile';
+export * from './ux-patterns';

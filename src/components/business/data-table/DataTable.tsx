@@ -4,14 +4,18 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
+  Check,
   ChevronDown,
   ChevronRight,
   Columns3,
+  Download,
+  Pencil,
   RotateCcw,
   Search,
   X,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
+import { useBreakpoint } from '../../../hooks/use-breakpoint';
 import { Alert } from '../../ui/alert';
 import { Button } from '../../ui/button';
 import { Checkbox } from '../../ui/checkbox';
@@ -27,6 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from '../../ui/table';
+import { SavedViewsBar, type SavedViewSpec } from '../../ui/ux-patterns';
 
 export interface DataTableColumn<T> {
   key: string;
@@ -37,6 +42,7 @@ export interface DataTableColumn<T> {
   filterable?: boolean;
   filterOptions?: Array<{ label: string; value: string }>;
   defaultHidden?: boolean;
+  editable?: boolean;
   pin?: 'left' | 'right';
   align?: 'left' | 'right';
   width?: string;
@@ -53,6 +59,12 @@ export interface DataTableBulkAction<T> {
   label: string;
   onAction: (selectedRows: T[], selectedIds: string[]) => void;
   variant?: 'default' | 'destructive';
+}
+
+export interface DataTableSavedView extends SavedViewSpec {
+  searchQuery?: string;
+  columnFilters?: Record<string, string>;
+  sortRules?: DataTableSortRule[];
 }
 
 export interface DataTableProps<T> {
@@ -75,11 +87,27 @@ export interface DataTableProps<T> {
   searchable?: boolean;
   searchPlaceholder?: string;
   columnVisibilityToggle?: boolean;
+  columnReorderable?: boolean;
   columnResizable?: boolean;
   stickyHeader?: boolean;
   bulkActions?: DataTableBulkAction<T>[];
   renderExpandedRow?: (row: T) => React.ReactNode;
   rowActions?: (row: T) => React.ReactNode;
+  onCellEdit?: (rowId: string, columnKey: string, nextValue: string) => void;
+  groupBy?: string;
+  groupSummary?: (groupValue: string, groupRows: T[]) => React.ReactNode;
+  savedViews?: DataTableSavedView[];
+  activeViewId?: string;
+  onSelectView?: (view: DataTableSavedView) => void;
+  onSaveView?: (name: string, state: { searchQuery: string; columnFilters: Record<string, string>; sortRules: DataTableSortRule[] }) => void;
+  enableExport?: boolean;
+  onExport?: (rows: T[]) => void;
+  exportFileName?: string;
+  renderMobileCard?: (row: T, ctx: { selected: boolean; onToggleSelect: (checked: boolean) => void }) => React.ReactNode;
+  responsiveCardMode?: 'auto' | 'table' | 'cards';
+  virtualized?: boolean;
+  rowHeight?: number;
+  virtualViewportHeight?: number;
   renderToolbar?: (context: {
     totalCount: number;
     filteredCount: number;
@@ -95,6 +123,14 @@ export interface DataTableProps<T> {
   emptyAction?: React.ReactNode;
   'aria-label'?: string;
   className?: string;
+}
+
+function escapeCsvField(val: unknown): string {
+  const str = String(val ?? '');
+  if (/[",\n\r]/.test(str)) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
 }
 
 export function DataTable<T>({
@@ -117,11 +153,27 @@ export function DataTable<T>({
   searchable = false,
   searchPlaceholder = 'Search records…',
   columnVisibilityToggle = false,
+  columnReorderable = false,
   columnResizable = false,
   stickyHeader = false,
   bulkActions,
   renderExpandedRow,
   rowActions,
+  onCellEdit,
+  groupBy,
+  groupSummary,
+  savedViews,
+  activeViewId,
+  onSelectView,
+  onSaveView,
+  enableExport = false,
+  onExport,
+  exportFileName = 'wendoro-export.csv',
+  renderMobileCard,
+  responsiveCardMode = 'table',
+  virtualized = false,
+  rowHeight = 44,
+  virtualViewportHeight = 360,
   renderToolbar,
   renderPagination,
   emptyTitle = 'No records found',
@@ -130,17 +182,22 @@ export function DataTable<T>({
   'aria-label': ariaLabel,
   className,
 }: DataTableProps<T>) {
+  const { isMobile } = useBreakpoint();
   const [sortRules, setSortRules] = React.useState<DataTableSortRule[]>([]);
   const [page, setPage] = React.useState(1);
   const [currentPageSize, setCurrentPageSize] = React.useState(Math.max(1, pageSize));
   const [searchQuery, setSearchQuery] = React.useState('');
   const [columnFilters, setColumnFilters] = React.useState<Record<string, string>>({});
+  const [columnOrder, setColumnOrder] = React.useState<string[]>(() => columns.map((c) => c.key));
   const [hiddenCols, setHiddenCols] = React.useState<Set<string>>(
     () => new Set(columns.filter((c) => c.defaultHidden).map((c) => c.key))
   );
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
+  const [collapsedGroups, setCollapsedGroups] = React.useState<Set<string>>(new Set());
+  const [editingCell, setEditingCell] = React.useState<{ rowId: string; colKey: string; draft: string } | null>(null);
   const [colWidths, setColWidths] = React.useState<Record<string, number>>({});
   const [colMenuOpen, setColMenuOpen] = React.useState(false);
+  const [scrollTop, setScrollTop] = React.useState(0);
   const [liveAnnouncement, setLiveAnnouncement] = React.useState('');
   const [internalSelectedIds, setInternalSelectedIds] = React.useState<string[]>([]);
   const isSelectionControlled = controlledSelectedIds !== undefined;
@@ -150,16 +207,30 @@ export function DataTable<T>({
     setCurrentPageSize(Math.max(1, pageSize));
   }, [pageSize]);
 
+  React.useEffect(() => {
+    const incomingKeys = columns.map((c) => c.key);
+    setColumnOrder((prev) => {
+      const kept = prev.filter((k) => incomingKeys.includes(k));
+      const added = incomingKeys.filter((k) => !kept.includes(k));
+      return [...kept, ...added];
+    });
+  }, [columns]);
+
+  const orderedColumns = React.useMemo(() => {
+    const map = new Map(columns.map((c) => [c.key, c]));
+    return columnOrder.map((k) => map.get(k)).filter((c): c is DataTableColumn<T> => Boolean(c));
+  }, [columnOrder, columns]);
+
   const safePageSize = Math.max(1, currentPageSize);
 
   const visibleColumns = React.useMemo(
-    () => columns.filter((col) => !hiddenCols.has(col.key)),
-    [columns, hiddenCols]
+    () => orderedColumns.filter((col) => !hiddenCols.has(col.key)),
+    [orderedColumns, hiddenCols]
   );
 
   const filterableColumns = React.useMemo(
-    () => columns.filter((c) => c.filterable && c.accessor),
-    [columns]
+    () => orderedColumns.filter((c) => c.filterable && c.accessor),
+    [orderedColumns]
   );
 
   const filteredData = React.useMemo(() => {
@@ -208,12 +279,13 @@ export function DataTable<T>({
     return copy;
   }, [columns, filteredData, sortRules]);
 
-  const totalPages = Math.max(1, Math.ceil(sortedData.length / safePageSize));
+  const totalPages = virtualized ? 1 : Math.max(1, Math.ceil(sortedData.length / safePageSize));
   const safePage = Math.min(page, totalPages);
   const pageData = React.useMemo(() => {
+    if (virtualized) return sortedData;
     const start = (safePage - 1) * safePageSize;
     return sortedData.slice(start, start + safePageSize);
-  }, [safePage, safePageSize, sortedData]);
+  }, [safePage, safePageSize, sortedData, virtualized]);
 
   React.useEffect(() => {
     if (page > totalPages) setPage(1);
@@ -288,6 +360,42 @@ export function DataTable<T>({
     });
   };
 
+  const moveColumnOrder = (key: string, dir: -1 | 1) => {
+    setColumnOrder((prev) => {
+      const idx = prev.indexOf(key);
+      const target = idx + dir;
+      if (idx < 0 || target < 0 || target >= prev.length) return prev;
+      const copy = [...prev];
+      const [item] = copy.splice(idx, 1);
+      copy.splice(target, 0, item);
+      return copy;
+    });
+  };
+
+  const handleExport = () => {
+    if (onExport) {
+      onExport(sortedData);
+      return;
+    }
+    if (typeof document === 'undefined' || typeof Blob === 'undefined') return;
+    const headers = visibleColumns.map((c) => escapeCsvField(typeof c.header === 'string' ? c.header : c.key));
+    const lines = [
+      headers.join(','),
+      ...sortedData.map((row) =>
+        visibleColumns
+          .map((c) => escapeCsvField(c.accessor ? c.accessor(row) : ''))
+          .join(',')
+      ),
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = exportFileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const selectedRows = React.useMemo(
     () => data.filter((row) => selectedIds.includes(getRowId(row))),
     [data, getRowId, selectedIds]
@@ -297,10 +405,45 @@ export function DataTable<T>({
   const hasAdvancedToolbar = Boolean(
     searchable ||
       columnVisibilityToggle ||
+      columnReorderable ||
+      enableExport ||
+      savedViews ||
       filterableColumns.length > 0 ||
       renderToolbar ||
       (bulkActions && selectedIds.length > 0)
   );
+
+  const useCards =
+    responsiveCardMode === 'cards' || (responsiveCardMode === 'auto' && isMobile);
+
+  const groupColumn = groupBy ? columns.find((c) => c.key === groupBy) : undefined;
+  const groupedEntries = React.useMemo(() => {
+    if (!groupColumn?.accessor) return null;
+    const map = new Map<string, T[]>();
+    for (const row of pageData) {
+      const val = String(groupColumn.accessor(row) ?? 'Other');
+      const list = map.get(val) ?? [];
+      list.push(row);
+      map.set(val, list);
+    }
+    return Array.from(map.entries());
+  }, [groupColumn, pageData]);
+
+  // Virtualization calculations (when enabled and not grouped)
+  const visibleSlice = React.useMemo(() => {
+    if (!virtualized || groupedEntries) {
+      return { rows: pageData, topPad: 0, bottomPad: 0 };
+    }
+    const overscan = 4;
+    const startIdx = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan);
+    const visibleCount = Math.ceil(virtualViewportHeight / rowHeight) + overscan * 2;
+    const endIdx = Math.min(pageData.length, startIdx + visibleCount);
+    return {
+      rows: pageData.slice(startIdx, endIdx),
+      topPad: startIdx * rowHeight,
+      bottomPad: Math.max(0, (pageData.length - endIdx) * rowHeight),
+    };
+  }, [groupedEntries, pageData, rowHeight, scrollTop, virtualViewportHeight, virtualized]);
 
   if (loading) {
     return (
@@ -362,6 +505,121 @@ export function DataTable<T>({
     (renderExpandedRow ? 1 : 0) +
     (rowActions ? 1 : 0);
 
+  const renderDataRow = (row: T) => {
+    const id = getRowId(row);
+    const rowLabel = getRowLabel ? getRowLabel(row) : id;
+    const isSelected = selectedIds.includes(id);
+    const isExpanded = expandedIds.has(id);
+
+    return (
+      <React.Fragment key={id}>
+        <TableRow data-selected={isSelected}>
+          {renderExpandedRow && (
+            <TableCell className="w-9">
+              <button
+                type="button"
+                aria-expanded={isExpanded}
+                aria-label={`${isExpanded ? 'Collapse' : 'Expand'} row ${rowLabel}`}
+                onClick={() => toggleExpand(id)}
+                className="inline-flex h-6 w-6 items-center justify-center rounded-[var(--wdr-radius-sm)] text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+                ) : (
+                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                )}
+              </button>
+            </TableCell>
+          )}
+          {selectable && (
+            <TableCell className="w-11">
+              <Checkbox
+                aria-label={`Select row ${rowLabel}`}
+                checked={isSelected}
+                onCheckedChange={(checked) => toggleRow(id, checked)}
+              />
+            </TableCell>
+          )}
+          {visibleColumns.map((col) => {
+            const isEditing = editingCell?.rowId === id && editingCell?.colKey === col.key;
+            const rawVal = col.accessor ? String(col.accessor(row) ?? '') : '';
+            return (
+              <TableCell
+                key={col.key}
+                className={cn(
+                  col.align === 'right' && 'text-right',
+                  col.pin === 'left' && 'sticky left-0 bg-surface',
+                  col.pin === 'right' && 'sticky right-0 bg-surface'
+                )}
+              >
+                {col.editable && onCellEdit ? (
+                  isEditing ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        autoFocus
+                        aria-label={`Edit ${typeof col.header === 'string' ? col.header : col.key} for ${rowLabel}`}
+                        value={editingCell.draft}
+                        onChange={(e) =>
+                          setEditingCell((prev) => (prev ? { ...prev, draft: e.target.value } : null))
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            onCellEdit(id, col.key, editingCell.draft);
+                            setEditingCell(null);
+                          } else if (e.key === 'Escape') {
+                            setEditingCell(null);
+                          }
+                        }}
+                        className="h-7 w-full min-w-[90px] rounded border border-input bg-surface px-2 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                      <button
+                        type="button"
+                        aria-label="Save cell edit"
+                        onClick={() => {
+                          onCellEdit(id, col.key, editingCell.draft);
+                          setEditingCell(null);
+                        }}
+                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded bg-primary text-primary-foreground"
+                      >
+                        <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="group inline-flex items-center gap-1.5">
+                      <span>{col.cell(row)}</span>
+                      <button
+                        type="button"
+                        aria-label={`Edit ${typeof col.header === 'string' ? col.header : col.key} for ${rowLabel}`}
+                        onClick={() => setEditingCell({ rowId: id, colKey: col.key, draft: rawVal })}
+                        className="inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground opacity-70 hover:bg-muted hover:text-foreground hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <Pencil className="h-3 w-3" aria-hidden="true" />
+                      </button>
+                    </div>
+                  )
+                ) : (
+                  col.cell(row)
+                )}
+              </TableCell>
+            );
+          })}
+          {rowActions && (
+            <TableCell className="text-right">{rowActions(row)}</TableCell>
+          )}
+        </TableRow>
+        {renderExpandedRow && isExpanded && (
+          <TableRow>
+            <TableCell colSpan={totalColCount} className="bg-muted/35 p-4">
+              {renderExpandedRow(row)}
+            </TableCell>
+          </TableRow>
+        )}
+      </React.Fragment>
+    );
+  };
+
   return (
     <div className={cn('space-y-3', className)}>
       <div className="sr-only" role="status" aria-live="polite">
@@ -369,7 +627,28 @@ export function DataTable<T>({
       </div>
 
       {hasAdvancedToolbar && (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
+          {savedViews && savedViews.length > 0 && (
+            <SavedViewsBar
+              views={savedViews}
+              activeViewId={activeViewId ?? savedViews[0].id}
+              onSelectView={(id) => {
+                const found = savedViews.find((v) => v.id === id);
+                if (!found) return;
+                if (found.searchQuery !== undefined) setSearchQuery(found.searchQuery);
+                if (found.columnFilters !== undefined) setColumnFilters(found.columnFilters);
+                if (found.sortRules !== undefined) setSortRules(found.sortRules);
+                setPage(1);
+                onSelectView?.(found);
+              }}
+              onSaveView={
+                onSaveView
+                  ? (name) => onSaveView(name, { searchQuery, columnFilters, sortRules })
+                  : undefined
+              }
+            />
+          )}
+
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex flex-wrap items-center gap-2">
               {searchable && (
@@ -434,11 +713,22 @@ export function DataTable<T>({
                 selectedCount: selectedIds.length,
               })}
 
-              {columnVisibilityToggle && (
+              {enableExport && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExport}
+                  leftIcon={<Download className="h-3.5 w-3.5" aria-hidden="true" />}
+                >
+                  Export
+                </Button>
+              )}
+
+              {(columnVisibilityToggle || columnReorderable) && (
                 <Popover
                   open={colMenuOpen}
                   onOpenChange={setColMenuOpen}
-                  aria-label="Toggle columns"
+                  aria-label="Toggle and reorder columns"
                   trigger={
                     <Button
                       variant="outline"
@@ -449,28 +739,52 @@ export function DataTable<T>({
                     </Button>
                   }
                 >
-                  <div className="w-48 space-y-2 p-2">
-                    <div className="text-xs font-semibold text-foreground">Visible columns</div>
-                    {columns.map((col) => {
+                  <div className="w-60 space-y-2 p-2">
+                    <div className="text-xs font-semibold text-foreground">Visible & ordered columns</div>
+                    {orderedColumns.map((col, idx) => {
                       const visible = !hiddenCols.has(col.key);
                       const label = typeof col.header === 'string' ? col.header : col.key;
                       return (
-                        <label key={col.key} className="flex cursor-pointer items-center gap-2 text-xs text-foreground">
-                          <input
-                            type="checkbox"
-                            checked={visible}
-                            disabled={visible && visibleColumns.length <= 1}
-                            onChange={(e) => {
-                              setHiddenCols((prev) => {
-                                const next = new Set(prev);
-                                if (e.target.checked) next.delete(col.key);
-                                else next.add(col.key);
-                                return next;
-                              });
-                            }}
-                          />
-                          <span>{label}</span>
-                        </label>
+                        <div key={col.key} className="flex items-center justify-between gap-2 text-xs text-foreground">
+                          <label className="flex cursor-pointer items-center gap-2 truncate">
+                            <input
+                              type="checkbox"
+                              checked={visible}
+                              disabled={visible && visibleColumns.length <= 1}
+                              onChange={(e) => {
+                                setHiddenCols((prev) => {
+                                  const next = new Set(prev);
+                                  if (e.target.checked) next.delete(col.key);
+                                  else next.add(col.key);
+                                  return next;
+                                });
+                              }}
+                            />
+                            <span className="truncate">{label}</span>
+                          </label>
+                          {columnReorderable && (
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                aria-label={`Move ${label} column left`}
+                                onClick={() => moveColumnOrder(col.key, -1)}
+                                className="inline-flex h-6 w-6 items-center justify-center rounded border border-border hover:bg-muted disabled:opacity-40"
+                              >
+                                <ArrowUp className="h-3 w-3" aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === orderedColumns.length - 1}
+                                aria-label={`Move ${label} column right`}
+                                onClick={() => moveColumnOrder(col.key, 1)}
+                                className="inline-flex h-6 w-6 items-center justify-center rounded border border-border hover:bg-muted disabled:opacity-40"
+                              >
+                                <ArrowDown className="h-3 w-3" aria-hidden="true" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
                   </div>
@@ -550,10 +864,68 @@ export function DataTable<T>({
             </Button>
           }
         />
+      ) : useCards ? (
+        <div className="space-y-2.5" role="list" aria-label={ariaLabel ?? 'Mobile record list'}>
+          {pageData.map((row) => {
+            const id = getRowId(row);
+            const rowLabel = getRowLabel ? getRowLabel(row) : id;
+            const isSelected = selectedIds.includes(id);
+            if (renderMobileCard) {
+              return (
+                <div key={id} role="listitem">
+                  {renderMobileCard(row, {
+                    selected: isSelected,
+                    onToggleSelect: (checked) => toggleRow(id, checked),
+                  })}
+                </div>
+              );
+            }
+            return (
+              <div
+                key={id}
+                role="listitem"
+                data-selected={isSelected}
+                className={cn(
+                  'rounded-[var(--wdr-radius-lg)] border border-border bg-surface p-3.5 shadow-[var(--wdr-shadow-sm)] space-y-2',
+                  isSelected && 'border-primary bg-primary-subtle/30'
+                )}
+              >
+                {(selectable || rowActions) && (
+                  <div className="flex items-center justify-between gap-2 border-b border-border pb-2">
+                    {selectable ? (
+                      <Checkbox
+                        aria-label={`Select row ${rowLabel}`}
+                        checked={isSelected}
+                        onCheckedChange={(checked) => toggleRow(id, checked)}
+                      />
+                    ) : (
+                      <span />
+                    )}
+                    {rowActions && <div className="flex items-center gap-1">{rowActions(row)}</div>}
+                  </div>
+                )}
+                <dl className="grid grid-cols-1 gap-1.5 text-xs">
+                  {visibleColumns.map((col) => (
+                    <div key={col.key} className="flex items-start justify-between gap-3">
+                      <dt className="font-medium text-muted-foreground">{col.header}</dt>
+                      <dd className="text-right text-foreground">{col.cell(row)}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            );
+          })}
+        </div>
       ) : (
-        <div className={cn(stickyHeader && 'max-h-[460px] overflow-auto rounded-[var(--wdr-radius-lg)]')}>
+        <div
+          onScroll={virtualized ? (e) => setScrollTop(e.currentTarget.scrollTop) : undefined}
+          style={virtualized ? { maxHeight: `${virtualViewportHeight}px` } : undefined}
+          className={cn(
+            (stickyHeader || virtualized) && 'max-h-[460px] overflow-auto rounded-[var(--wdr-radius-lg)]'
+          )}
+        >
           <Table aria-label={ariaLabel}>
-            <TableHeader className={cn(stickyHeader && 'sticky top-0 z-10 bg-muted')}>
+            <TableHeader className={cn((stickyHeader || virtualized) && 'sticky top-0 z-10 bg-muted')}>
               <TableRow>
                 {renderExpandedRow && <TableHead className="w-9" />}
                 {selectable && (
@@ -628,73 +1000,70 @@ export function DataTable<T>({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pageData.map((row) => {
-                const id = getRowId(row);
-                const rowLabel = getRowLabel ? getRowLabel(row) : id;
-                const isSelected = selectedIds.includes(id);
-                const isExpanded = expandedIds.has(id);
-
-                return (
-                  <React.Fragment key={id}>
-                    <TableRow data-selected={isSelected}>
-                      {renderExpandedRow && (
-                        <TableCell className="w-9">
-                          <button
-                            type="button"
-                            aria-expanded={isExpanded}
-                            aria-label={`${isExpanded ? 'Collapse' : 'Expand'} row ${rowLabel}`}
-                            onClick={() => toggleExpand(id)}
-                            className="inline-flex h-6 w-6 items-center justify-center rounded-[var(--wdr-radius-sm)] text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                          >
-                            {isExpanded ? (
-                              <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
-                            ) : (
-                              <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+              {groupedEntries ? (
+                groupedEntries.map(([groupVal, groupRows]) => {
+                  const collapsed = collapsedGroups.has(groupVal);
+                  return (
+                    <React.Fragment key={groupVal}>
+                      <TableRow className="bg-muted/50 hover:bg-muted/60">
+                        <TableCell colSpan={totalColCount} className="font-semibold text-xs text-foreground">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              aria-expanded={!collapsed}
+                              onClick={() =>
+                                setCollapsedGroups((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(groupVal)) next.delete(groupVal);
+                                  else next.add(groupVal);
+                                  return next;
+                                })
+                              }
+                              className="inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                            >
+                              {collapsed ? (
+                                <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                              ) : (
+                                <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+                              )}
+                              <span>{groupVal}</span>
+                              <span className="rounded bg-surface px-1.5 py-0.5 text-[11px] text-muted-foreground tabular-nums">
+                                {groupRows.length}
+                              </span>
+                            </button>
+                            {groupSummary && (
+                              <div className="text-xs font-normal text-muted-foreground tabular-nums">
+                                {groupSummary(groupVal, groupRows)}
+                              </div>
                             )}
-                          </button>
-                        </TableCell>
-                      )}
-                      {selectable && (
-                        <TableCell className="w-11">
-                          <Checkbox
-                            aria-label={`Select row ${rowLabel}`}
-                            checked={isSelected}
-                            onCheckedChange={(checked) => toggleRow(id, checked)}
-                          />
-                        </TableCell>
-                      )}
-                      {visibleColumns.map((col) => (
-                        <TableCell
-                          key={col.key}
-                          className={cn(
-                            col.align === 'right' && 'text-right',
-                            col.pin === 'left' && 'sticky left-0 bg-surface',
-                            col.pin === 'right' && 'sticky right-0 bg-surface'
-                          )}
-                        >
-                          {col.cell(row)}
-                        </TableCell>
-                      ))}
-                      {rowActions && (
-                        <TableCell className="text-right">{rowActions(row)}</TableCell>
-                      )}
-                    </TableRow>
-                    {renderExpandedRow && isExpanded && (
-                      <TableRow>
-                        <TableCell colSpan={totalColCount} className="bg-muted/35 p-4">
-                          {renderExpandedRow(row)}
+                          </div>
                         </TableCell>
                       </TableRow>
-                    )}
-                  </React.Fragment>
-                );
-              })}
+                      {!collapsed && groupRows.map(renderDataRow)}
+                    </React.Fragment>
+                  );
+                })
+              ) : (
+                <>
+                  {visibleSlice.topPad > 0 && (
+                    <tr aria-hidden="true">
+                      <td colSpan={totalColCount} style={{ height: `${visibleSlice.topPad}px`, padding: 0 }} />
+                    </tr>
+                  )}
+                  {visibleSlice.rows.map(renderDataRow)}
+                  {visibleSlice.bottomPad > 0 && (
+                    <tr aria-hidden="true">
+                      <td colSpan={totalColCount} style={{ height: `${visibleSlice.bottomPad}px`, padding: 0 }} />
+                    </tr>
+                  )}
+                </>
+              )}
             </TableBody>
           </Table>
         </div>
       )}
 
-      {(totalPages > 1 || (pageSizeOptions && pageSizeOptions.length > 0)) && filteredData.length > 0 && (
+      {!virtualized && (totalPages > 1 || (pageSizeOptions && pageSizeOptions.length > 0)) && filteredData.length > 0 && (
         renderPagination ? (
           renderPagination({ page: safePage, totalPages, onPageChange: setPage })
         ) : (

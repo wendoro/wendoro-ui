@@ -20,6 +20,7 @@ import {
   TeamDirectory,
   ActivityFeed,
   DataTable,
+  BottomSheet,
   type DataTableColumn,
   type TeamMember,
   type ActivityFeedEntry,
@@ -35,11 +36,12 @@ import {
   chartPaletteValues,
   densityScales,
   motionDurations,
+  touchTargetTokens,
 } from '@wendoro/ui/tokens';
-import { LineChart, GaugeChart } from '@wendoro/ui/charts';
-import { FunnelChart } from '@wendoro/ui/charts/advanced';
-import { AnalyticsSummaryCard } from '@wendoro/ui/business';
-import { DensityProvider, useReducedMotion } from '@wendoro/ui/hooks';
+import { LineChart, GaugeChart, ExternalChart } from '@wendoro/ui/charts';
+import { FunnelChart, GeoRegionChart } from '@wendoro/ui/charts/advanced';
+import { AnalyticsSummaryCard, WorkflowBuilder } from '@wendoro/ui/business';
+import { DensityProvider, useReducedMotion, useBreakpoint } from '@wendoro/ui/hooks';
 
 interface ServiceRow {
   id: string;
@@ -94,16 +96,21 @@ export function ConsumerApp({ initialTheme = 'light' }: { initialTheme?: ThemeMo
 }
 
 function ConsumerWorkspace() {
-  const { resolvedTheme, toggleTheme } = useTheme();
+  const { resolvedTheme, toggleTheme, contrast, toggleContrast } = useTheme();
   const reducedMotion = useReducedMotion();
+  const bp = useBreakpoint();
   const [activeNav, setActiveNav] = React.useState<'overview' | 'team'>('overview');
   const [workspaceName, setWorkspaceName] = React.useState('');
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [sheetOpen, setSheetOpen] = React.useState(false);
 
   return (
     <div
       data-testid="consumer-root"
       data-resolved-theme={resolvedTheme}
+      data-contrast={contrast}
+      data-device-category={bp.deviceCategory}
+      data-touch-min={touchTargetTokens.minimum}
       data-brand-yellow={brandColors.primaryYellow}
       data-destructive-subtle-fg={semanticColorTokens.destructiveSubtleForeground}
       data-token-space={spacing[4]}
@@ -131,11 +138,17 @@ function ConsumerWorkspace() {
         <div className="flex items-center justify-between gap-4">
           <UserProfile variant="inline" name="Demo Lead" affiliation="Demo Workspace" />
           <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={toggleContrast}>
+              Toggle Contrast
+            </Button>
             <Button variant="outline" onClick={toggleTheme}>
               Switch Theme
             </Button>
             <Button variant="primary" onClick={() => setDialogOpen(true)}>
               Open Consumer Dialog
+            </Button>
+            <Button variant="outline" onClick={() => setSheetOpen(true)}>
+              Open Sheet
             </Button>
           </div>
         </div>
@@ -186,11 +199,34 @@ function ConsumerWorkspace() {
             title="Consumer Summary"
             items={[{ id: 's1', label: 'Units', value: '100', direction: 'positive' }]}
           />
+          <GeoRegionChart
+            title="Consumer Geo"
+            regions={[{ id: 'na', code: 'NA', name: 'North America', value: 120 }]}
+          />
+          <ExternalChart
+            kind="bar"
+            title="Consumer External Bridge"
+            data={[{ m: 'Jan', val: 10 }]}
+            xKey="m"
+            series={[{ key: 'val', label: 'Val' }]}
+          />
         </div>
+
+        <WorkflowBuilder
+          nodes={[
+            { id: 'n1', kind: 'trigger', title: 'Start', enabled: true, nextNodeIds: ['n2'] },
+            { id: 'n2', kind: 'action', title: 'Notify', enabled: true, nextNodeIds: [] },
+          ]}
+          onChange={() => {}}
+        />
 
         {activeNav === 'team' && <TeamDirectory members={TEAM_MEMBERS} />}
 
         <ActivityFeed items={ACTIVITY_ITEMS} demoLabel="Consumer fixture demo data" />
+
+        <BottomSheet open={sheetOpen} onOpenChange={setSheetOpen} title="Consumer Mobile Sheet">
+          <p className="text-sm text-muted-foreground">BottomSheet integration verified.</p>
+        </BottomSheet>
 
         <Dialog
           open={dialogOpen}

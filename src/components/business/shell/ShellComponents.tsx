@@ -1,10 +1,16 @@
 import * as React from 'react';
-import { GripVertical, Menu } from 'lucide-react';
+import { GripVertical, Menu, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { cn } from '../../../utils/cn';
+import { useBreakpoint } from '../../../hooks/use-breakpoint';
 import { Breadcrumb, type BreadcrumbItem } from '../../ui/breadcrumb';
 import { Button } from '../../ui/button';
 import { Container, type ContainerProps } from '../../ui/container';
 import { Drawer } from '../../ui/drawer';
+import {
+  BottomNavigation,
+  BottomSheet,
+  type BottomNavigationItem,
+} from '../../ui/mobile/MobilePrimitives';
 import { Sidebar, SidebarItem, SidebarSection, type SidebarProps } from '../../ui/sidebar';
 
 export interface AppShellProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -277,6 +283,10 @@ export interface SplitPanelProps {
   minLeftPercent?: number;
   maxLeftPercent?: number;
   resizable?: boolean;
+  collapseBelow?: 'md' | 'lg';
+  collapsibleLeft?: boolean;
+  defaultLeftCollapsed?: boolean;
+  leftTitle?: string;
   className?: string;
 }
 
@@ -287,9 +297,14 @@ export function SplitPanel({
   minLeftPercent = 20,
   maxLeftPercent = 80,
   resizable = false,
+  collapseBelow = 'lg',
+  collapsibleLeft = false,
+  defaultLeftCollapsed = false,
+  leftTitle = 'Left pane',
   className,
 }: SplitPanelProps) {
   const [ratio, setRatio] = React.useState(defaultLeftPercent);
+  const [leftCollapsed, setLeftCollapsed] = React.useState(defaultLeftCollapsed);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const clamp = (val: number) => Math.max(minLeftPercent, Math.min(maxLeftPercent, val));
@@ -314,43 +329,87 @@ export function SplitPanel({
     window.addEventListener('pointerup', onUp);
   };
 
+  const rowBreakpointClass = collapseBelow === 'md' ? 'md:flex-row' : 'lg:flex-row';
+  const dividerClass =
+    collapseBelow === 'md'
+      ? 'border-t md:border-t-0 md:border-l border-border'
+      : 'border-t lg:border-t-0 lg:border-l border-border';
+  const resizerDisplayClass = collapseBelow === 'md' ? 'hidden md:flex' : 'hidden lg:flex';
+
   return (
     <div
       ref={containerRef}
-      className={cn('flex flex-col lg:flex-row rounded-[var(--wdr-radius-lg)] border border-border bg-surface overflow-hidden', className)}
+      className={cn(
+        'flex flex-col rounded-[var(--wdr-radius-lg)] border border-border bg-surface overflow-hidden',
+        rowBreakpointClass,
+        className
+      )}
     >
-      <div className="min-w-0 p-4" style={{ flexBasis: `${ratio}%`, flexShrink: 0 }}>
-        {left}
-      </div>
-
-      {resizable ? (
-        <div
-          role="separator"
-          aria-orientation="vertical"
-          aria-label="Resize panel"
-          aria-valuemin={minLeftPercent}
-          aria-valuemax={maxLeftPercent}
-          aria-valuenow={ratio}
-          tabIndex={0}
-          onPointerDown={handlePointerDown}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowLeft') {
-              e.preventDefault();
-              setRatio((r) => clamp(r - 4));
-            } else if (e.key === 'ArrowRight') {
-              e.preventDefault();
-              setRatio((r) => clamp(r + 4));
-            }
-          }}
-          className="hidden lg:flex w-3 cursor-col-resize items-center justify-center border-x border-border bg-muted/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <GripVertical className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+      {!leftCollapsed && (
+        <div className="min-w-0 p-4" style={{ flexBasis: `${ratio}%`, flexShrink: 0 }}>
+          {collapsibleLeft && (
+            <div className="mb-2 flex items-center justify-between border-b border-border pb-2">
+              <span className="text-xs font-semibold text-muted-foreground">{leftTitle}</span>
+              <button
+                type="button"
+                aria-label={`Collapse ${leftTitle}`}
+                onClick={() => setLeftCollapsed(true)}
+                className="inline-flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <PanelLeftClose className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            </div>
+          )}
+          {left}
         </div>
-      ) : (
-        <div className="border-t lg:border-t-0 lg:border-l border-border" />
       )}
 
-      <div className="min-w-0 flex-1 p-4">{right}</div>
+      {!leftCollapsed &&
+        (resizable ? (
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize panel"
+            aria-valuemin={minLeftPercent}
+            aria-valuemax={maxLeftPercent}
+            aria-valuenow={ratio}
+            tabIndex={0}
+            onPointerDown={handlePointerDown}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                setRatio((r) => clamp(r - 4));
+              } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                setRatio((r) => clamp(r + 4));
+              }
+            }}
+            className={cn(
+              resizerDisplayClass,
+              'w-3 cursor-col-resize items-center justify-center border-x border-border bg-muted/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+            )}
+          >
+            <GripVertical className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+          </div>
+        ) : (
+          <div className={dividerClass} />
+        ))}
+
+      <div className="min-w-0 flex-1 p-4">
+        {collapsibleLeft && leftCollapsed && (
+          <div className="mb-3">
+            <Button
+              variant="outline"
+              size="sm"
+              leftIcon={<PanelLeftOpen className="h-3.5 w-3.5" />}
+              onClick={() => setLeftCollapsed(false)}
+            >
+              Show {leftTitle}
+            </Button>
+          </div>
+        )}
+        {right}
+      </div>
     </div>
   );
 }
@@ -376,5 +435,156 @@ export function ResponsiveNavDrawer({
     <Drawer open={open} onOpenChange={onOpenChange} placement="left" title={title} className="p-0">
       <div className="h-full overflow-y-auto">{children}</div>
     </Drawer>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* ContextualDetailPanel (Docked on tablet/desktop, BottomSheet on mobile)    */
+/* -------------------------------------------------------------------------- */
+
+export interface ContextualDetailPanelProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  mode?: 'auto' | 'panel' | 'sheet';
+  footer?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export function ContextualDetailPanel({
+  open,
+  onOpenChange,
+  title,
+  subtitle,
+  mode = 'auto',
+  footer,
+  children,
+  className,
+}: ContextualDetailPanelProps) {
+  const { isMobile } = useBreakpoint();
+  const useSheet = mode === 'sheet' || (mode === 'auto' && isMobile);
+
+  if (!open) return null;
+
+  if (useSheet) {
+    return (
+      <BottomSheet
+        open={open}
+        onOpenChange={onOpenChange}
+        title={title}
+        description={subtitle}
+        snap="half"
+        footer={footer}
+        className={className}
+      >
+        {children}
+      </BottomSheet>
+    );
+  }
+
+  return (
+    <aside
+      aria-label={typeof title === 'string' ? title : 'Detail panel'}
+      className={cn(
+        'flex w-full shrink-0 flex-col border-l border-border bg-surface md:w-80 lg:w-96',
+        className
+      )}
+    >
+      <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3.5">
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-semibold text-foreground">{title}</h3>
+          {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+        <button
+          type="button"
+          aria-label="Close detail panel"
+          onClick={() => onOpenChange(false)}
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--wdr-radius-sm)] text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4">{children}</div>
+      {footer && (
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border p-3.5">
+          {footer}
+        </div>
+      )}
+    </aside>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* AdaptiveWorkspaceLayout (Mobile + Tablet + Desktop Unified Shell)          */
+/* -------------------------------------------------------------------------- */
+
+export interface AdaptiveWorkspaceLayoutProps {
+  sidebar?: React.ReactNode;
+  tabletRail?: React.ReactNode;
+  header?: React.ReactNode;
+  bottomNavItems?: BottomNavigationItem[];
+  detailPanel?: React.ReactNode;
+  floatingAction?: React.ReactNode;
+  mobileNavOpen?: boolean;
+  onMobileNavOpenChange?: (open: boolean) => void;
+  mobileNavTitle?: string;
+  className?: string;
+  children: React.ReactNode;
+}
+
+export function AdaptiveWorkspaceLayout({
+  sidebar,
+  tabletRail,
+  header,
+  bottomNavItems,
+  detailPanel,
+  floatingAction,
+  mobileNavOpen = false,
+  onMobileNavOpenChange,
+  mobileNavTitle = 'Workspace Navigation',
+  className,
+  children,
+}: AdaptiveWorkspaceLayoutProps) {
+  return (
+    <div className={cn('relative flex min-h-screen w-full bg-background text-foreground', className)}>
+      {/* Desktop full sidebar */}
+      {sidebar && <div className="hidden lg:block shrink-0">{sidebar}</div>}
+
+      {/* Tablet navigation rail */}
+      {tabletRail && <div className="hidden md:block lg:hidden shrink-0">{tabletRail}</div>}
+
+      {/* Mobile / Tablet drawer */}
+      {sidebar && onMobileNavOpenChange && (
+        <Drawer
+          open={mobileNavOpen}
+          onOpenChange={onMobileNavOpenChange}
+          placement="left"
+          title={mobileNavTitle}
+          className="p-0"
+        >
+          <div className="h-full overflow-y-auto">{sidebar}</div>
+        </Drawer>
+      )}
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        {header}
+        <div className="flex min-w-0 flex-1">
+          <main className={cn('min-w-0 flex-1', bottomNavItems && 'pb-20 md:pb-0')}>
+            {children}
+          </main>
+          {detailPanel}
+        </div>
+
+        {bottomNavItems && bottomNavItems.length > 0 && (
+          <div className="md:hidden">
+            <BottomNavigation items={bottomNavItems} fixed />
+          </div>
+        )}
+      </div>
+
+      {floatingAction}
+    </div>
   );
 }
