@@ -60,6 +60,46 @@
   --color-info-foreground: var(--wdr-info-foreground);
   --color-info-subtle: var(--wdr-info-subtle);
   --color-info-subtle-foreground: var(--wdr-info-subtle-foreground);
+
+  --color-chart-1: var(--wdr-chart-1);
+  --color-chart-2: var(--wdr-chart-2);
+  --color-chart-3: var(--wdr-chart-3);
+  --color-chart-4: var(--wdr-chart-4);
+  --color-chart-5: var(--wdr-chart-5);
+  --color-chart-6: var(--wdr-chart-6);
+  --color-chart-7: var(--wdr-chart-7);
+  --color-chart-8: var(--wdr-chart-8);
+}
+
+/* Density scope overrides */
+[data-density='compact'] {
+  --wdr-density-control-h: 32px;
+  --wdr-density-input-h: 32px;
+  --wdr-density-row-h: 36px;
+  --wdr-density-card-pad: 12px;
+  --wdr-density-cell-px: 10px;
+  --wdr-density-cell-py: 6px;
+  --wdr-density-gap: 12px;
+}
+
+[data-density='comfortable'] {
+  --wdr-density-control-h: 40px;
+  --wdr-density-input-h: 40px;
+  --wdr-density-row-h: 44px;
+  --wdr-density-card-pad: 20px;
+  --wdr-density-cell-px: 14px;
+  --wdr-density-cell-py: 10px;
+  --wdr-density-gap: 20px;
+}
+
+[data-density='spacious'] {
+  --wdr-density-control-h: 44px;
+  --wdr-density-input-h: 44px;
+  --wdr-density-row-h: 52px;
+  --wdr-density-card-pad: 24px;
+  --wdr-density-cell-px: 16px;
+  --wdr-density-cell-py: 14px;
+  --wdr-density-gap: 24px;
 }
 
 @layer base {
@@ -85,6 +125,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --wdr-motion-instant: 0.01ms;
+    --wdr-motion-fast: 0.01ms;
+    --wdr-motion-standard: 0.01ms;
+    --wdr-motion-slow: 0.01ms;
+  }
+
   *,
   *::before,
   *::after {

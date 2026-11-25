@@ -64,6 +64,44 @@
   --wdr-info-subtle: #F4F4F0;
   --wdr-info-subtle-foreground: #242424;
 
+  /* Data Visualization Palette (Wendoro Brand + Accessible Semantic Series) */
+  --wdr-chart-1: #111111;
+  --wdr-chart-2: #EAB308;
+  --wdr-chart-3: #DC2626;
+  --wdr-chart-4: #15803D;
+  --wdr-chart-5: #B45309;
+  --wdr-chart-6: #737373;
+  --wdr-chart-7: #52524E;
+  --wdr-chart-8: #991B1B;
+
+  --wdr-chart-grid: #E5E5E5;
+  --wdr-chart-axis: #D4D4D0;
+  --wdr-chart-axis-text: #666662;
+  --wdr-chart-crosshair: #111111;
+  --wdr-chart-tooltip-bg: #111111;
+  --wdr-chart-tooltip-border: #2E2E2E;
+  --wdr-chart-tooltip-fg: #FAFAF7;
+  --wdr-chart-annotation: #242424;
+  --wdr-chart-threshold: #DC2626;
+
+  /* Motion */
+  --wdr-motion-instant: 75ms;
+  --wdr-motion-fast: 120ms;
+  --wdr-motion-standard: 180ms;
+  --wdr-motion-slow: 280ms;
+  --wdr-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --wdr-ease-entrance: cubic-bezier(0, 0, 0.2, 1);
+  --wdr-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Default Density (comfortable) */
+  --wdr-density-control-h: 40px;
+  --wdr-density-input-h: 40px;
+  --wdr-density-row-h: 44px;
+  --wdr-density-card-pad: 20px;
+  --wdr-density-cell-px: 14px;
+  --wdr-density-cell-py: 10px;
+  --wdr-density-gap: 20px;
+
   /* Radius */
   --wdr-radius-none: 0px;
   --wdr-radius-sm: 4px;

@@ -2,83 +2,41 @@ import { Meta } from '@storybook/blocks';
 
 <Meta title="Wendoro UI/Introduction" />
 
-# Wendoro UI (`@wendoro/ui`)
+# Wendoro UI (`@wendoro/ui`) — Enterprise Design System 2.0
 
 **Business, connected.** — Official Website: [https://wendoro.in](https://wendoro.in)
 
-Wendoro UI is the shared design system and reusable React component library for the Wendoro software ecosystem, powering **Wendoro Desk**, **Wendoro Flow**, **Wendoro Platform**, **Wendoro Studio**, **Wendoro Insights**, **Wendoro Support**, **Wendoro Commerce**, and **Wendoro People**.
+Wendoro UI is the shared design system and modular React component library for the Wendoro software ecosystem, powering **Wendoro Desk**, **Wendoro Flow**, **Wendoro Platform**, **Wendoro Studio**, **Wendoro Insights**, **Wendoro Support**, **Wendoro Commerce**, and **Wendoro People**.
 
 ---
 
-## Installation
+## Modular Package Entry Points
 
-```bash
-npm install @wendoro/ui lucide-react
-```
+`@wendoro/ui` exposes tree-shakeable entry points so standard consumer apps never bundle unused charting modules:
 
-Import the stylesheet once at your application entry point and wrap your root with `ThemeProvider`:
-
-```tsx
-import '@wendoro/ui/styles.css';
-import { ThemeProvider, ToastProvider, Button } from '@wendoro/ui';
-
-export function App() {
-  return (
-    <ThemeProvider defaultTheme="system">
-      <ToastProvider>
-        <Button variant="primary">Launch Workflow</Button>
-      </ToastProvider>
-    </ThemeProvider>
-  );
-}
-```
+| Subpath | Purpose |
+| --- | --- |
+| `@wendoro/ui` | Core UI, forms, feedback, navigation, overlays, and enterprise business modules |
+| `@wendoro/ui/styles.css` | Standalone compiled Tailwind CSS v4 + design tokens + density + reduced-motion stylesheet |
+| `@wendoro/ui/themes/light.css` | Light mode CSS custom properties |
+| `@wendoro/ui/themes/dark.css` | Dark mode CSS custom properties |
+| `@wendoro/ui/tokens` | Brand, chart palette, semantic color, typography, spacing/density, elevation, motion, and breakpoint tokens |
+| `@wendoro/ui/charts` | 18 standard charts + shared container, legend, tooltip, annotations, Intl formatters, and `<table>` fallbacks |
+| `@wendoro/ui/charts/advanced` | 12 advanced analytical charts (Funnel, Waterfall, Heatmap, CalendarHeatmap, Treemap, Sankey, BoxPlot, Violin, Histogram, RangeBand, MultiSeriesTimeSeries, MixedAxis) |
+| `@wendoro/ui/business` | Analytics, dashboard shell, advanced `DataTable`, Kanban, timeline, calendar grid, workflow, and hierarchy components |
+| `@wendoro/ui/hooks` | `ThemeProvider`/`useTheme`, `DensityProvider`/`useDensity`, `useReducedMotion`, `useBreakpoint`, `useId` |
 
 ---
 
 ## Design Principles
 
-1. **Clarity Over Ornament**: Crisp Warm White (`#FAFAF7`) and Deep Black (`#111111`) structural foundations keep high-density business workflows legible.
-2. **Signature Restraint**: Primary Yellow (`#FACC15`) highlights primary actions and active states; Primary Red (`#DC2626`) is reserved for destructive or critical states. Blue, purple, indigo, and teal are excluded from the brand system.
-3. **Composable & Product-Agnostic**: Primitives and business patterns never assume ERP, CRM, or HR data schemas.
-4. **Accessible by Default**: Built around WCAG 2.2 AA contrast, keyboard navigation, and screen-reader semantics.
+1. **Brand Discipline**: Primary Yellow (`#FACC15`), Primary Red (`#DC2626`), Deep Black (`#111111`), Crisp White (`#FFFFFF`), Warm White (`#FAFAF7`), Charcoal (`#242424`), Border Gray (`#E5E5E5`), and Muted Gray (`#737373`). Blue, purple, indigo, and teal are excluded.
+2. **Accessible Visualization**: Charts pair color tokens with SVG patterns, line dashes, and distinct point markers, provide interactive HTML `<table>` fallbacks, and use native `Intl` formatters.
+3. **Scoped Theme & Density Safety**: Storybook previews run `<ThemeProvider forcedTheme={...} disableStorage>` and `<DensityProvider scoped disableStorage>` so previewing themes never mutates host `localStorage`.
+4. **Architectural Separation (`@wendoro/ui` vs `@wendoro/sdk`)**: Presentation UI never embeds API clients, auth state, or backend queries. Product apps pass fetched data and loading/error callbacks via props.
 
 ---
 
-## Theming & Scoped Isolation
+## Synthetic Demo Data Notice
 
-Switch between `light`, `dark`, and `system` themes at runtime without reloading via `useTheme()`. All components read semantic CSS variables (`--wdr-background`, `--wdr-surface`, `--wdr-primary`, `--wdr-border`, `--wdr-hover`, `--wdr-selected`, `--wdr-disabled`, etc.) rather than hardcoded hex values.
-
-For multi-consumer pages or embedded widgets, `<ThemeProvider scoped disableStorage>` applies theme attributes to a local container instead of `document.documentElement`.
-
----
-
-## Architectural Separation (`@wendoro/ui` vs `@wendoro/sdk`)
-
-`@wendoro/ui` is strictly a presentation library. Product applications import UI components from `@wendoro/ui` and API clients from `@wendoro/sdk` as separate dependencies, passing fetched data, loading states, and error callbacks into UI props.
-
----
-
-## Component Architecture
-
-- **Core**: `Button`, `IconButton`, `Input`, `Textarea`, `Label`, `Select`, `Checkbox`, `Radio`, `RadioGroup`, `Switch`, `Slider`
-- **Feedback**: `Alert`, `Badge`, `ToastProvider`, `useToast`, `Notification`, `Progress`, `Skeleton`, `Spinner`
-- **Layout**: `Card`, `Separator`, `Container`, `Stack`, `Grid`, `Dialog`, `Drawer`, `Sheet`
-- **Navigation**: `Tabs`, `Breadcrumb`, `Pagination`, `Sidebar`, `DropdownMenu`, `NavigationMenu`
-- **Data Display**: `Avatar`, `AvatarGroup`, `Table`, `EmptyState`, `Tooltip`, `Popover`
-- **Advanced**: `CommandPalette`, `Calendar`, `DatePicker`, `Accordion`, `Collapsible`, `FormField`
-- **Business Patterns**: `MetricCard`, `KpiCard`, `StatusBadge`, `UserProfile`, `TeamDirectory`, `ActivityItem`, `ActivityFeed`, `DataTable`, `SearchBar`, `FilterBar`, `PageHeader`, `DashboardGrid`, `NotificationCenter`
-
----
-
-## Accessibility
-
-- **Keyboard Navigation**: Tabs, Select, DropdownMenu, CommandPalette, Dialog, and Calendar support arrow keys, Escape, Enter/Space, and Tab focus order.
-- **No Color-Only Status**: `Alert`, `StatusBadge`, `KpiCard`, and `MetricCard` always combine semantic color with iconography and explicit text labels.
-- **Reduced Motion**: Respects `prefers-reduced-motion: reduce` globally.
-
----
-
-## Contributing & Versioning
-
-- **Versioning**: Follows Semantic Versioning (`0.1.0` pre-release). Breaking token or prop changes increment major/minor versions per semver.
-- **Contributing**: Every component PR requires TypeScript types, Storybook documentation (`stories/`), and Vitest + React Testing Library tests (`tests/`).
+All dashboards, stories, charts, and tables in this Storybook use clearly labeled synthetic records (`Demo User`, `Sample Organization`, `Example Project`, `Sample Record #01`, `demo@example.invalid`) and never represent real customer accounts or live Platform metrics.

@@ -1,0 +1,1658 @@
+# WENDORO UI — ENTERPRISE DESIGN SYSTEM 2.0
+## Comprehensive UI/UX Expansion, Data Visualization, Component Engineering, Security, Accessibility & Verification
+
+You are acting as a principal design-system architect, senior React/TypeScript engineer, data-visualization engineer, accessibility specialist, security engineer, and design-system QA lead.
+
+Your task is to comprehensively evolve the existing `wendoro-ui` repository into a modern, enterprise-grade, reusable design system for the Wendoro ecosystem.
+
+This is an implementation task, not merely a design proposal.
+
+Audit the complete repository, preserve all existing working functionality, implement the approved expansion, update the component showcase and Storybook, create meaningful automated tests, and perform rigorous package and consumer verification.
+
+Do not stop after producing recommendations. Implement the work within the authorized repository and provide a complete evidence-based report.
+
+---
+
+# 1. ABSOLUTE REPOSITORY BOUNDARIES
+
+Authorized repository:
+
+https://github.com/wendoro/wendoro-ui
+
+Existing baseline commit:
+
+`c8ac8b2da34cd0c0b4f0958c3442bc79d7b8d710`
+
+Reference repositories, strictly READ-ONLY:
+
+- `wendoro-platform`
+- `wendoro-sdk`
+
+Reference commits:
+
+- Platform: `7810cebacf73a6467c02c272c83227ea482e6624`
+- SDK: `2c73efd7b59f580fe6da8c6212e49a0c140b6ecd`
+
+Rules:
+
+1. Modify only `wendoro-ui`.
+2. Never modify Platform, SDK, or any other Wendoro repository.
+3. Never modify production infrastructure, Firebase, GCP, Cloudflare, DNS, databases, APIs, or deployments.
+4. Do not publish to npm or another package registry.
+5. Do not deploy Storybook or the showcase.
+6. Do not change GitHub repository visibility.
+7. Do not change the existing LICENSE or package licensing declarations.
+8. Do not remove or replace existing functionality merely to simplify implementation.
+9. Do not force-push, commit, or push changes.
+10. Do not claim GitHub Actions passed unless an actual GitHub Actions run verifies it.
+11. Do not claim real-browser, screen-reader, or production verification when only automated tests were run.
+12. Do not introduce credentials, real customer data, production identifiers, or fabricated business transactions.
+
+If Git metadata is unavailable in this workspace, clearly report that limitation. Preserve an exact changed-file manifest for controlled transfer into a real clone.
+
+---
+
+# 2. EXISTING REPOSITORY BASELINE
+
+The existing package is:
+
+- Package: `@wendoro/ui`
+- Version: `0.1.0`
+- React peer dependency: `>=18.0.0 <20.0.0`
+- TypeScript
+- Tailwind CSS v4
+- Vite
+- Storybook
+- Vitest
+- ESM and CommonJS package outputs
+- Standalone CSS and theme exports
+- `lucide-react` as an existing runtime dependency
+- `bun.lock`
+- `package-lock.json` added during the previous implementation
+- Repository-local GitHub Actions workflow
+
+Existing source architecture includes:
+
+- `src/tokens/`
+- `src/themes/`
+- `src/styles/`
+- `src/hooks/`
+- `src/utils/`
+- `src/components/ui/`
+- `src/components/business/`
+- `src/data/`
+- `stories/`
+- `.storybook/`
+- `tests/`
+- `docs/`
+
+The existing implementation includes approximately 95 runtime exports and a substantial set of UI and business components.
+
+The previous implementation added:
+
+- Semantic interactive-state tokens.
+- Light and dark themes.
+- SSR-safe ThemeProvider.
+- URL and image URL sanitization.
+- Overlay focus management.
+- Accessibility and keyboard improvements.
+- Responsive behavior.
+- DataTable error and retry support.
+- Synthetic showcase data.
+- Consumer package integration tests.
+- Repository-local CI.
+
+FIRST inspect the actual workspace. Do not assume that the previous report accurately describes every current file.
+
+Record the actual baseline and identify existing work before modifying anything.
+
+---
+
+# 3. PRIMARY OBJECTIVE
+
+Evolve `@wendoro/ui` into a comprehensive enterprise design system that provides:
+
+A. Modern visual foundations.
+
+B. Rich standard and advanced data visualizations.
+
+C. Enterprise dashboard components.
+
+D. Advanced data presentation and management components.
+
+E. Productivity and workflow components.
+
+F. Modern navigation and application-shell components.
+
+G. Rich form and interaction components.
+
+H. Refined feedback and notification components.
+
+I. Responsive and accessible interaction patterns.
+
+J. A comprehensive Storybook design-system showcase.
+
+K. Strong package compatibility and optional feature loading.
+
+The final library must remain reusable, modular, backend-agnostic, type-safe, accessible, and suitable for consumption by independent Wendoro products.
+
+Do not build a single application disguised as a component library.
+
+---
+
+# 4. DESIGN DIRECTION — WENDORO DESIGN LANGUAGE
+
+Build on the existing Wendoro brand.
+
+Existing core colors:
+
+| Token | Value |
+|---|---|
+| Primary Yellow | `#FACC15` |
+| Primary Red | `#DC2626` |
+| Deep Black | `#111111` |
+| White | `#FFFFFF` |
+| Warm White | `#FAFAF7` |
+| Charcoal | `#242424` |
+| Border Gray | `#E5E5E5` |
+| Muted Gray | `#737373` |
+
+These values are existing brand references. Do not arbitrarily replace them.
+
+Brand rules:
+
+- Do not introduce blue, purple, indigo, or teal as brand colors.
+- Semantic colors for success, warning, error, and informational status may be introduced only when they are clearly semantic rather than new brand colors.
+- Use the yellow and red accents purposefully.
+- Preserve sufficient contrast in both themes.
+- Do not make every component yellow or red.
+
+The design should feel:
+
+- Premium.
+- Professional.
+- Modern.
+- Clean.
+- Trustworthy.
+- Enterprise-ready.
+- Spacious without wasting screen space.
+- Data-rich without visual clutter.
+- Consistent across independent products.
+
+Avoid:
+
+- Excessive glassmorphism.
+- Excessive gradients.
+- Unnecessary shadows.
+- Excessive rounded containers.
+- Excessive animation.
+- Decorative charts without meaningful data.
+- Unreadable typography.
+- Dense interfaces without hierarchy.
+- Inconsistent spacing.
+- Overuse of brand accents.
+
+---
+
+# 5. DESIGN FOUNDATIONS — EXPAND THE DESIGN TOKEN SYSTEM
+
+Audit and expand the existing tokens.
+
+Implement a systematic token architecture.
+
+## 5.1 Color tokens
+
+Include:
+
+- Brand colors.
+- Backgrounds.
+- Foregrounds.
+- Surfaces.
+- Elevated surfaces.
+- Borders.
+- Muted surfaces.
+- Primary and secondary actions.
+- Destructive actions.
+- Success.
+- Warning.
+- Informational status.
+- Focus.
+- Hover.
+- Active.
+- Selected.
+- Disabled.
+- Chart series.
+- Chart gridlines.
+- Chart axes.
+- Tooltip surfaces.
+- Data visualization annotations.
+
+Chart palettes must work in light and dark modes and remain distinguishable without relying on color alone.
+
+Use patterns, labels, line styles, symbols, and accessible descriptions where necessary.
+
+## 5.2 Typography
+
+Introduce semantic typography tokens for:
+
+- Display.
+- Page title.
+- Section title.
+- Card title.
+- Body.
+- Body small.
+- Caption.
+- Label.
+- Numeric values.
+- Data metrics.
+- Monospace content.
+
+Support tabular numerals for financial and statistical displays.
+
+## 5.3 Spacing and sizing
+
+Create a consistent spacing scale.
+
+Support:
+
+- Compact.
+- Comfortable.
+- Spacious density modes.
+
+Create tokens for:
+
+- Component heights.
+- Input heights.
+- Button sizes.
+- Icon sizes.
+- Content widths.
+- Dashboard gutters.
+- Grid gaps.
+- Sidebar widths.
+- Dialog widths.
+
+## 5.4 Elevation and borders
+
+Introduce semantic tokens for:
+
+- Surface levels.
+- Card elevation.
+- Popovers.
+- Dropdowns.
+- Dialogs.
+- Tooltips.
+- Borders.
+- Focus rings.
+
+Do not apply shadows indiscriminately.
+
+## 5.5 Motion system
+
+Create reusable motion tokens for:
+
+- Fast interactions.
+- Standard transitions.
+- Slow transitions.
+- Entrance and exit animations.
+- Expand/collapse.
+- Loading feedback.
+
+Respect `prefers-reduced-motion`.
+
+Never make important functionality dependent on animation.
+
+## 5.6 Responsive breakpoints
+
+Audit the existing responsive system.
+
+Provide consistent breakpoints and layout utilities for:
+
+- Small mobile.
+- Mobile.
+- Tablet.
+- Laptop.
+- Desktop.
+- Wide desktop.
+
+Do not create conflicting breakpoint systems across components.
+
+## 5.7 Theme system
+
+Preserve the existing ThemeProvider API and backward compatibility.
+
+Maintain:
+
+- Light.
+- Dark.
+- System.
+- Forced theme.
+- Scoped theme.
+- Storage controls.
+- SSR safety.
+- Pre-hydration theme initialization.
+- Multi-consumer isolation.
+
+Verify every newly introduced component in both light and dark modes.
+
+---
+
+# 6. DATA VISUALIZATION SYSTEM
+
+This is a major expansion.
+
+Create a dedicated, modular visualization system rather than implementing unrelated chart components independently.
+
+Recommended structure:
+
+`src/components/charts/`
+
+or another architecture justified by the existing repository.
+
+Use a consistent API for chart containers, data, axes, tooltips, legends, loading, errors, and empty states.
+
+## 6.1 Standard chart library
+
+Implement these chart types:
+
+1. Line chart.
+2. Area chart.
+3. Stacked area chart.
+4. Bar chart.
+5. Horizontal bar chart.
+6. Grouped bar chart.
+7. Stacked bar chart.
+8. Column chart.
+9. Donut chart.
+10. Pie chart.
+11. Composed chart.
+12. Scatter chart.
+13. Bubble chart.
+14. Radar chart.
+15. Radial progress chart.
+16. Sparkline.
+17. Progress visualization.
+18. Gauge visualization, only if it can be implemented accurately and accessibly.
+
+## 6.2 Advanced visualizations
+
+Implement where technically appropriate:
+
+1. Funnel chart.
+2. Waterfall chart.
+3. Heatmap.
+4. Calendar heatmap.
+5. Treemap.
+6. Sankey diagram.
+7. Box plot.
+8. Violin plot, if the selected visualization engine supports it reliably.
+9. Histogram.
+10. Range/band chart.
+11. Time-series chart with multiple series.
+12. Mixed-axis/composed visualization where appropriate.
+
+Do not create misleading or decorative approximations of advanced charts.
+
+If a particular visualization requires substantial specialized code, isolate it in a separate module and explain any limitations.
+
+## 6.3 Chart interaction
+
+Support where appropriate:
+
+- Interactive tooltips.
+- Legends.
+- Series visibility toggling.
+- Hover highlighting.
+- Selection.
+- Responsive resizing.
+- Date ranges.
+- Value formatting.
+- Axis labels.
+- Custom tick formatting.
+- Empty states.
+- Loading states.
+- Error states.
+- Data updates.
+- Multiple data series.
+- Annotation markers.
+- Threshold/reference lines.
+- Accessible chart descriptions.
+
+Do not add zoom or brush interactions to chart types where they do not make sense.
+
+## 6.4 Chart accessibility
+
+Every chart must have a usable accessible alternative.
+
+Implement:
+
+- Accessible chart title and description.
+- Keyboard-accessible controls.
+- Meaningful tooltip content.
+- Accessible legend controls.
+- Data table or structured textual representation.
+- Screen-reader summaries.
+- Color-independent data distinctions.
+- Appropriate ARIA semantics.
+
+Do not assume that an SVG chart alone is accessible.
+
+## 6.5 Chart formatting
+
+Support formatting for:
+
+- Currency.
+- Percentages.
+- Integers.
+- Decimals.
+- Large numbers.
+- Dates.
+- Durations.
+- Custom values.
+
+Never hardcode currency symbols, locales, or business assumptions.
+
+Allow consumers to supply formatting callbacks or Intl-compatible formatting configuration.
+
+## 6.6 Chart library selection
+
+Evaluate the current ecosystem before selecting dependencies.
+
+Consider:
+
+- Recharts.
+- Apache ECharts.
+- D3.js.
+- Other mature React-compatible charting libraries.
+
+Do not blindly add all of them.
+
+Select the smallest suitable combination based on:
+
+- React 18 compatibility.
+- TypeScript support.
+- ESM compatibility.
+- Accessibility.
+- License compatibility.
+- Maintenance.
+- Bundle size.
+- Responsive rendering.
+- SSR behavior.
+- Tree-shaking.
+- Integration with Tailwind CSS v4.
+- Ability to implement advanced visualizations.
+
+Use a common chart API wherever practical.
+
+### Critical dependency rule
+
+Charting must not unnecessarily increase the bundle size of applications that do not use charts.
+
+Prefer:
+
+- Optional peer dependencies.
+- Separate chart entry points.
+- Lazy-loaded advanced chart implementations.
+- Explicit package exports.
+- Separate visualization styles only when necessary.
+
+Do not force consumers who only use Button, Input, Dialog, or Card to install a complete charting engine.
+
+If optional peer dependencies are unsuitable for the selected library, document the trade-off and provide evidence.
+
+Do not introduce a dependency without checking its current version, compatibility, security advisories, and license.
+
+---
+
+# 7. ADVANCED KPI AND ANALYTICS COMPONENTS
+
+Expand the business component system.
+
+Implement or enhance:
+
+- KPI card.
+- Metric card.
+- Metric comparison.
+- Metric trend.
+- Mini chart card.
+- Analytics summary card.
+- Target versus actual.
+- Goal progress.
+- Performance indicator.
+- Trend indicator.
+- Statistical summary.
+- Chart legend.
+- Chart tooltip.
+- Chart annotation.
+- Date-range selector.
+- Analytics filter toolbar.
+- Comparison period selector.
+
+Support:
+
+- Positive, negative, neutral, and unavailable trends.
+- Absolute and percentage changes.
+- Loading and error states.
+- Accessible text labels.
+- Responsive layouts.
+
+Never imply that a metric is real when the data is illustrative.
+
+---
+
+# 8. ENTERPRISE DASHBOARD AND APPLICATION SHELL
+
+Build reusable layout primitives for modern enterprise applications.
+
+Implement:
+
+- AppShell.
+- DashboardLayout.
+- DashboardHeader.
+- DashboardSidebar.
+- SidebarNavigation.
+- SidebarGroup.
+- SidebarItem.
+- TopNavigation.
+- PageContainer.
+- PageHeader.
+- PageToolbar.
+- ContentSection.
+- DashboardGrid.
+- DashboardGridItem.
+- SplitPanel.
+- ResizablePanel, if practical.
+- Responsive navigation drawer.
+- Breadcrumb integration.
+- Contextual action areas.
+
+Requirements:
+
+- Responsive behavior.
+- Collapsible navigation.
+- Keyboard support.
+- Accessible navigation landmarks.
+- Active route presentation based on consumer-supplied state.
+- Customizable slots.
+- No router dependency unless optional.
+- No hardcoded Wendoro product routes.
+
+Do not introduce a dependency on React Router, Next.js, or another application framework as a mandatory dependency.
+
+---
+
+# 9. ADVANCED DATA TABLE SYSTEM
+
+Upgrade the existing DataTable without breaking its current API.
+
+Implement or improve:
+
+- Column sorting.
+- Multi-column sorting where appropriate.
+- Column visibility.
+- Column resizing if practical.
+- Column pinning if practical.
+- Global search.
+- Per-column filters.
+- Filter chips.
+- Pagination.
+- Page-size selection.
+- Row selection.
+- Bulk actions.
+- Row expansion.
+- Row actions.
+- Empty states.
+- Loading states.
+- Error states.
+- Retry callbacks.
+- Responsive overflow.
+- Sticky headers where appropriate.
+- Accessible sort announcements.
+- Selection announcements.
+- Custom cell renderers.
+- Custom toolbars.
+- Custom pagination.
+
+Consider TanStack Table as an optional peer dependency rather than a mandatory dependency.
+
+Do not duplicate an entire table-engine ecosystem unnecessarily.
+
+If using a table engine, preserve the existing simple DataTable API and offer an advanced integration API separately.
+
+Do not implement fake virtualization. If virtualized tables are added, use a mature compatible solution and test actual rendering and scrolling behavior.
+
+---
+
+# 10. PRODUCTIVITY AND WORKFLOW COMPONENTS
+
+Implement reusable enterprise productivity components.
+
+## 10.1 Kanban
+
+- KanbanBoard.
+- KanbanColumn.
+- KanbanCard.
+- Card metadata.
+- Drag-and-drop support where practical.
+- Keyboard-accessible alternatives.
+- Empty columns.
+- Loading and error states.
+
+Drag-and-drop must not be the only way to reorder items.
+
+## 10.2 Timeline
+
+- Timeline.
+- TimelineItem.
+- TimelineGroup.
+- ActivityTimeline.
+- Milestone.
+- Status progression.
+
+## 10.3 Calendar
+
+- CalendarGrid.
+- Month view.
+- Week view.
+- Day view, if practical.
+- Event indicators.
+- Date selection.
+- Keyboard navigation.
+- Accessible event summaries.
+
+Do not introduce a full calendar scheduling engine unless the repository can support it cleanly.
+
+## 10.4 Workflow
+
+- Stepper.
+- Wizard.
+- WorkflowProgress.
+- TaskList.
+- TaskItem.
+- Checklist.
+- ApprovalSteps.
+- ProgressTimeline.
+
+## 10.5 Organizational and hierarchical views
+
+- TreeView.
+- TreeItem.
+- NestedList.
+- HierarchyView, if practical.
+
+---
+
+# 11. MODERN NAVIGATION AND PRODUCTIVITY UX
+
+Implement:
+
+- CommandMenu.
+- CommandDialog.
+- SearchCommand.
+- MegaMenu.
+- ContextMenu.
+- NavigationRail.
+- Breadcrumb improvements.
+- PageTabs.
+- QuickActions.
+- KeyboardShortcutHint.
+- GlobalSearch presentation.
+- RecentItems.
+- FavoritesList.
+
+Command interfaces must support:
+
+- Keyboard-first interaction.
+- Search.
+- Grouped commands.
+- Empty results.
+- Loading states.
+- Accessible announcements.
+- Escape behavior.
+- Focus management.
+
+Do not implement global product search or backend search functionality. Accept items and callbacks from the consuming application.
+
+---
+
+# 12. ADVANCED FORMS AND INPUTS
+
+Expand the form system.
+
+Evaluate and implement:
+
+- MultiSelect.
+- Combobox.
+- Autocomplete.
+- TagInput.
+- SearchableSelect.
+- DateRangePicker.
+- TimePicker.
+- FileUpload.
+- Dropzone.
+- MultiStepForm presentation.
+- FormStepper.
+- InputOTP, if appropriate.
+- PasswordInput.
+- CurrencyInput.
+- NumberInput.
+- Rich validation feedback.
+- FieldGroup.
+- FieldDescription.
+- FormSection.
+
+Requirements:
+
+- Accessible labels.
+- Keyboard navigation.
+- Error messages.
+- Disabled states.
+- Loading states.
+- Clear/reset behavior.
+- Controlled and uncontrolled APIs where appropriate.
+- React 18 compatibility.
+- Proper TypeScript types.
+
+Do not build actual file storage, OTP delivery, payment processing, or backend validation.
+
+All external operations must be supplied by consumer callbacks.
+
+---
+
+# 13. MODERN FEEDBACK AND NOTIFICATION SYSTEM
+
+Expand:
+
+- Toast.
+- ToastProvider.
+- NotificationCenter.
+- Alert.
+- Banner.
+- InlineAlert.
+- StatusBadge.
+- Progress.
+- CircularProgress.
+- Skeleton.
+- LoadingOverlay.
+- EmptyState.
+- ErrorState.
+- SuccessState.
+- ConfirmationDialog.
+- RetryState.
+
+Support consistent semantic severity and accessibility.
+
+Ensure:
+
+- Timer cleanup.
+- Proper focus behavior.
+- Screen-reader announcements.
+- Reduced motion.
+- Dismissal behavior.
+- No accidental duplicate timers.
+- No unbounded notification rendering.
+
+---
+
+# 14. MICRO-INTERACTIONS AND VISUAL POLISH
+
+Introduce refined interactions across the design system.
+
+Examples:
+
+- Hover elevation where appropriate.
+- Subtle button press feedback.
+- Smooth expand/collapse.
+- Tab transitions.
+- Tooltip entrance.
+- Dialog transitions.
+- Skeleton shimmer.
+- Progress animation.
+- Chart hover feedback.
+- Drag feedback.
+
+Requirements:
+
+- Respect reduced-motion preferences.
+- Avoid layout shifts.
+- Avoid excessive GPU-intensive effects.
+- Ensure animations can be disabled.
+- Avoid timers that continue after unmount.
+- Ensure no functionality depends on animation completion.
+
+Do not add animation libraries unless the benefit is justified and compatibility is verified.
+
+---
+
+# 15. RESPONSIVE DESIGN REQUIREMENTS
+
+Every new component must be tested against:
+
+- 320px.
+- 375px.
+- 768px.
+- 1024px.
+- 1280px.
+- 1440px.
+
+Specific requirements:
+
+- No accidental horizontal overflow.
+- Charts resize correctly.
+- Legends wrap or scroll accessibly.
+- Dashboard grids collapse appropriately.
+- Tables remain usable.
+- Sidebars adapt to small screens.
+- Dialogs fit viewport height.
+- Forms remain usable on mobile.
+- Navigation is keyboard accessible.
+- Touch targets are sufficiently large.
+- Popovers remain within viewport boundaries.
+
+Use real browser tests where the environment supports them.
+
+If browser testing is unavailable, explicitly distinguish DOM-level tests from visual viewport verification.
+
+---
+
+# 16. STORYBOOK — BUILD A COMPLETE DESIGN SYSTEM SHOWCASE
+
+Storybook must become the visual source of truth for the library.
+
+Organize stories into clear sections:
+
+1. Introduction.
+2. Design Foundations.
+3. Colors and Semantic Tokens.
+4. Typography.
+5. Spacing and Layout.
+6. Themes.
+7. Buttons and Actions.
+8. Forms and Inputs.
+9. Navigation.
+10. Overlays.
+11. Feedback.
+12. Data Display.
+13. Data Visualization.
+14. Analytics.
+15. Dashboard Components.
+16. Advanced Tables.
+17. Productivity.
+18. Workflow.
+19. Business Components.
+20. Accessibility Examples.
+
+Create practical, polished stories for every important new component.
+
+## Story requirements
+
+Every applicable story should demonstrate:
+
+- Default.
+- Variants.
+- Sizes.
+- Light mode.
+- Dark mode.
+- Disabled.
+- Loading.
+- Empty.
+- Error.
+- Responsive behavior.
+- Keyboard interaction.
+- Realistic synthetic data.
+
+Create complete dashboard showcase examples combining:
+
+- AppShell.
+- Sidebar.
+- Header.
+- KPI cards.
+- Line chart.
+- Bar chart.
+- Donut chart.
+- Advanced table.
+- Activity timeline.
+- Filters.
+
+Create at least three distinct showcase scenarios:
+
+1. Executive analytics dashboard.
+2. Operations and activity dashboard.
+3. Project and workflow dashboard.
+
+These are visual demonstrations only.
+
+All records must be clearly synthetic.
+
+Do not invent actual Wendoro customers, employee identities, payment transactions, financial performance, or production metrics.
+
+Use names such as:
+
+- Demo User.
+- Sample Organization.
+- Example Project.
+- Sample Record #01.
+- demo@example.invalid.
+
+Never use actual personal emails or production-looking Wendoro identifiers.
+
+Storybook must not mutate global localStorage or affect the user's real application theme state.
+
+---
+
+# 17. PACKAGE ARCHITECTURE AND COMPATIBILITY
+
+This is a critical section.
+
+Preserve the current package identity:
+
+`@wendoro/ui`
+
+Preserve version:
+
+`0.1.0`
+
+Do not publish or release a new version.
+
+Preserve:
+
+- React peer dependency `>=18.0.0 <20.0.0`.
+- Existing public component exports.
+- Existing TypeScript compatibility.
+- ESM.
+- CommonJS.
+- Standalone CSS.
+- Theme exports.
+- Token exports.
+- Existing package entry points wherever possible.
+
+Do not introduce breaking changes without first documenting them and providing a compatibility layer.
+
+## 17.1 Package entry points
+
+Create explicit, stable subpath exports where justified.
+
+Potential examples:
+
+- `@wendoro/ui`
+- `@wendoro/ui/styles.css`
+- `@wendoro/ui/themes/light.css`
+- `@wendoro/ui/themes/dark.css`
+- `@wendoro/ui/tokens`
+- `@wendoro/ui/charts`
+- `@wendoro/ui/charts/advanced`
+- `@wendoro/ui/business`
+- `@wendoro/ui/hooks`
+
+Only add an export if the target is actually built and verified.
+
+Do not publish references to nonexistent files.
+
+## 17.2 Tree shaking
+
+Verify:
+
+- Main entry point.
+- Individual subpath imports.
+- Chart imports.
+- Advanced chart imports.
+- Business components.
+- Tokens.
+- Hooks.
+- CSS.
+
+Ensure consumers can avoid loading unused visualization code.
+
+## 17.3 Optional dependencies
+
+Keep heavy dependencies optional wherever practical.
+
+Do not make chart engines mandatory for consumers who only use standard UI components.
+
+Ensure missing optional dependencies produce useful installation guidance rather than confusing runtime errors.
+
+## 17.4 Consumer compatibility
+
+Test with a clean external consumer fixture.
+
+Test:
+
+- React 18.
+- TypeScript strict mode.
+- ESM import.
+- CommonJS require where supported.
+- CSS import.
+- Theme import.
+- Chart import with optional dependencies installed.
+- Main package import without chart dependencies, if the architecture claims this is supported.
+
+Verify declarations contain no unresolved aliases.
+
+Verify CSS does not require the consuming application to configure Tailwind internally.
+
+Do not add a mandatory application framework dependency.
+
+---
+
+# 18. SECURITY AND DATA BOUNDARIES
+
+The UI library must remain presentation-only.
+
+It must not contain:
+
+- Platform API clients.
+- `@wendoro/sdk` dependency.
+- Database connections.
+- PostgreSQL clients.
+- Firebase initialization.
+- Authentication token storage.
+- Authorization policy engines.
+- Tenant ownership logic.
+- Payment processing.
+- Backend service credentials.
+- Production environment secrets.
+
+Do not introduce unsafe HTML rendering.
+
+Sanitize untrusted URL and image inputs.
+
+Avoid:
+
+- `dangerouslySetInnerHTML` unless strictly necessary and demonstrably sanitized.
+- Unsafe SVG injection.
+- Untrusted CSS injection.
+- Unsafe `href`.
+- Unsafe `src`.
+- Unvalidated external URLs.
+- Prototype pollution risks.
+- Uncontrolled resource loading.
+
+All components should receive presentation data through props and execute external actions through callbacks.
+
+Preserve the existing URL sanitization behavior and add regression tests.
+
+---
+
+# 19. ACCESSIBILITY REQUIREMENTS
+
+Target WCAG 2.2 AA.
+
+Audit and test:
+
+- Keyboard navigation.
+- Focus management.
+- Focus restoration.
+- Screen-reader semantics.
+- Form labels.
+- Error descriptions.
+- Color contrast.
+- Disabled states.
+- High contrast where supported.
+- Reduced motion.
+- Dialog semantics.
+- Menu semantics.
+- Table semantics.
+- Chart alternatives.
+- Drag-and-drop alternatives.
+- Accessible notifications.
+
+Use automated accessibility testing where available.
+
+Do not claim complete WCAG certification based only on automated tests.
+
+Report unverified assistive-technology requirements honestly.
+
+---
+
+# 20. PERFORMANCE AND BUNDLE SIZE
+
+The expanded design system must remain efficient.
+
+Audit:
+
+- Initial package size.
+- Main entry bundle.
+- Chart entry bundle.
+- Advanced visualization bundle.
+- CSS output.
+- Tree shaking.
+- Dynamic imports.
+- Unnecessary dependencies.
+- Duplicate dependencies.
+- Expensive rerenders.
+- Large table rendering.
+- Chart responsiveness.
+- Event listener cleanup.
+- Timer cleanup.
+
+Implement performance improvements only when supported by measurement or clear technical reasoning.
+
+Avoid importing every chart engine into the main entry point.
+
+Create a package-size report comparing the baseline and expanded implementation where baseline artifacts or reproducible builds are available.
+
+Do not fabricate size improvements.
+
+---
+
+# 21. TESTING REQUIREMENTS
+
+Add automated tests for all major new functionality.
+
+Test categories:
+
+## A. Design tokens and themes
+
+- Light theme.
+- Dark theme.
+- System mode.
+- Scoped theme.
+- SSR.
+- Theme initialization.
+- Density modes.
+- Semantic colors.
+
+## B. Charts
+
+- Rendering.
+- Empty state.
+- Loading state.
+- Error state.
+- Tooltips.
+- Legend interaction.
+- Data updates.
+- Formatting.
+- Accessibility.
+- Responsive container behavior.
+
+## C. Dashboard components
+
+- Layout composition.
+- Responsive behavior where testable.
+- Sidebar interactions.
+- Navigation accessibility.
+- Custom slots.
+
+## D. Advanced tables
+
+- Sorting.
+- Filtering.
+- Pagination.
+- Selection.
+- Empty state.
+- Error state.
+- Loading state.
+- Custom renderers.
+- Accessibility.
+
+## E. Productivity components
+
+- Kanban interactions.
+- Keyboard alternatives.
+- Timeline rendering.
+- Calendar navigation.
+- Workflow progression.
+
+## F. Forms
+
+- Validation display.
+- Keyboard navigation.
+- Accessible labels.
+- Disabled/loading states.
+- Controlled values.
+- Reset behavior.
+
+## G. Package integration
+
+- ESM.
+- CJS.
+- TypeScript declarations.
+- CSS.
+- Theme imports.
+- Optional chart dependencies.
+- External consumer fixture.
+
+## H. Security
+
+- URL sanitization.
+- Image sanitization.
+- Unsafe HTML regression checks.
+- Untrusted input handling.
+
+Avoid meaningless snapshot-only tests for complex interactive behavior.
+
+Do not weaken existing tests to make the new implementation pass.
+
+---
+
+# 22. DEPENDENCY SECURITY AND VERSION POLICY
+
+The previous audit reported:
+
+- Runtime dependency audit: zero vulnerabilities.
+- Development dependency audit: 13 npm advisories, including 2 critical and 1 high.
+- Bun audit: 18 advisories.
+
+These were associated with Vitest/Vite-related and Storybook-related tooling.
+
+You must re-audit the actual current dependency graph.
+
+For every advisory, report:
+
+- Package.
+- Installed version.
+- Advisory identifier.
+- Severity.
+- Vulnerable dependency path.
+- Fixed version if available.
+- Whether a major upgrade is required.
+
+Do not:
+
+- Suppress critical advisories.
+- Hide failed audits.
+- Add arbitrary overrides.
+- Force incompatible major upgrades.
+- Upgrade React beyond the supported peer range.
+- Introduce unverified chart dependencies.
+
+You may perform compatible security updates.
+
+For breaking major development-tool upgrades, first determine whether they are necessary for this expansion. If they are not safe to complete in this task, document the migration plan.
+
+The final CI audit must not misleadingly report success when the full audit fails.
+
+---
+
+# 23. CI AND SUPPLY-CHAIN VERIFICATION
+
+Preserve and improve the repository-local GitHub Actions workflow.
+
+Requirements:
+
+- Immutable action commit SHAs.
+- Least-privilege permissions.
+- `contents: read` where sufficient.
+- `persist-credentials: false` where applicable.
+- Frozen dependency installation.
+- Typecheck.
+- Lint.
+- Unit tests.
+- Integration tests.
+- Library build.
+- Showcase build.
+- Storybook build.
+- Package export verification.
+- npm pack dry-run.
+- Dependency audit.
+- Static security scan.
+
+Do not use an external Wendoro repository's reusable workflow.
+
+Do not add a dependency on `wendoro-infra`.
+
+Do not use npm cache configuration unless the required npm lockfile exists.
+
+Ensure Bun and npm lockfiles are consistent with their package-manager installation commands.
+
+If full dependency audit remains blocked by known unresolved advisories, report the CI status accurately.
+
+Do not turn a failing security gate into a passing result by silently removing the check.
+
+Do not claim the GitHub Actions runner executed if only local commands ran.
+
+---
+
+# 24. DOCUMENTATION
+
+Update README and create organized documentation.
+
+Recommended documentation:
+
+- Getting Started.
+- Installation.
+- Package Architecture.
+- Design Principles.
+- Brand Tokens.
+- Theme Configuration.
+- Light and Dark Themes.
+- Responsive Layout.
+- Component API.
+- Form Patterns.
+- Data Visualization Guide.
+- Chart Formatting.
+- Advanced Chart Guide.
+- Dashboard Composition.
+- Advanced DataTable.
+- Accessibility Guide.
+- Motion and Reduced Motion.
+- Performance Guide.
+- Optional Dependencies.
+- Package Exports.
+- Consumer Integration.
+- Storybook Guide.
+- Testing Guide.
+- Security Guide.
+- Versioning and Compatibility.
+
+Provide realistic examples.
+
+Clearly distinguish:
+
+- Core package.
+- Optional chart package capabilities.
+- Advanced visualization capabilities.
+- Business components.
+- External application responsibilities.
+
+Include a concise example showing how an independent application can consume `@wendoro/ui` and `@wendoro/sdk` separately.
+
+The SDK handles API access.
+
+The UI library renders presentation.
+
+Do not introduce direct coupling.
+
+---
+
+# 25. IMPLEMENTATION QUALITY RULES
+
+1. Inspect before editing.
+2. Preserve working existing components.
+3. Avoid unnecessary rewrites.
+4. Prefer reusable primitives.
+5. Avoid duplicated styling and interaction logic.
+6. Use strict TypeScript types.
+7. Avoid `any` unless justified and isolated.
+8. Keep public APIs predictable.
+9. Provide sensible defaults.
+10. Support consumer customization.
+11. Avoid hardcoded business assumptions.
+12. Avoid mandatory router or framework coupling.
+13. Keep heavy features optional.
+14. Keep CSS and theme behavior predictable.
+15. Use semantic HTML.
+16. Maintain consistent naming conventions.
+17. Do not add dead exports.
+18. Do not add nonfunctional placeholder components.
+19. Do not claim functionality that is only decorative.
+20. Document incomplete or deferred functionality.
+
+If the full expansion is too large to implement safely in one pass, prioritize a complete, coherent implementation over a large collection of half-finished components.
+
+---
+
+# 26. IMPLEMENTATION PHASES
+
+Execute the following phases in order.
+
+### Phase 1 — Repository audit and architecture
+
+- Inspect all source files.
+- Inspect package exports.
+- Inspect existing components.
+- Inspect themes and tokens.
+- Inspect dependencies.
+- Inspect Storybook.
+- Inspect tests.
+- Record baseline package size.
+- Record current dependency advisories.
+- Create an implementation plan.
+
+### Phase 2 — Design foundations
+
+- Expand design tokens.
+- Typography system.
+- Spacing and density.
+- Elevation and borders.
+- Motion.
+- Responsive breakpoints.
+- Theme integration.
+
+### Phase 3 — Visualization foundation
+
+- Select charting technology.
+- Implement shared chart contracts.
+- Implement chart container.
+- Implement formatting.
+- Implement tooltips and legends.
+- Implement accessibility alternatives.
+- Implement standard charts.
+
+### Phase 4 — Advanced visualization
+
+- Implement advanced charts.
+- Add optional loading.
+- Add subpath exports.
+- Verify tree shaking.
+- Verify package size.
+- Add tests.
+
+### Phase 5 — Enterprise components
+
+- KPI and analytics components.
+- Dashboard shell.
+- Advanced tables.
+- Productivity.
+- Workflow.
+- Navigation.
+- Advanced forms.
+- Notifications and feedback.
+
+### Phase 6 — UI polish
+
+- Micro-interactions.
+- Responsive refinement.
+- Light/dark visual consistency.
+- Empty/loading/error states.
+- Reduced-motion behavior.
+
+### Phase 7 — Storybook and documentation
+
+- Complete story hierarchy.
+- Three integrated dashboard showcases.
+- Component examples.
+- Theme examples.
+- Responsive examples.
+- Documentation.
+
+### Phase 8 — Verification and security
+
+- Automated tests.
+- Consumer tests.
+- Package checks.
+- Dependency audits.
+- Accessibility checks.
+- Responsive checks.
+- Security scan.
+- Build verification.
+
+### Phase 9 — Final handover
+
+Produce a complete report and transfer manifest.
+
+Do not commit or push.
+
+---
+
+# 27. FINAL VERIFICATION COMMANDS
+
+Inspect the existing package scripts before selecting commands.
+
+Run all available relevant checks, including:
+
+- Frozen Bun install.
+- npm lockfile validation.
+- TypeScript typecheck.
+- ESLint.
+- Unit tests.
+- Integration tests.
+- Library build.
+- Showcase build.
+- Storybook build.
+- Package exports.
+- ESM import.
+- CJS require.
+- Type declaration validation.
+- External consumer fixture.
+- npm pack dry-run.
+- Runtime dependency audit.
+- Full development dependency audit.
+- Bun audit.
+- Static security scan.
+
+If a command does not exist, do not invent it. Identify the correct existing commands or add a justified script.
+
+Report exact command and exit status.
+
+---
+
+# 28. FINAL REPORT FORMAT
+
+Provide the following sections.
+
+## A. Executive Summary
+
+- What was implemented.
+- What improved.
+- What remains incomplete.
+- Overall readiness.
+
+## B. Repository Baseline
+
+- Actual baseline commit if verifiable.
+- Package version.
+- Dependencies.
+- Existing architecture.
+- Existing component count.
+- Baseline bundle size.
+
+## C. Design Foundations
+
+- Token changes.
+- Theme improvements.
+- Typography.
+- Spacing.
+- Motion.
+- Density.
+- Responsive system.
+
+## D. Visualization System
+
+Provide a table:
+
+| Chart | Implemented | Entry point | Accessibility | Tests |
+|---|---|---|---|---|
+
+List all standard and advanced visualizations.
+
+## E. Component Inventory
+
+List new and enhanced components, their export paths, API compatibility, and tests.
+
+## F. Dashboard and UX Showcase
+
+Describe the integrated dashboards and Storybook coverage.
+
+## G. Package Compatibility
+
+- ESM.
+- CJS.
+- TypeScript.
+- CSS.
+- Themes.
+- Tokens.
+- Chart subpaths.
+- Optional dependencies.
+- Consumer fixture.
+- Tree shaking.
+
+## H. Security
+
+- Dependency advisories.
+- URL and HTML security.
+- Data boundaries.
+- CI supply-chain changes.
+
+## I. Accessibility
+
+- Automated tests.
+- WCAG-related improvements.
+- Screen-reader limitations.
+- Manual testing still required.
+
+## J. Performance
+
+- Baseline and final package sizes.
+- Chart bundle sizes.
+- Optional dependency behavior.
+- Tree-shaking results.
+
+## K. Verification
+
+Provide a table:
+
+| Check | Command | Result | Evidence |
+|---|---|---|---|
+
+## L. Licensing and Governance
+
+Explicitly confirm:
+
+- Repository visibility unchanged.
+- LICENSE unchanged.
+- Package license unchanged.
+- `private: true` unchanged.
+- No package published.
+
+Do not resolve the existing MIT versus proprietary/Community Edition question.
+
+## M. Changed-File Manifest
+
+List every modified, added, and deleted file.
+
+Identify generated files and transfer exclusions.
+
+## N. Remaining Risks
+
+List outstanding high, moderate, and low risks.
+
+## O. Readiness Classification
+
+Choose one:
+
+1. NOT READY.
+2. PARTIALLY READY.
+3. READY FOR INTERNAL PRODUCT INTEGRATION.
+4. READY FOR STAGING CONSUMER INTEGRATION.
+
+Explain the evidence for the chosen classification.
+
+## P. Next Actions
+
+Give exact steps to transfer changes to a clean Git clone and verify the diff.
+
+Do not recommend a public release or production deployment.
+
+---
+
+# 29. FINAL INSTRUCTIONS
+
+The goal is not simply to add more components.
+
+The goal is to create a coherent, reusable Wendoro enterprise design system that can power:
+
+- Wendoro Desk.
+- Wendoro Flow.
+- Future Wendoro products.
+- Internal administration interfaces.
+- Analytics dashboards.
+- Enterprise operational interfaces.
+- Developer-facing product interfaces.
+
+Every product must be able to use the same design language while retaining independent application logic and backend integrations.
+
+Preserve the existing architecture and compatibility.
+
+Implement thoroughly, test honestly, document accurately, and leave the repository ready for human review and controlled Git transfer.
+
+**Start with the full repository audit and proceed through implementation. Do not stop at a proposal.**

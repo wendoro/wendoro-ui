@@ -69,6 +69,18 @@ jobs:
           test -f dist/lib/tokens/index.js
           test -f dist/lib/tokens/index.cjs
           test -f dist/lib/tokens/index.d.ts
+          test -f dist/lib/charts/index.js
+          test -f dist/lib/charts/index.cjs
+          test -f dist/lib/components/charts/index.d.ts
+          test -f dist/lib/charts/advanced/index.js
+          test -f dist/lib/charts/advanced/index.cjs
+          test -f dist/lib/components/charts/advanced/index.d.ts
+          test -f dist/lib/business/index.js
+          test -f dist/lib/business/index.cjs
+          test -f dist/lib/components/business/index.d.ts
+          test -f dist/lib/hooks/index.js
+          test -f dist/lib/hooks/index.cjs
+          test -f dist/lib/hooks/index.d.ts
           test -f src/themes/light.css
           test -f src/themes/dark.css
           npm pack --dry-run

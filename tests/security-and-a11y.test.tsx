@@ -1,10 +1,13 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { Avatar } from '@/components/ui/avatar';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { NavigationMenu } from '@/components/ui/navigation-menu';
+import { MegaMenu } from '@/components/ui/navigation-ext';
+import { DataTable } from '@/components/business/data-table';
 import { UserProfile } from '@/components/business/user-profile';
 import { ThemeProvider } from '@/hooks/use-theme';
 import { sanitizeImageUrl, sanitizeUrl } from '@/utils/url';
@@ -43,7 +46,8 @@ describe('Security Hardening & SSR Safety', () => {
     expect(sanitizeImageUrl('//untrusted.example/img.png')).toBeUndefined();
   });
 
-  it('neutralizes untrusted href and src props across Breadcrumb, NavigationMenu, UserProfile, and Avatar', () => {
+  it('neutralizes untrusted href and src props across Breadcrumb, NavigationMenu, MegaMenu, UserProfile, and Avatar', async () => {
+    const user = userEvent.setup();
     render(
       <div>
         <Breadcrumb
@@ -59,6 +63,23 @@ describe('Security Hardening & SSR Safety', () => {
             { id: 'safe', label: 'Safe Nav', href: '/docs' },
           ]}
         />
+        <MegaMenu
+          sections={[
+            {
+              id: 'sec',
+              label: 'Open Mega',
+              groups: [
+                {
+                  title: 'Security Check',
+                  links: [
+                    { id: 'bad', label: 'Blocked Link', href: 'javascript:alert(1)' },
+                    { id: 'good', label: 'Allowed Link', href: 'https://wendoro.in/docs' },
+                  ],
+                },
+              ],
+            },
+          ]}
+        />
         <UserProfile
           name="Demo Lead"
           contactHref="javascript:alert(document.cookie)"
@@ -67,10 +88,14 @@ describe('Security Hardening & SSR Safety', () => {
           alt="Sample Avatar"
           src="data:image/svg+xml;base64,PHN2Zz4="
         />
+        <DataTable
+          data={[{ id: '1', label: '<img src=x onerror=alert(1)>' }]}
+          columns={[{ key: 'label', header: 'Label', cell: (r) => r.label }]}
+          getRowId={(r) => r.id}
+        />
       </div>
     );
 
-    // Unsafe Breadcrumb & NavigationMenu render as buttons without href
     const unsafeCrumb = screen.getByRole('button', { name: 'Unsafe Crumb' });
     expect(unsafeCrumb).not.toHaveAttribute('href');
     expect(screen.getByRole('link', { name: 'Safe Crumb' })).toHaveAttribute(
@@ -82,10 +107,19 @@ describe('Security Hardening & SSR Safety', () => {
     expect(unsafeNav).not.toHaveAttribute('href');
     expect(screen.getByRole('link', { name: 'Safe Nav' })).toHaveAttribute('href', '/docs');
 
-    // Unsafe contactHref is omitted cleanly
+    await user.click(screen.getByRole('button', { name: /Open Mega/i }));
+    const blockedMega = screen.getByRole('button', { name: 'Blocked Link' });
+    expect(blockedMega).not.toHaveAttribute('href');
+    expect(screen.getByRole('link', { name: 'Allowed Link' })).toHaveAttribute(
+      'href',
+      'https://wendoro.in/docs'
+    );
+
+    // Raw HTML strings in DataTable render safely as text nodes, never executable DOM nodes
+    expect(screen.getByText('<img src=x onerror=alert(1)>')).toBeInTheDocument();
+
     expect(screen.queryByRole('link', { name: 'Contact' })).not.toBeInTheDocument();
 
-    // Unsafe SVG data URI falls back to initials instead of rendering an <img>
     expect(screen.queryByRole('img', { name: 'Sample Avatar' })).not.toBeInTheDocument();
     expect(screen.getByLabelText('Sample Avatar')).toHaveTextContent('SA');
   });

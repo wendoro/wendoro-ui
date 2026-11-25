@@ -44,14 +44,21 @@ describe('Design Tokens & Theming', () => {
   it('provides full typography, spacing, and radius token scales', () => {
     expect(Object.keys(typographyScale)).toEqual([
       'display',
+      'pageTitle',
+      'sectionTitle',
+      'cardTitle',
       'h1',
       'h2',
       'h3',
       'h4',
       'body',
+      'bodySmall',
       'small',
       'caption',
       'label',
+      'numeric',
+      'metric',
+      'mono',
     ]);
     expect(spacing[1]).toBe('4px');
     expect(spacing[4]).toBe('16px');

@@ -26,6 +26,26 @@
       "types": "./dist/lib/tokens/index.d.ts",
       "import": "./dist/lib/tokens/index.js",
       "require": "./dist/lib/tokens/index.cjs"
+    },
+    "./charts": {
+      "types": "./dist/lib/components/charts/index.d.ts",
+      "import": "./dist/lib/charts/index.js",
+      "require": "./dist/lib/charts/index.cjs"
+    },
+    "./charts/advanced": {
+      "types": "./dist/lib/components/charts/advanced/index.d.ts",
+      "import": "./dist/lib/charts/advanced/index.js",
+      "require": "./dist/lib/charts/advanced/index.cjs"
+    },
+    "./business": {
+      "types": "./dist/lib/components/business/index.d.ts",
+      "import": "./dist/lib/business/index.js",
+      "require": "./dist/lib/business/index.cjs"
+    },
+    "./hooks": {
+      "types": "./dist/lib/hooks/index.d.ts",
+      "import": "./dist/lib/hooks/index.js",
+      "require": "./dist/lib/hooks/index.cjs"
     }
   },
   "files": [

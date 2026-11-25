@@ -32,7 +32,14 @@ import {
   spacing,
   radius,
   shadows,
+  chartPaletteValues,
+  densityScales,
+  motionDurations,
 } from '@wendoro/ui/tokens';
+import { LineChart, GaugeChart } from '@wendoro/ui/charts';
+import { FunnelChart } from '@wendoro/ui/charts/advanced';
+import { AnalyticsSummaryCard } from '@wendoro/ui/business';
+import { DensityProvider, useReducedMotion } from '@wendoro/ui/hooks';
 
 interface ServiceRow {
   id: string;
@@ -78,14 +85,17 @@ const ACTIVITY_ITEMS: ActivityFeedEntry[] = [
 
 export function ConsumerApp({ initialTheme = 'light' }: { initialTheme?: ThemeMode }) {
   return (
-    <ThemeProvider defaultTheme={initialTheme} storageKey="wendoro-consumer-fixture-theme">
-      <ConsumerWorkspace />
+    <ThemeProvider defaultTheme="light" forcedTheme={initialTheme === 'light' ? undefined : initialTheme} disableStorage={initialTheme !== 'light'}>
+      <DensityProvider defaultDensity="comfortable" scoped>
+        <ConsumerWorkspace />
+      </DensityProvider>
     </ThemeProvider>
   );
 }
 
 function ConsumerWorkspace() {
   const { resolvedTheme, toggleTheme } = useTheme();
+  const reducedMotion = useReducedMotion();
   const [activeNav, setActiveNav] = React.useState<'overview' | 'team'>('overview');
   const [workspaceName, setWorkspaceName] = React.useState('');
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -100,6 +110,10 @@ function ConsumerWorkspace() {
       data-token-radius={radius.medium}
       data-token-shadow={shadows.small}
       data-token-h1={typographyScale.h1.fontSize}
+      data-chart-color={chartPaletteValues.light[0]}
+      data-density-pad={densityScales.comfortable.cellPaddingY}
+      data-motion-duration={motionDurations.standard}
+      data-reduced-motion={String(reducedMotion)}
       className="flex min-h-screen bg-background text-foreground"
     >
       <Sidebar header={<span>Wendoro Desk</span>}>
@@ -149,6 +163,30 @@ function ConsumerWorkspace() {
             />
           </CardContent>
         </Card>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <LineChart
+            title="Consumer Sample Chart"
+            data={[
+              { m: 'Jan', val: 10 },
+              { m: 'Feb', val: 20 },
+            ]}
+            xKey="m"
+            series={[{ key: 'val', label: 'Sample Val' }]}
+          />
+          <GaugeChart title="Consumer Readiness Gauge" value={85} min={0} max={100} />
+          <FunnelChart
+            title="Consumer Funnel"
+            stages={[
+              { id: 'f1', label: 'Stage 1', value: 100 },
+              { id: 'f2', label: 'Stage 2', value: 50 },
+            ]}
+          />
+          <AnalyticsSummaryCard
+            title="Consumer Summary"
+            items={[{ id: 's1', label: 'Units', value: '100', direction: 'positive' }]}
+          />
+        </div>
 
         {activeNav === 'team' && <TeamDirectory members={TEAM_MEMBERS} />}
 

@@ -25,7 +25,7 @@ function collectDtsFiles(dir: string): string[] {
 describe('Package Distribution & External Consumer Integration', () => {
   const distDir = path.resolve(process.cwd(), 'dist/lib');
 
-  it('ships ESM, CJS, tokens, theme CSS, compiled styles.css, and alias-free .d.ts declarations', () => {
+  it('ships ESM, CJS, all subpaths, tokens, theme CSS, compiled styles.css, and alias-free .d.ts declarations', () => {
     const requiredFiles = [
       'wendoro-ui.js',
       'wendoro-ui.cjs',
@@ -34,6 +34,18 @@ describe('Package Distribution & External Consumer Integration', () => {
       'tokens/index.js',
       'tokens/index.cjs',
       'tokens/index.d.ts',
+      'charts/index.js',
+      'charts/index.cjs',
+      'components/charts/index.d.ts',
+      'charts/advanced/index.js',
+      'charts/advanced/index.cjs',
+      'components/charts/advanced/index.d.ts',
+      'business/index.js',
+      'business/index.cjs',
+      'components/business/index.d.ts',
+      'hooks/index.js',
+      'hooks/index.cjs',
+      'hooks/index.d.ts',
     ];
 
     for (const rel of requiredFiles) {
@@ -43,7 +55,7 @@ describe('Package Distribution & External Consumer Integration', () => {
     expect(fs.existsSync(path.resolve(process.cwd(), 'src/themes/dark.css'))).toBe(true);
 
     const dtsFiles = collectDtsFiles(distDir);
-    expect(dtsFiles.length).toBeGreaterThan(20);
+    expect(dtsFiles.length).toBeGreaterThan(25);
 
     for (const dtsPath of dtsFiles) {
       const content = fs.readFileSync(dtsPath, 'utf-8');
@@ -52,20 +64,20 @@ describe('Package Distribution & External Consumer Integration', () => {
     }
   });
 
-  it('compiles dist/lib/styles.css with valid destructive subtle foreground and theme utilities', () => {
+  it('compiles dist/lib/styles.css with valid semantic variables, chart tokens, and theme utilities', () => {
     const css = fs.readFileSync(path.join(distDir, 'styles.css'), 'utf-8');
 
-    // Light & Dark semantic variables
     expect(css).toMatch(/--wdr-background:\s*#fafaf7/i);
     expect(css).toMatch(/--wdr-background:\s*#111(111)?\b/i);
     expect(css).toMatch(/--wdr-primary:\s*#facc15/i);
     expect(css).toMatch(/--wdr-destructive:\s*#dc2626/i);
+    expect(css).toMatch(/--wdr-chart-1:/i);
+    expect(css).toContain('prefers-reduced-motion');
     expect(css).toMatch(/--wdr-destructive-subtle-foreground:\s*#991b1b/i);
     expect(css).toMatch(/--wdr-destructive-subtle-foreground:\s*#fca5a5/i);
     expect(css).toContain('--color-destructive-subtle-foreground:var(--wdr-destructive-subtle-foreground)');
     expect(css).not.toMatch(/--wdr-destructive-subtle-foreground:\s*var\(--wdr-destructive-subtle-foreground\)/);
 
-    // Valid Tailwind utility classes emitted for consumers
     expect(css).toContain('.text-destructive-subtle-foreground');
     expect(css).toContain('.bg-destructive-subtle');
     expect(css).toContain('.bg-primary');
@@ -75,18 +87,42 @@ describe('Package Distribution & External Consumer Integration', () => {
     expect(css).toContain('.fixed');
   });
 
-  it('loads CJS and ESM entry points cleanly', async () => {
+  it('loads CJS and ESM entry points cleanly and keeps charts isolated from main bundle', async () => {
     const cjsMain = require(path.join(distDir, 'wendoro-ui.cjs'));
     const cjsTokens = require(path.join(distDir, 'tokens/index.cjs'));
+    const cjsCharts = require(path.join(distDir, 'charts/index.cjs'));
+    const cjsAdvCharts = require(path.join(distDir, 'charts/advanced/index.cjs'));
+    const cjsBusiness = require(path.join(distDir, 'business/index.cjs'));
+    const cjsHooks = require(path.join(distDir, 'hooks/index.cjs'));
+
     const esmMain = await import('@wendoro/ui');
     const esmTokens = await import('@wendoro/ui/tokens');
+    const esmCharts = await import('@wendoro/ui/charts');
+    const esmAdvCharts = await import('@wendoro/ui/charts/advanced');
+    const esmBusiness = await import('@wendoro/ui/business');
+    const esmHooks = await import('@wendoro/ui/hooks');
 
     expect(cjsMain.Button).toBeTruthy();
     expect((cjsMain.Button as { $$typeof?: symbol }).$$typeof).toBe(Symbol.for('react.forward_ref'));
     expect(typeof cjsMain.TeamDirectory).toBe('function');
+    expect('LineChart' in cjsMain).toBe(false);
+    expect('FunnelChart' in cjsMain).toBe(false);
+
     expect(esmMain.Button).toBeTruthy();
     expect((esmMain.Button as { $$typeof?: symbol }).$$typeof).toBe(Symbol.for('react.forward_ref'));
     expect(typeof esmMain.ActivityFeed).toBe('function');
+    expect('LineChart' in esmMain).toBe(false);
+    expect('FunnelChart' in esmMain).toBe(false);
+
+    expect(typeof cjsCharts.LineChart).toBe('function');
+    expect(typeof esmCharts.GaugeChart).toBe('function');
+    expect(typeof cjsAdvCharts.FunnelChart).toBe('function');
+    expect(typeof esmAdvCharts.ViolinChart).toBe('function');
+    expect(typeof cjsBusiness.KanbanBoard).toBe('function');
+    expect(typeof esmBusiness.AppShell).toBe('function');
+    expect(typeof cjsHooks.useDensity).toBe('function');
+    expect(typeof esmHooks.useReducedMotion).toBe('function');
+
     expect(cjsTokens.brandColors.primaryYellow).toBe('#FACC15');
     expect(esmTokens.semanticColorTokens.destructiveSubtleForeground).toBe(
       'var(--wdr-destructive-subtle-foreground)'

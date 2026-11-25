@@ -1,4 +1,5 @@
 export * from './activity-feed';
+export * from './analytics';
 export * from './dashboard-grid';
 export * from './data-table';
 export * from './filter-bar';
@@ -6,7 +7,9 @@ export * from './kpi-card';
 export * from './metric-card';
 export * from './notification-center';
 export * from './page-header';
+export * from './productivity';
 export * from './search-bar';
+export * from './shell';
 export * from './status-badge';
 export * from './team-directory';
 export * from './user-profile';

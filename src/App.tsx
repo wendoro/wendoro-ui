@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  BarChart3,
   Briefcase,
   Command,
   Layers,
@@ -13,15 +14,18 @@ import { FoundationsSection } from './app/FoundationsSection';
 import { CoreControlsSection } from './app/CoreControlsSection';
 import { FeedbackAndNavSection } from './app/FeedbackAndNavSection';
 import { BusinessShowcaseSection } from './app/BusinessShowcaseSection';
+import { VisualizationAndEnterpriseSection } from './app/VisualizationAndEnterpriseSection';
 import { NotificationCenter, type NotificationCenterItem } from './components/business/notification-center';
 import { Button } from './components/ui/button';
 import { CommandPalette, type CommandItem } from './components/ui/command';
 import { Container } from './components/ui/container';
 import { Sidebar, SidebarItem, SidebarSection } from './components/ui/sidebar';
 import { ToastProvider } from './components/ui/toast';
+import { DensityProvider, useDensity } from './hooks/use-density';
 import { ThemeProvider, useTheme, type ThemeMode } from './hooks/use-theme';
+import type { DensityMode } from './tokens/spacing';
 
-type PreviewSectionId = 'foundations' | 'core' | 'feedback' | 'business';
+type PreviewSectionId = 'foundations' | 'core' | 'feedback' | 'business' | 'visualization';
 
 const INITIAL_NOTIFICATIONS: NotificationCenterItem[] = [
   {
@@ -90,6 +94,42 @@ function ThemeSwitcher() {
   );
 }
 
+function DensitySwitcher() {
+  const { density, setDensity } = useDensity();
+  const options: Array<{ mode: DensityMode; label: string }> = [
+    { mode: 'compact', label: 'Compact' },
+    { mode: 'comfortable', label: 'Cozy' },
+    { mode: 'spacious', label: 'Spacious' },
+  ];
+
+  return (
+    <div
+      role="group"
+      aria-label="Density mode"
+      className="hidden sm:inline-flex items-center gap-0.5 rounded-[var(--wdr-radius-md)] border border-border bg-muted p-0.5"
+    >
+      {options.map((opt) => {
+        const active = density === opt.mode;
+        return (
+          <button
+            key={opt.mode}
+            type="button"
+            aria-pressed={active}
+            onClick={() => setDensity(opt.mode)}
+            className={`rounded-[var(--wdr-radius-small,4px)] px-2 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              active
+                ? 'bg-surface text-foreground shadow-[var(--wdr-shadow-sm)]'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function DesignSystemWorkspace() {
   const [activeSection, setActiveSection] = React.useState<PreviewSectionId>('foundations');
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
@@ -130,6 +170,14 @@ function DesignSystemWorkspace() {
         icon: <Briefcase className="h-4 w-4" />,
         shortcut: '4',
         onSelect: () => setActiveSection('business'),
+      },
+      {
+        id: 'nav-visualization',
+        label: 'View Charts & Enterprise 2.0',
+        group: 'Navigation',
+        icon: <BarChart3 className="h-4 w-4" />,
+        shortcut: '5',
+        onSelect: () => setActiveSection('visualization'),
       },
       {
         id: 'theme-light',
@@ -209,6 +257,13 @@ function DesignSystemWorkspace() {
             >
               Business Patterns
             </SidebarItem>
+            <SidebarItem
+              icon={<BarChart3 className="h-4 w-4" />}
+              active={activeSection === 'visualization'}
+              onClick={() => setActiveSection('visualization')}
+            >
+              Charts & Enterprise 2.0
+            </SidebarItem>
           </SidebarSection>
         </Sidebar>
       </div>
@@ -251,6 +306,7 @@ function DesignSystemWorkspace() {
                 }
               />
 
+              <DensitySwitcher />
               <ThemeSwitcher />
             </div>
           </div>
@@ -262,6 +318,7 @@ function DesignSystemWorkspace() {
                 ['core', 'Core & Forms'],
                 ['feedback', 'Feedback & Nav'],
                 ['business', 'Business'],
+                ['visualization', 'Charts & 2.0'],
               ] as const
             ).map(([id, label]) => (
               <button
@@ -310,6 +367,7 @@ function DesignSystemWorkspace() {
             {activeSection === 'core' && <CoreControlsSection />}
             {activeSection === 'feedback' && <FeedbackAndNavSection />}
             {activeSection === 'business' && <BusinessShowcaseSection />}
+            {activeSection === 'visualization' && <VisualizationAndEnterpriseSection />}
           </Container>
         </main>
       </div>
@@ -327,9 +385,11 @@ function DesignSystemWorkspace() {
 export function App() {
   return (
     <ThemeProvider defaultTheme="light">
-      <ToastProvider>
-        <DesignSystemWorkspace />
-      </ToastProvider>
+      <DensityProvider defaultDensity="comfortable">
+        <ToastProvider>
+          <DesignSystemWorkspace />
+        </ToastProvider>
+      </DensityProvider>
     </ThemeProvider>
   );
 }

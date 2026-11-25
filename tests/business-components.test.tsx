@@ -59,9 +59,9 @@ describe('Business Components & Wendoro Demo Showcase', () => {
       />
     );
 
-    expect(screen.getByText('Demo Lead')).toBeInTheDocument();
-    expect(screen.getByText('Sample Systems Lead · Wendoro Platform (Demo)')).toBeInTheDocument();
-    expect(screen.getByText('lead@demo.invalid')).toBeInTheDocument();
+    expect(screen.getByText('Demo User')).toBeInTheDocument();
+    expect(screen.getByText('Sample Systems Lead · Example Project (Demo)')).toBeInTheDocument();
+    expect(screen.getByText('demo@example.invalid')).toBeInTheDocument();
     expect(screen.getByText('Sample Member A')).toBeInTheDocument();
     expect(screen.getByText('Sample Member B')).toBeInTheDocument();
     expect(screen.getByText('Sample Member C')).toBeInTheDocument();
@@ -78,7 +78,7 @@ describe('Business Components & Wendoro Demo Showcase', () => {
     const searchInput = screen.getByRole('searchbox');
     await user.type(searchInput, 'Member A');
     expect(screen.getByText('Sample Member A')).toBeInTheDocument();
-    expect(screen.queryByText('Demo Lead')).not.toBeInTheDocument();
+    expect(screen.queryByText('Demo User')).not.toBeInTheDocument();
   });
 
   it('renders UserProfile with contact and dropdown actions', async () => {
@@ -120,7 +120,7 @@ describe('Business Components & Wendoro Demo Showcase', () => {
     expect(screen.getByText('Demo data — illustrative component preview only.')).toBeInTheDocument();
     expect(screen.getAllByText('Sample Member B').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Sample Member A').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Demo Workspace Lead')).toBeInTheDocument();
+    expect(screen.getByText('Sample Organization Lead')).toBeInTheDocument();
     expect(screen.getByText('Sample Record #01')).toBeInTheDocument();
     expect(screen.getByText('120 sample units')).toBeInTheDocument();
   });
@@ -233,7 +233,7 @@ describe('Business Components & Wendoro Demo Showcase', () => {
     const statusTrigger = screen.getByRole('combobox', { name: 'Status' });
     await user.click(statusTrigger);
     await user.click(screen.getByRole('option', { name: 'Completed' }));
-    expect(screen.getByText('Demo Lead')).toBeInTheDocument();
+    expect(screen.getByText('Demo User')).toBeInTheDocument();
     expect(screen.queryByText('Sample Member A')).not.toBeInTheDocument();
 
     await user.type(screen.getByRole('searchbox'), 'NoSuchMember');
@@ -241,7 +241,7 @@ describe('Business Components & Wendoro Demo Showcase', () => {
 
     await user.click(screen.getByRole('button', { name: 'Reset Filters' }));
     expect(screen.getByText('Sample Member B')).toBeInTheDocument();
-    expect(screen.getByText('Demo Lead')).toBeInTheDocument();
+    expect(screen.getByText('Demo User')).toBeInTheDocument();
   });
 
   it('supports DataTable loading status, select-all rows, SearchBar disabled, and NotificationCenter dismissal', async () => {
