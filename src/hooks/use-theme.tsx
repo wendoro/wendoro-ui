@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {
   createThemeCssVariables,
+  getThemePreset,
   type BrandThemeOverrides,
   type ThemeContrastMode,
 } from '../tokens/theming';
@@ -18,6 +19,8 @@ export interface ThemeContextValue {
   toggleContrast: () => void;
   customTheme?: BrandThemeOverrides;
   setCustomTheme: (overrides?: BrandThemeOverrides) => void;
+  presetId?: string;
+  applyPreset: (presetId: string) => void;
 }
 
 const ThemeContext = React.createContext<ThemeContextValue | undefined>(undefined);
@@ -110,6 +113,8 @@ export interface ThemeProviderProps {
   forcedContrast?: ThemeContrastMode;
   /** Scoped or global CSS custom-property brand overrides (white-label / multi-tenant). */
   customTheme?: BrandThemeOverrides;
+  /** Optional built-in or registered theme preset identifier. */
+  defaultPresetId?: string;
   /** When true, applies theme attributes to a scoped wrapper element instead of document.documentElement. */
   scoped?: boolean;
   /** Disables localStorage reads and writes for isolated previews or multi-consumer trees. */
@@ -126,6 +131,7 @@ export function ThemeProvider({
   forcedTheme,
   forcedContrast,
   customTheme: controlledCustomTheme,
+  defaultPresetId = 'wendoro-default',
   scoped = false,
   disableStorage = false,
   className,
@@ -136,9 +142,10 @@ export function ThemeProvider({
   const [contrast, setContrastState] = React.useState<ThemeContrastMode>(() =>
     getStoredContrast(defaultContrast, contrastStorageKey, disableStorage)
   );
+  const [presetId, setPresetId] = React.useState<string | undefined>(defaultPresetId);
   const [internalCustomTheme, setInternalCustomTheme] = React.useState<
     BrandThemeOverrides | undefined
-  >(controlledCustomTheme);
+  >(() => controlledCustomTheme ?? getThemePreset(defaultPresetId)?.overrides);
   const [systemTheme, setSystemTheme] = React.useState<ResolvedTheme>(() => getSystemTheme());
 
   React.useEffect(() => {
@@ -172,7 +179,12 @@ export function ThemeProvider({
   const activeTheme = forcedTheme ?? theme;
   const resolvedTheme: ResolvedTheme = activeTheme === 'system' ? systemTheme : activeTheme;
   const activeContrast = forcedContrast ?? contrast;
-  const activeCustomTheme = controlledCustomTheme ?? internalCustomTheme;
+  const activePreset = presetId ? getThemePreset(presetId) : undefined;
+  const activeCustomTheme =
+    controlledCustomTheme ??
+    (resolvedTheme === 'dark' && activePreset?.darkOverrides
+      ? { ...activePreset.overrides, ...activePreset.darkOverrides }
+      : internalCustomTheme);
   const cssVars = React.useMemo(
     () => createThemeCssVariables(activeCustomTheme),
     [activeCustomTheme]
@@ -239,7 +251,15 @@ export function ThemeProvider({
   }, [activeContrast, setContrast]);
 
   const setCustomTheme = React.useCallback((overrides?: BrandThemeOverrides) => {
+    setPresetId(undefined);
     setInternalCustomTheme(overrides);
+  }, []);
+
+  const applyPreset = React.useCallback((nextPresetId: string) => {
+    const preset = getThemePreset(nextPresetId);
+    if (!preset) return;
+    setPresetId(preset.id);
+    setInternalCustomTheme(preset.overrides);
   }, []);
 
   const value = React.useMemo<ThemeContextValue>(
@@ -253,6 +273,8 @@ export function ThemeProvider({
       toggleContrast,
       customTheme: activeCustomTheme,
       setCustomTheme,
+      presetId,
+      applyPreset,
     }),
     [
       activeTheme,
@@ -264,6 +286,8 @@ export function ThemeProvider({
       toggleContrast,
       activeCustomTheme,
       setCustomTheme,
+      presetId,
+      applyPreset,
     ]
   );
 

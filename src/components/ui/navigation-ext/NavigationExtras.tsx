@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronRight,
   Clock,
+  Menu,
   Plus,
   Search,
   Star,
@@ -173,6 +174,7 @@ export function ContextMenu({
   const [open, setOpen] = React.useState(false);
   const [coords, setCoords] = React.useState<{ x: number; y: number } | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const menuItemRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
 
   React.useEffect(() => {
     if (!open || typeof document === 'undefined') return undefined;
@@ -184,6 +186,12 @@ export function ContextMenu({
     document.addEventListener('mousedown', onDocClick);
     return () => document.removeEventListener('mousedown', onDocClick);
   }, [open]);
+
+  const focusMenuItem = (idx: number) => {
+    if (items.length === 0) return;
+    const target = (idx + items.length) % items.length;
+    menuItemRefs.current[target]?.focus();
+  };
 
   return (
     <div
@@ -210,6 +218,7 @@ export function ContextMenu({
           setOpen((o) => !o);
         } else if (e.key === 'Escape') {
           setOpen(false);
+          containerRef.current?.focus();
         }
       }}
       className={cn('relative inline-block', className)}
@@ -224,9 +233,12 @@ export function ContextMenu({
             !coords && 'right-0 top-full mt-1.5'
           )}
         >
-          {items.map((item) => (
+          {items.map((item, idx) => (
             <button
               key={item.id}
+              ref={(el) => {
+                menuItemRefs.current[idx] = el;
+              }}
               type="button"
               role="menuitem"
               disabled={item.disabled}
@@ -234,8 +246,23 @@ export function ContextMenu({
                 item.onSelect();
                 setOpen(false);
               }}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  focusMenuItem(idx + 1);
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  focusMenuItem(idx - 1);
+                } else if (e.key === 'Home') {
+                  e.preventDefault();
+                  focusMenuItem(0);
+                } else if (e.key === 'End') {
+                  e.preventDefault();
+                  focusMenuItem(items.length - 1);
+                }
+              }}
               className={cn(
-                'flex w-full items-center justify-between gap-4 rounded-[var(--wdr-radius-sm)] px-2.5 py-1.5 text-left text-xs font-medium hover:bg-muted disabled:opacity-45',
+                'flex w-full items-center justify-between gap-4 rounded-[var(--wdr-radius-sm)] px-2.5 py-1.5 text-left text-xs font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-45',
                 item.destructive ? 'text-destructive' : 'text-foreground'
               )}
             >
@@ -312,18 +339,53 @@ export function PageTabs({
   onTabChange: (id: string) => void;
   className?: string;
 }) {
+  const tabRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
+  const enabledTabs = tabs.filter((t) => !t.disabled);
+
+  const moveTabFocus = (currentId: string, delta: number) => {
+    if (enabledTabs.length === 0) return;
+    const idx = enabledTabs.findIndex((t) => t.id === currentId);
+    const next = enabledTabs[(idx + delta + enabledTabs.length) % enabledTabs.length];
+    if (!next) return;
+    onTabChange(next.id);
+    const domIdx = tabs.findIndex((t) => t.id === next.id);
+    tabRefs.current[domIdx]?.focus();
+  };
+
   return (
     <div role="tablist" aria-label="Page sections" className={cn('flex flex-wrap gap-1 border-b border-border', className)}>
-      {tabs.map((t) => {
+      {tabs.map((t, idx) => {
         const active = t.id === activeId;
         return (
           <button
             key={t.id}
+            ref={(el) => {
+              tabRefs.current[idx] = el;
+            }}
             type="button"
             role="tab"
             disabled={t.disabled}
             aria-selected={active}
+            tabIndex={active ? 0 : -1}
             onClick={() => onTabChange(t.id)}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                moveTabFocus(t.id, 1);
+              } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                moveTabFocus(t.id, -1);
+              } else if (e.key === 'Home' && enabledTabs[0]) {
+                e.preventDefault();
+                onTabChange(enabledTabs[0].id);
+                tabRefs.current[tabs.findIndex((item) => item.id === enabledTabs[0].id)]?.focus();
+              } else if (e.key === 'End' && enabledTabs[enabledTabs.length - 1]) {
+                e.preventDefault();
+                const last = enabledTabs[enabledTabs.length - 1];
+                onTabChange(last.id);
+                tabRefs.current[tabs.findIndex((item) => item.id === last.id)]?.focus();
+              }
+            }}
             className={cn(
               'inline-flex items-center gap-1.5 border-b-2 px-3.5 py-2 text-sm font-medium transition-colors',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -690,6 +752,7 @@ export function QuickCreateMenu({
 }) {
   const [open, setOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const itemRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
 
   React.useEffect(() => {
     if (!open || typeof document === 'undefined') return undefined;
@@ -709,6 +772,12 @@ export function QuickCreateMenu({
     };
   }, [open]);
 
+  const focusItem = (idx: number) => {
+    if (items.length === 0) return;
+    const target = (idx + items.length) % items.length;
+    itemRefs.current[target]?.focus();
+  };
+
   return (
     <div ref={containerRef} className={cn('relative inline-block', className)}>
       <button
@@ -716,6 +785,13 @@ export function QuickCreateMenu({
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((o) => !o)}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown' && !open) {
+            e.preventDefault();
+            setOpen(true);
+            window.setTimeout(() => focusItem(0), 0);
+          }
+        }}
         className="inline-flex h-9 items-center gap-1.5 rounded-[var(--wdr-radius-md)] bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-[var(--wdr-shadow-sm)] hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Plus className="h-3.5 w-3.5" aria-hidden="true" />
@@ -729,14 +805,32 @@ export function QuickCreateMenu({
           aria-label={`${label} options`}
           className="absolute right-0 top-full z-40 mt-1.5 w-64 rounded-[var(--wdr-radius-md)] border border-border bg-surface-elevated p-1.5 shadow-[var(--wdr-shadow-lg)]"
         >
-          {items.map((item) => (
+          {items.map((item, idx) => (
             <button
               key={item.id}
+              ref={(el) => {
+                itemRefs.current[idx] = el;
+              }}
               type="button"
               role="menuitem"
               onClick={() => {
                 item.onSelect();
                 setOpen(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  focusItem(idx + 1);
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  focusItem(idx - 1);
+                } else if (e.key === 'Home') {
+                  e.preventDefault();
+                  focusItem(0);
+                } else if (e.key === 'End') {
+                  e.preventDefault();
+                  focusItem(items.length - 1);
+                }
               }}
               className="flex w-full items-start justify-between gap-2 rounded-[var(--wdr-radius-sm)] px-2.5 py-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -782,6 +876,7 @@ export function NestedMenu({
   className?: string;
 }) {
   const [expanded, setExpanded] = React.useState<Set<string>>(() => new Set(defaultExpandedIds));
+  const navRef = React.useRef<HTMLElement>(null);
 
   const toggle = (id: string) => {
     setExpanded((prev) => {
@@ -790,6 +885,33 @@ export function NestedMenu({
       else next.add(id);
       return next;
     });
+  };
+
+  const handleItemKeyDown = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    node: NestedMenuItem,
+    hasChildren: boolean,
+    isExpanded: boolean
+  ) => {
+    if (e.key === 'ArrowRight' && hasChildren && !isExpanded) {
+      e.preventDefault();
+      toggle(node.id);
+      return;
+    }
+    if (e.key === 'ArrowLeft' && hasChildren && isExpanded) {
+      e.preventDefault();
+      toggle(node.id);
+      return;
+    }
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return;
+    const buttons = Array.from(navRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? []);
+    if (buttons.length === 0) return;
+    e.preventDefault();
+    const curIdx = buttons.indexOf(e.currentTarget);
+    if (e.key === 'Home') buttons[0]?.focus();
+    else if (e.key === 'End') buttons[buttons.length - 1]?.focus();
+    else if (e.key === 'ArrowDown') buttons[(curIdx + 1) % buttons.length]?.focus();
+    else if (e.key === 'ArrowUp') buttons[(curIdx - 1 + buttons.length) % buttons.length]?.focus();
   };
 
   const renderNodes = (nodes: NestedMenuItem[], depth = 0) => (
@@ -814,6 +936,7 @@ export function NestedMenu({
                   if (hasChildren) toggle(node.id);
                   node.onSelect?.();
                 }}
+                onKeyDown={(e) => handleItemKeyDown(e, node, hasChildren, isExpanded)}
                 className="flex min-w-0 flex-1 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
               >
                 {hasChildren ? (
@@ -841,7 +964,7 @@ export function NestedMenu({
   );
 
   return (
-    <nav aria-label={ariaLabel} className={cn('rounded-[var(--wdr-radius-md)] border border-border bg-surface p-2', className)}>
+    <nav ref={navRef} aria-label={ariaLabel} className={cn('rounded-[var(--wdr-radius-md)] border border-border bg-surface p-2', className)}>
       {renderNodes(items)}
     </nav>
   );
@@ -1068,3 +1191,67 @@ export function FullscreenMobileMenu({
     </div>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* HamburgerButton & OrganizationSwitcher                                     */
+/* -------------------------------------------------------------------------- */
+
+export interface HamburgerButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  open?: boolean;
+  label?: string;
+}
+
+export function HamburgerButton({
+  open = false,
+  label,
+  className,
+  ...props
+}: HamburgerButtonProps) {
+  return (
+    <button
+      type="button"
+      aria-expanded={open}
+      aria-label={label ?? (open ? 'Close navigation menu' : 'Open navigation menu')}
+      className={cn(
+        'inline-flex h-10 w-10 items-center justify-center rounded-[var(--wdr-radius-md)] border border-border bg-surface text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        className
+      )}
+      {...props}
+    >
+      {open ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
+    </button>
+  );
+}
+
+export interface OrganizationSwitcherProps {
+  organizations: WorkspaceOption[];
+  activeOrganizationId: string;
+  onSelectOrganization: (id: string) => void;
+  onCreateOrganization?: () => void;
+  createLabel?: string;
+  label?: string;
+  className?: string;
+}
+
+export function OrganizationSwitcher({
+  organizations,
+  activeOrganizationId,
+  onSelectOrganization,
+  onCreateOrganization,
+  createLabel = 'New organization',
+  label = 'Switch organization',
+  className,
+}: OrganizationSwitcherProps) {
+  return (
+    <WorkspaceSwitcher
+      workspaces={organizations}
+      activeWorkspaceId={activeOrganizationId}
+      onSelectWorkspace={onSelectOrganization}
+      onCreateWorkspace={onCreateOrganization}
+      createLabel={createLabel}
+      label={label}
+      className={className}
+    />
+  );
+}
+

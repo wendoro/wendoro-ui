@@ -15,6 +15,7 @@ export * from './dialog';
 export * from './drawer';
 export * from './dropdown';
 export * from './empty-state';
+export * from './error-boundary';
 export * from './feedback';
 export * from './form-field';
 export * from './forms';
@@ -42,7 +43,18 @@ export * from './tabs';
 export * from './textarea';
 export * from './toast';
 export * from './tooltip';
-export * from './controls';
+export {
+  SegmentedControl,
+  SelectableChipGroup,
+  QuantityStepper,
+} from './controls';
+export type {
+  SegmentedControlOption,
+  SegmentedControlProps,
+  SelectableChipItem,
+  SelectableChipGroupProps,
+  QuantityStepperProps,
+} from './controls';
 export * from './launcher';
 export * from './mobile';
 export * from './scroll';

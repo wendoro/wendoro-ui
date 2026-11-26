@@ -1,9 +1,14 @@
 export * from './activity-feed';
 export * from './analytics';
+export * from './commerce';
+export * from './communication';
 export * from './dashboard-grid';
 export * from './data-comparison';
 export * from './data-table';
+export * from './data-tools';
+export * from './device';
 export * from './filter-bar';
+export * from './identity';
 export * from './kpi-card';
 export * from './metric-card';
 export * from './notification-center';
@@ -19,3 +24,4 @@ export * from './workflow-builder';
 export * from './installer';
 export * from './workspace';
 export * from './future-modules';
+

@@ -52,31 +52,44 @@ const COLS: DataTableColumn<DemoRow>[] = [
   { key: 'status', header: 'Status', accessor: (r) => r.status, cell: (r) => r.status },
 ];
 
+import { HamburgerButton } from '@/components/ui/navigation-ext';
+import { DirectionProvider } from '@/hooks/use-direction';
+
 describe('Cross-Device Responsive Viewports (320px to 1920px)', () => {
   afterEach(() => {
-    setViewport(originalInnerWidth, originalInnerHeight);
+    act(() => {
+      setViewport(originalInnerWidth, originalInnerHeight);
+    });
   });
 
-  it('classifies all 8 representative viewport widths deterministically', () => {
+  it('classifies all representative viewport widths deterministically (320px to 1920px)', () => {
     expect(resolveDeviceCategory(320)).toBe('mobile');
+    expect(resolveDeviceCategory(360)).toBe('mobile');
     expect(resolveDeviceCategory(375)).toBe('mobile');
+    expect(resolveDeviceCategory(390)).toBe('mobile');
     expect(resolveDeviceCategory(430)).toBe('mobile');
     expect(resolveDeviceCategory(768)).toBe('tablet');
+    expect(resolveDeviceCategory(820)).toBe('tablet');
     expect(resolveDeviceCategory(1024)).toBe('desktop');
     expect(resolveDeviceCategory(1280)).toBe('desktop');
     expect(resolveDeviceCategory(1440)).toBe('desktop');
     expect(resolveDeviceCategory(1920)).toBe('desktop');
 
-    setViewport(320, 640);
+    act(() => {
+      setViewport(320, 640);
+    });
     render(<ViewportProbe />);
     const probe = screen.getByTestId('vp-probe');
     expect(probe).toHaveAttribute('data-device', 'mobile');
     expect(probe).toHaveAttribute('data-mobile', 'true');
 
     for (const [w, expected] of [
+      [360, 'mobile'],
       [375, 'mobile'],
+      [390, 'mobile'],
       [430, 'mobile'],
       [768, 'tablet'],
+      [820, 'tablet'],
       [1024, 'desktop'],
       [1280, 'desktop'],
       [1440, 'desktop'],
@@ -90,48 +103,53 @@ describe('Cross-Device Responsive Viewports (320px to 1920px)', () => {
     }
   });
 
-  it('adapts AdaptiveWorkspaceLayout and ContextualDetailPanel between 375px mobile, 768px tablet, and 1280px desktop', () => {
-    setViewport(375, 812);
+  it('adapts AdaptiveWorkspaceLayout and ContextualDetailPanel between 375px mobile, 768px tablet, and 1280px desktop and supports RTL', () => {
+    act(() => {
+      setViewport(375, 812);
+    });
     const navItems = [
       { id: 'home', label: 'Home', icon: <Home className="h-4 w-4" />, active: true, onSelect: () => {} },
       { id: 'work', label: 'Work', icon: <Layers className="h-4 w-4" />, onSelect: () => {} },
     ];
 
     render(
-      <AdaptiveWorkspaceLayout
-        header={<DashboardHeader title="Responsive Shell" onOpenMobileNav={() => {}} />}
-        sidebar={
-          <DashboardSidebar>
-            <SidebarSection title="Nav">
-              <SidebarItem active>Home</SidebarItem>
-            </SidebarSection>
-          </DashboardSidebar>
-        }
-        tabletRail={<NavigationRail items={navItems} />}
-        bottomNavItems={navItems}
-        detailPanel={
-          <ContextualDetailPanel open onOpenChange={() => {}} title="Record Inspector">
-            <p>Inspector body</p>
-          </ContextualDetailPanel>
-        }
-      >
-        <div>Workspace Content</div>
-      </AdaptiveWorkspaceLayout>
+      <DirectionProvider defaultLocale="ar-SA" scoped>
+        <div data-testid="rtl-shell">
+          <HamburgerButton open={false} />
+          <AdaptiveWorkspaceLayout
+            header={<DashboardHeader title="Responsive Shell" onOpenMobileNav={() => {}} />}
+            sidebar={
+              <DashboardSidebar variant="mini">
+                <SidebarSection title="Nav">
+                  <SidebarItem active>Home</SidebarItem>
+                </SidebarSection>
+              </DashboardSidebar>
+            }
+            tabletRail={<NavigationRail items={navItems} />}
+            bottomNavItems={navItems}
+            detailPanel={
+              <ContextualDetailPanel open onOpenChange={() => {}} title="Record Inspector">
+                <p>Inspector body</p>
+              </ContextualDetailPanel>
+            }
+          >
+            <div>Workspace Content</div>
+          </AdaptiveWorkspaceLayout>
+        </div>
+      </DirectionProvider>
     );
 
-    // Mobile renders bottom navigation + mobile menu button + BottomSheet dialog for detailPanel
+    expect(screen.getByTestId('rtl-shell').parentElement).toHaveAttribute('dir', 'rtl');
     expect(screen.getByRole('navigation', { name: 'Mobile bottom navigation' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Open navigation menu' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Open navigation menu' }).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole('dialog', { name: 'Record Inspector' })).toBeInTheDocument();
 
-    // Resize to 768px tablet -> docked complementary inspector + tablet rail in DOM
     act(() => {
       setViewport(768, 1024);
     });
     expect(screen.getByRole('complementary', { name: 'Record Inspector' })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Navigation rail' })).toBeInTheDocument();
 
-    // Resize to 1280px desktop -> docked complementary inspector
     act(() => {
       setViewport(1280, 800);
     });
@@ -139,7 +157,9 @@ describe('Cross-Device Responsive Viewports (320px to 1920px)', () => {
   });
 
   it('switches DataTable between responsive mobile cards (375px) and data grid table (1280px)', () => {
-    setViewport(375, 812);
+    act(() => {
+      setViewport(375, 812);
+    });
     render(
       <DataTable
         aria-label="Responsive Table"

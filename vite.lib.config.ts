@@ -23,6 +23,9 @@ export default defineConfig({
         'charts-advanced': path.resolve(__dirname, 'src/components/charts/advanced/index.ts'),
         business: path.resolve(__dirname, 'src/components/business/index.ts'),
         hooks: path.resolve(__dirname, 'src/hooks/index.ts'),
+        ai: path.resolve(__dirname, 'src/components/ai/index.ts'),
+        editors: path.resolve(__dirname, 'src/components/editors/index.ts'),
+        adapters: path.resolve(__dirname, 'src/components/adapters/index.ts'),
       },
       name: 'WendoroUI',
       formats: ['es', 'cjs'],
@@ -34,6 +37,9 @@ export default defineConfig({
         if (entryName === 'charts-advanced') return `charts/advanced/index.${ext}`;
         if (entryName === 'business') return `business/index.${ext}`;
         if (entryName === 'hooks') return `hooks/index.${ext}`;
+        if (entryName === 'ai') return `ai/index.${ext}`;
+        if (entryName === 'editors') return `editors/index.${ext}`;
+        if (entryName === 'adapters') return `adapters/index.${ext}`;
         return `wendoro-ui.${ext}`;
       },
     },

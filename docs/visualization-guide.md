@@ -2,7 +2,7 @@
 
 ## Standard Charts (`@wendoro/ui/charts`)
 
-1. **Cartesian Line & Area**: `LineChart`, `AreaChart`, `StackedAreaChart`, `ComposedChart`
+1. **Cartesian Line & Area**: `LineChart`, `AreaChart`, `StackedAreaChart`, `ComposedChart` (supports interactive `zoomable` pan/zoom windowing)
 2. **Bar & Column**: `BarChart`, `HorizontalBarChart`, `GroupedBarChart`, `StackedBarChart`, `ColumnChart`
 3. **Circular & Quantitative Meters**: `DonutChart`, `PieChart`, `RadialProgressChart`, `GaugeChart` (`role="meter"`)
 4. **Correlation & Inline**: `ScatterChart`, `BubbleChart`, `RadarChart`, `Sparkline`, `ProgressVisualization`
@@ -10,7 +10,7 @@
 
 ## Advanced Charts (`@wendoro/ui/charts/advanced`)
 
-1. **Flow & Variance**: `FunnelChart`, `WaterfallChart`, `SankeyChart`
+1. **Flow, Volatility & Topology**: `FunnelChart`, `WaterfallChart`, `SankeyChart`, `CandlestickChart`, `NetworkGraphChart`
 2. **Density, Part-to-Whole & Geographic**: `HeatmapChart`, `CalendarHeatmap`, `TreemapChart`, `GeoRegionChart` (supports both custom vector `path` choropleths and responsive accessible regional tile grids)
 3. **Distributions & Multi-Axis Time Series**: `BoxPlotChart`, `ViolinChart`, `HistogramChart`, `RangeBandChart`, `MultiSeriesTimeSeriesChart`, `MixedAxisChart`
 

@@ -96,6 +96,8 @@ export interface DataTableProps<T> {
   onCellEdit?: (rowId: string, columnKey: string, nextValue: string) => void;
   groupBy?: string;
   groupSummary?: (groupValue: string, groupRows: T[]) => React.ReactNode;
+  summaryRow?: (context: { visibleColumns: DataTableColumn<T>[]; rows: T[] }) => Record<string, React.ReactNode>;
+  summaryLabel?: string;
   savedViews?: DataTableSavedView[];
   activeViewId?: string;
   onSelectView?: (view: DataTableSavedView) => void;
@@ -162,6 +164,8 @@ export function DataTable<T>({
   onCellEdit,
   groupBy,
   groupSummary,
+  summaryRow,
+  summaryLabel = 'Summary',
   savedViews,
   activeViewId,
   onSelectView,
@@ -1057,6 +1061,24 @@ export function DataTable<T>({
                     </tr>
                   )}
                 </>
+              )}
+              {summaryRow && (
+                <TableRow className="border-t-2 border-border bg-muted/40 font-semibold">
+                  {renderExpandedRow && <TableCell />}
+                  {selectable && <TableCell />}
+                  {(() => {
+                    const summaryValues = summaryRow({ visibleColumns, rows: sortedData });
+                    return visibleColumns.map((col, idx) => (
+                      <TableCell
+                        key={col.key}
+                        className={cn(col.align === 'right' && 'text-right tabular-nums')}
+                      >
+                        {summaryValues[col.key] ?? (idx === 0 ? summaryLabel : null)}
+                      </TableCell>
+                    ));
+                  })()}
+                  {rowActions && <TableCell />}
+                </TableRow>
               )}
             </TableBody>
           </Table>

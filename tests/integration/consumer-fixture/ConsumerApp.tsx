@@ -55,7 +55,10 @@ import {
   PromptComposerBar,
   WENDORO_MODULE_CONTRACT_VERSION,
 } from '@wendoro/ui/business';
-import { DensityProvider, useReducedMotion, useBreakpoint } from '@wendoro/ui/hooks';
+import { DensityProvider, DirectionProvider, useReducedMotion, useBreakpoint } from '@wendoro/ui/hooks';
+import { TokenUsageBar } from '@wendoro/ui/ai';
+import { DiffViewer } from '@wendoro/ui/editors';
+import { MapContainer, WENDORO_BUNDLE_BUDGETS } from '@wendoro/ui/adapters';
 
 interface ServiceRow {
   id: string;
@@ -103,7 +106,9 @@ export function ConsumerApp({ initialTheme = 'light' }: { initialTheme?: ThemeMo
   return (
     <ThemeProvider defaultTheme="light" forcedTheme={initialTheme === 'light' ? undefined : initialTheme} disableStorage={initialTheme !== 'light'}>
       <DensityProvider defaultDensity="comfortable" scoped>
-        <ConsumerWorkspace />
+        <DirectionProvider defaultLocale="en-US" scoped>
+          <ConsumerWorkspace />
+        </DirectionProvider>
       </DensityProvider>
     </ThemeProvider>
   );
@@ -263,6 +268,12 @@ function ConsumerWorkspace() {
           </WorkspaceModeContainer>
           <SetupWizard
             steps={[{ id: 's1', title: 'Confirm', content: <div className="text-xs">Ready</div> }]}
+          />
+          <TokenUsageBar promptTokens={500} completionTokens={200} budgetTokens={4000} />
+          <DiffViewer original="a" modified="b" />
+          <MapContainer
+            data-budget={WENDORO_BUNDLE_BUDGETS.adaptersMaxGzipKb}
+            markers={[{ id: 'm1', label: 'Demo Hub', lat: 10, lng: 20, status: 'active' }]}
           />
         </div>
 

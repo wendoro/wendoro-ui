@@ -1,0 +1,1568 @@
+# WENDORO UI 2.0 — UNIVERSAL ENTERPRISE DESIGN SYSTEM
+## MASTER ARCHITECTURE, COMPLETE CAPABILITY EXPANSION, IMPLEMENTATION AND VERIFICATION PROMPT
+
+**Project:** `wendoro-ui`  
+**Package:** `@wendoro/ui`  
+**Repository:** `https://github.com/wendoro/wendoro-ui`  
+**Implementation environment:** Existing Google AI Studio workspace  
+**Target:** Universal, hybrid, modular, cross-industry, responsive, future-ready enterprise design system.
+
+---
+
+# PART 1 — MISSION AND FINAL OBJECTIVE
+
+You are continuing development of Wendoro UI.
+
+Your responsibility is to transform the existing `@wendoro/ui` library into a comprehensive, modern, extensible, enterprise-grade design-system platform.
+
+This is not a simple component-library redesign.
+
+It must become the shared visual and interaction foundation for:
+
+- All existing Wendoro products.
+- Future Wendoro products.
+- Independent SaaS applications.
+- Multi-client agency platforms.
+- Enterprise applications.
+- Customer-facing portals.
+- Internal business tools.
+- Marketplaces.
+- Professional service applications.
+- Operations and administration systems.
+- AI-powered applications.
+- Other future business models and industries.
+
+The system must support both small, simple interfaces and sophisticated enterprise applications.
+
+The architecture must make future modules visually consistent, independently importable, maintainable and easy to extend.
+
+The guiding principle is:
+
+**Everything useful, one coherent design language, hybrid modular architecture, excellent experiences on every device, and no architectural dead ends.**
+
+Do not limit the scope to an MVP or the components already listed in the existing README.
+
+Do not introduce unnecessary complexity merely to increase component counts.
+
+Prioritize working functionality, quality, reuse, consistency, performance and long-term maintainability.
+
+---
+
+# PART 2 — STRICT REPOSITORY AND GOVERNANCE BOUNDARIES
+
+These requirements are mandatory.
+
+## 2.1 Repository boundary
+
+Modify only:
+
+`wendoro-ui`
+
+Other Wendoro repositories are read-only references at most.
+
+Never modify:
+
+- `wendoro-platform`
+- `wendoro-sdk`
+- `wendoro-docs`
+- `wendoro-flow`
+- `wendoro-desk`
+- `Wendoro-Connect`
+- `wendoro-ai`
+- `wendoro-infra`
+- Any other repository.
+
+Do not make changes to external repositories or services.
+
+## 2.2 Preserve package identity
+
+Preserve unless a separately justified and explicitly approved compatibility change is necessary:
+
+- Package name: `@wendoro/ui`.
+- Existing version.
+- Existing React peer dependency compatibility.
+- Existing module formats.
+- Existing exports.
+- Existing CSS and theme exports.
+- Existing public component APIs.
+- Existing TypeScript compatibility.
+- Existing package privacy setting.
+
+Do not modify:
+
+- LICENSE.
+- Repository visibility.
+- GitHub repository settings.
+- Package publishing configuration.
+- Organization permissions.
+
+Do not publish or release the package.
+
+## 2.3 No external operations
+
+Do not:
+
+- Push changes.
+- Create releases.
+- Publish npm packages.
+- Deploy applications.
+- Deploy Storybook.
+- Modify Cloudflare.
+- Modify DNS.
+- Modify Firebase or GCP resources.
+- Run production migrations.
+- Change production services.
+- Access or modify production data.
+
+This is a repository-local implementation and verification task.
+
+---
+
+# PART 3 — FIRST ACTION: FULL REPOSITORY AUDIT
+
+Before changing anything, inspect the entire existing repository.
+
+Do not assume previous reports are complete or accurate.
+
+Audit:
+
+1. Directory structure.
+2. Existing source components.
+3. Component exports.
+4. TypeScript definitions.
+5. Design tokens.
+6. CSS architecture.
+7. Theme system.
+8. Responsive behavior.
+9. Accessibility.
+10. Existing Storybook stories.
+11. Unit and integration tests.
+12. Package exports.
+13. Build configuration.
+14. Dependency graph.
+15. Dependency licenses.
+16. Lockfiles.
+17. CI workflows.
+18. Package size.
+19. Duplicate functionality.
+20. Existing implementation defects.
+
+Produce an internal capability map before implementation.
+
+Classify each discovered capability as:
+
+- Existing and complete.
+- Existing but needs improvement.
+- Existing but incomplete.
+- Missing.
+- Duplicate.
+- Deprecated or unnecessary.
+- Requires an optional adapter.
+- Requires a separate implementation phase.
+
+Preserve all useful work from previous implementation phases, especially security, URL sanitization, accessibility, focus management, theme handling and responsive improvements.
+
+Do not replace a working component merely because a new design is possible.
+
+---
+
+# PART 4 — HYBRID MODULAR ARCHITECTURE
+
+This is the central architectural requirement.
+
+Use a shared design foundation with independently importable modules and optional advanced capabilities.
+
+## 4.1 Architecture layers
+
+### Layer 1: Design Foundation
+
+Contains:
+
+- Design tokens.
+- Typography.
+- Colors.
+- Semantic colors.
+- Spacing.
+- Sizing.
+- Borders.
+- Radius.
+- Shadows.
+- Elevation.
+- Motion.
+- Breakpoints.
+- Z-index.
+- Focus styles.
+- Icon conventions.
+- Theme infrastructure.
+- Responsive utilities.
+- Accessibility primitives.
+
+### Layer 2: Core Components
+
+Contains commonly used reusable components:
+
+- Buttons.
+- Inputs.
+- Labels.
+- Selects.
+- Checkboxes.
+- Radio groups.
+- Sliders.
+- Switches.
+- Cards.
+- Badges.
+- Tooltips.
+- Popovers.
+- Dialogs.
+- Drawers.
+- Menus.
+- Tabs.
+- Tables.
+- Alerts.
+- Progress indicators.
+- Loading indicators.
+
+### Layer 3: Standard Modules
+
+Independently importable groups:
+
+- Navigation.
+- Workspace.
+- Forms.
+- Data display.
+- Analytics.
+- Communication.
+- Collaboration.
+- Scheduling.
+- Business components.
+- Administration.
+- File management.
+- System feedback.
+
+### Layer 4: Advanced Modules
+
+Optional complex experiences:
+
+- Workflow builder.
+- Form builder.
+- Page builder.
+- Dashboard builder.
+- Report builder.
+- Rich text editor.
+- Advanced charting.
+- AI interface system.
+- Visual automation editor.
+- Data exploration tools.
+- Media editing.
+- Diagramming.
+
+### Layer 5: Adapters and Extensions
+
+Provide adapters for optional external libraries and platform capabilities.
+
+Examples:
+
+- Charting libraries.
+- Maps.
+- Rich text editors.
+- Code editors.
+- PDF viewers.
+- Diagram engines.
+- Media processing.
+- 3D rendering.
+- Virtualization.
+
+Do not couple the core package to one provider or library when an adapter boundary is appropriate.
+
+## 4.2 Hybrid import model
+
+Design an import model that supports:
+
+- Main package imports.
+- Feature-level imports.
+- Independently importable advanced modules.
+- Optional external integrations.
+- Tree-shaking.
+- Lazy loading where appropriate.
+- TypeScript declarations.
+- CSS and theme imports.
+
+Do not force consumers to install or bundle every advanced capability.
+
+Do not create excessive package fragmentation.
+
+Use the existing repository's package structure and build system as the starting point.
+
+If package restructuring or multiple publishable packages are proposed, document the design, compatibility impact, licensing implications and migration plan before implementing breaking changes.
+
+## 4.3 Future module contract
+
+Create a documented standard for adding new modules.
+
+Every future module must define:
+
+- Purpose.
+- Public API.
+- Component exports.
+- TypeScript interfaces.
+- Dependencies.
+- Design tokens.
+- Theme behavior.
+- Responsive behavior.
+- Accessibility behavior.
+- Interaction states.
+- Loading states.
+- Empty states.
+- Error states.
+- Storybook documentation.
+- Unit tests.
+- Integration tests.
+- Visual regression coverage.
+- Bundle-size impact.
+- Compatibility expectations.
+
+A new module must automatically inherit the Wendoro design language.
+
+---
+
+# PART 5 — THE 24 COMPLETE CAPABILITY DOMAINS
+
+Audit and implement the following capability domains.
+
+## DOMAIN 01 — DESIGN FOUNDATIONS
+
+Build a comprehensive design-token architecture.
+
+Include:
+
+- Brand colors.
+- Semantic colors.
+- Typography scales.
+- Font weights.
+- Line heights.
+- Letter spacing.
+- Spacing scales.
+- Component sizing.
+- Border widths.
+- Border radii.
+- Shadows.
+- Elevation.
+- Focus rings.
+- Motion tokens.
+- Animation durations.
+- Easing.
+- Breakpoints.
+- Layering and z-index.
+- Surface hierarchy.
+- Chart palettes.
+- Status colors.
+- Density tokens.
+
+Support:
+
+- Light mode.
+- Dark mode.
+- System mode.
+- Custom themes.
+- Scoped themes.
+- Product-specific branding.
+- White-label customization.
+- Compact density.
+- Comfortable density.
+- Spacious density.
+- High-contrast modes.
+- Reduced motion.
+
+Preserve Wendoro brand colors:
+
+- Yellow: `#FACC15`
+- Red: `#DC2626`
+- Deep Black: `#111111`
+- White: `#FFFFFF`
+- Warm White: `#FAFAF7`
+- Charcoal: `#242424`
+- Border Gray: `#E5E5E5`
+- Muted Gray: `#737373`
+
+Do not redefine blue, purple, indigo or teal as Wendoro brand colors.
+
+Allow semantic visualization palettes to be independently configurable.
+
+## DOMAIN 02 — CORE COMPONENTS
+
+Implement or improve:
+
+### Buttons
+- Primary.
+- Secondary.
+- Tertiary.
+- Ghost.
+- Destructive.
+- Icon.
+- Floating action.
+- Split button.
+- Loading button.
+- Grouped buttons.
+
+### Inputs
+- Text.
+- Password.
+- Email.
+- Number.
+- Search.
+- Textarea.
+- URL.
+- Date.
+- Time.
+- Date range.
+- Color.
+- File.
+- Masked inputs.
+
+### Selection
+- Checkbox.
+- Radio.
+- Switch.
+- Toggle.
+- Select.
+- Multi-select.
+- Combobox.
+- Autocomplete.
+- Searchable select.
+- Segmented control.
+- Selectable chips.
+
+### Sliders
+- Single-value slider.
+- Range slider.
+- Dual-thumb slider.
+- Vertical slider.
+- Stepped slider.
+- Timeline scrubber.
+- Volume control.
+- Brightness control.
+
+### Other components
+- Cards.
+- Avatars.
+- Badges.
+- Tags.
+- Dividers.
+- Separators.
+- Tooltips.
+- Popovers.
+- Dialogs.
+- Drawers.
+- Accordions.
+- Collapsible panels.
+- Menus.
+- Context menus.
+- Progress bars.
+- Spinners.
+- Skeletons.
+- Empty states.
+- Error states.
+
+Every component must have consistent variants, sizing, tokens and accessibility.
+
+## DOMAIN 03 — NAVIGATION AND LAUNCHERS
+
+Include:
+
+### Sidebars
+- Fixed sidebar.
+- Collapsible sidebar.
+- Expandable sidebar.
+- Resizable sidebar.
+- Mini sidebar.
+- Icon-only sidebar.
+- Nested sidebar.
+- Multi-level sidebar.
+- Responsive sidebar.
+- Mobile sidebar drawer.
+
+### Menus
+- Hamburger menu.
+- Dropdown menu.
+- Mega menu.
+- Context menu.
+- Full-screen mobile menu.
+- Floating menu.
+- Navigation rail.
+- Bottom navigation.
+- Tab navigation.
+- Breadcrumbs.
+- Command menu.
+
+### Launchers
+- Application launcher.
+- Product launcher.
+- Module launcher.
+- Workspace switcher.
+- Organization switcher.
+- Recent apps.
+- Favorites.
+- Quick launcher.
+- Command launcher.
+- Search-driven launcher.
+
+Provide keyboard navigation and responsive behavior.
+
+## DOMAIN 04 — RESPONSIVE DEVICE EXPERIENCE
+
+Create intentionally designed experiences for:
+
+### Mobile
+- Touch-first controls.
+- Bottom navigation.
+- Mobile drawers.
+- Bottom sheets.
+- Swipe actions.
+- Mobile tables.
+- Card/list alternatives.
+- Mobile dashboards.
+- Mobile forms.
+- Sticky action bars.
+- Pull-to-refresh patterns where appropriate.
+- Mobile search.
+- Mobile command interfaces.
+- Mobile file uploads.
+
+### Tablet
+- Split-screen interfaces.
+- Collapsible navigation.
+- Multi-column workspaces.
+- Landscape and portrait adaptations.
+- Touch-enabled data grids.
+- Contextual panels.
+
+### Desktop
+- Multi-panel workspaces.
+- Resizable panes.
+- Advanced data tables.
+- Keyboard shortcuts.
+- Contextual toolbars.
+- Command palettes.
+- Bulk actions.
+- Dense data interfaces.
+- Dockable panels.
+
+Test realistic viewport sizes.
+
+## DOMAIN 05 — DATA AND INFORMATION MANAGEMENT
+
+Implement:
+
+- Basic tables.
+- Advanced data tables.
+- Spreadsheet-like grids.
+- Column sorting.
+- Column resizing.
+- Column visibility.
+- Column reordering.
+- Filters.
+- Advanced filter builder.
+- Saved views.
+- Grouping.
+- Aggregation.
+- Inline editing.
+- Row selection.
+- Bulk actions.
+- Expandable rows.
+- Pagination.
+- Virtualized data.
+- Tree views.
+- Hierarchical data.
+- Pivot tables.
+- Comparison views.
+- Diff viewers.
+- Data import mapping.
+- Data validation.
+- Data relationship visualization.
+- Query-builder interfaces.
+- Formula editors.
+
+Avoid creating a database or business logic inside the UI package.
+
+## DOMAIN 06 — CHARTS AND DATA VISUALIZATION
+
+Implement two approaches.
+
+### Approach A: Native Wendoro chart primitives
+
+Support:
+
+- Line.
+- Area.
+- Bar.
+- Stacked bar.
+- Pie.
+- Donut.
+- Scatter.
+- Bubble.
+- Funnel.
+- Radar.
+- Heatmap.
+- Waterfall.
+- Treemap.
+- Histogram.
+- Box plot.
+- Candlestick.
+- Sankey.
+- Network graph.
+- Geographic visualization integration points.
+
+Include:
+
+- Legends.
+- Axes.
+- Labels.
+- Tooltips.
+- Responsive sizing.
+- Data formatting.
+- Interactive filtering.
+- Zoom and pan where appropriate.
+- Drill-down interfaces.
+- Accessible summaries.
+- Empty states.
+- Loading states.
+- Error states.
+
+### Approach B: External chart adapters
+
+Evaluate suitable chart libraries.
+
+Review:
+
+- License.
+- Bundle size.
+- Performance.
+- Accessibility.
+- React compatibility.
+- TypeScript.
+- SSR compatibility.
+- Maintenance.
+- Tree-shaking.
+
+Provide adapter contracts.
+
+Do not introduce multiple heavy charting dependencies without justification.
+
+The core UI must work without optional chart dependencies.
+
+## DOMAIN 07 — FORMS AND DATA COLLECTION
+
+Include:
+
+- Form layouts.
+- Multi-step forms.
+- Dynamic forms.
+- Conditional fields.
+- Repeatable sections.
+- Field groups.
+- Validation summaries.
+- Inline validation.
+- File uploads.
+- Drag-and-drop uploads.
+- Rich text fields.
+- Searchable selects.
+- Date/time ranges.
+- Address patterns.
+- Contact field patterns.
+- Signature capture integration.
+- Form preview.
+- Form review.
+- Confirmation screens.
+- Form builder.
+- Field library.
+- Conditional logic builder.
+
+Do not implement backend form processing.
+
+## DOMAIN 08 — EDITORS AND CREATIVE TOOLS
+
+Include reusable interfaces and optional adapters for:
+
+- Rich text editor.
+- Markdown editor.
+- Code editor.
+- JSON viewer.
+- YAML viewer.
+- XML viewer.
+- Diff viewer.
+- Color picker.
+- Gradient editor.
+- Image cropper.
+- Image annotation.
+- Media gallery.
+- Video timeline.
+- Audio waveform.
+- Document editor.
+- PDF viewer.
+- Diagram editor.
+- Visual page builder.
+- Drag-and-drop editor.
+
+Use adapters for complex external editing engines where appropriate.
+
+## DOMAIN 09 — WORKSPACE AND WINDOW MANAGEMENT
+
+Include:
+
+- Personal workspaces.
+- Team workspaces.
+- Client workspaces.
+- Organization workspaces.
+- Admin workspaces.
+- Guest workspace presentation.
+- Split panels.
+- Resizable panels.
+- Dockable panels.
+- Floating windows.
+- Expandable panels.
+- Fullscreen mode.
+- Focus mode.
+- Presentation mode.
+- Multi-panel layouts.
+- Workspace switchers.
+- Recent workspace history.
+
+## DOMAIN 10 — COLLABORATION
+
+Include:
+
+- User presence.
+- Online/offline indicators.
+- Collaborative cursors.
+- Shared selections.
+- Comments.
+- Threaded discussions.
+- Mentions.
+- Reactions.
+- Shared editing status.
+- Activity timelines.
+- Version history.
+- Review interfaces.
+- Approval tools.
+- Conflict resolution.
+- Synchronization states.
+- Collaboration notifications.
+
+These are presentation capabilities, not collaboration backend implementations.
+
+## DOMAIN 11 — COMMUNICATION
+
+Include:
+
+- Chat layouts.
+- Message threads.
+- Conversation lists.
+- Inbox.
+- Shared inbox.
+- Announcement panels.
+- Notification center.
+- Notification history.
+- Notification preferences.
+- Meeting layouts.
+- Video-call controls.
+- Participant grids.
+- Audio/video status.
+- Message composer.
+- Attachments.
+- Message reactions.
+- Unread indicators.
+
+## DOMAIN 12 — WORKFLOW AND AUTOMATION
+
+Include:
+
+- Workflow canvas.
+- Nodes.
+- Connectors.
+- Branches.
+- Decision nodes.
+- Conditions.
+- Step configuration.
+- Workflow validation.
+- Execution timeline.
+- Automation rules.
+- Approval chains.
+- Task queues.
+- Process status.
+- Dependency visualization.
+- Drag-and-drop ordering.
+- Workflow templates.
+- Visual process monitoring.
+
+Functional visual editing is required. Static illustrations must not be represented as completed editors.
+
+## DOMAIN 13 — AI AND AGENT EXPERIENCES
+
+Create an optional AI interface module.
+
+Include:
+
+- AI assistant panels.
+- Conversation interfaces.
+- Streaming response presentation.
+- Prompt editor.
+- Prompt library.
+- Prompt templates.
+- Model selector.
+- Model comparison.
+- Agent launcher.
+- Agent directory.
+- Agent activity timeline.
+- Tool execution cards.
+- Agent status.
+- Human approval checkpoints.
+- Generated content preview.
+- Source and citation panels.
+- Token and usage display.
+- Task history.
+- Feedback controls.
+- Evaluation interfaces.
+- Multimodal input presentation for text, images, audio and files.
+
+Do not hardcode provider-specific backend integrations.
+
+## DOMAIN 14 — SCHEDULING AND PLANNING
+
+Include:
+
+- Calendar.
+- Day/week/month views.
+- Resource calendar.
+- Availability view.
+- Booking slots.
+- Recurring events.
+- Timeline.
+- Gantt chart.
+- Kanban.
+- Roadmap.
+- Dependency view.
+- Workload planner.
+- Resource allocation.
+- Scheduling conflicts.
+- Drag-and-drop scheduling.
+
+## DOMAIN 15 — COMMERCE AND BILLING INTERFACES
+
+Include:
+
+- Product catalog.
+- Product cards.
+- Product detail.
+- Shopping cart.
+- Checkout presentation.
+- Order management.
+- Order tracking.
+- Inventory presentation.
+- Vendor management.
+- Pricing tables.
+- Subscription overview.
+- Usage meters.
+- Billing history.
+- Invoice presentation.
+- Payment status.
+- Returns and refunds.
+- Entitlement presentation.
+
+Do not process payments or implement billing backend functionality.
+
+## DOMAIN 16 — IDENTITY AND SECURITY UX
+
+Include:
+
+- Sign-in interface.
+- Sign-up interface.
+- Account recovery.
+- Password reset.
+- MFA presentation.
+- Passkey presentation.
+- Biometric permission presentation.
+- Session-expiration warning.
+- Active sessions.
+- Device management.
+- Team member directory.
+- Role management screens.
+- Permission presentation.
+- Access requests.
+- Approval interfaces.
+- Security activity.
+- Privacy settings.
+- Consent controls.
+- Data-retention settings.
+
+Authentication and authorization enforcement must remain external.
+
+## DOMAIN 17 — ADMINISTRATION
+
+Include:
+
+- Organization dashboard.
+- Team management.
+- Department management.
+- Organization charts.
+- Member directories.
+- Settings pages.
+- Configuration interfaces.
+- Audit timelines.
+- Administrative dashboards.
+- Access presentation.
+- System health presentation.
+- Feature configuration screens.
+- Usage summaries.
+- Workspace settings.
+
+## DOMAIN 18 — INDUSTRY AND BUSINESS PATTERNS
+
+Provide reusable patterns for:
+
+- Agencies.
+- Multi-client platforms.
+- SaaS.
+- Enterprise.
+- E-commerce.
+- Marketplaces.
+- Professional services.
+- Finance.
+- Education.
+- Healthcare-related interfaces.
+- Logistics.
+- Operations.
+- HR.
+- Procurement.
+- Customer support.
+- Sales and marketing.
+- Legal and contracts.
+- Compliance.
+- Inventory.
+- Asset management.
+- Event management.
+- Communities.
+- Membership platforms.
+- Internal business tools.
+
+Keep industry-specific business logic outside the design system.
+
+## DOMAIN 19 — MAPS AND GEOSPATIAL
+
+Include adapter-ready interfaces for:
+
+- Map containers.
+- Location search.
+- Markers.
+- Marker clusters.
+- Route visualization.
+- Geographic heatmaps.
+- Location filters.
+- Territory selection.
+- Geofencing presentation.
+- Fleet tracking.
+- Asset tracking.
+- Map/list split views.
+
+Do not lock the core package to a single map provider.
+
+## DOMAIN 20 — DEVICE AND APPLICATION LIFECYCLE
+
+Include:
+
+- PWA install prompts.
+- Application update prompts.
+- Offline mode indicators.
+- Connectivity status.
+- Reconnecting status.
+- Synchronization status.
+- Device permission interfaces.
+- Camera permission.
+- Microphone permission.
+- Location permission.
+- File picker.
+- Clipboard interaction feedback.
+- Background task status.
+- Recording interfaces.
+- Upload and download status.
+- Installation wizard.
+- Setup wizard.
+- First-run configuration.
+- Update manager interfaces.
+- Installation progress.
+- Installation completion.
+- Installation failure and retry.
+- Session management.
+
+These are frontend interfaces only.
+
+Do not implement actual software installation, executable downloads, operating-system operations, package managers or infrastructure provisioning.
+
+## DOMAIN 21 — SYSTEM FEEDBACK AND RECOVERY
+
+Include:
+
+- Spinner.
+- Skeleton.
+- Shimmer.
+- Inline loader.
+- Overlay loader.
+- Full-screen loader.
+- Circular progress.
+- Linear progress.
+- Multi-step progress.
+- Upload progress.
+- Download progress.
+- Task progress.
+- Toast.
+- Alert.
+- Banner.
+- Empty state.
+- Error state.
+- Retry interface.
+- Offline state.
+- Reconnection state.
+- Autosave status.
+- Saved status.
+- Unsaved changes.
+- Synchronization status.
+- Maintenance state.
+- Permission-denied presentation.
+- Error boundary.
+- Recovery screen.
+
+## DOMAIN 22 — ACCESSIBILITY AND LOCALIZATION
+
+Include:
+
+- Keyboard-only navigation.
+- Screen-reader support.
+- Semantic HTML.
+- Accessible labels.
+- Live announcements.
+- Focus management.
+- High contrast.
+- Reduced motion.
+- Text scaling.
+- Touch target sizing.
+- RTL layouts.
+- Multilingual text support.
+- Locale-aware dates.
+- Regional number formats.
+- Currency formatting.
+- Time-zone presentation.
+- Alternative calendar support.
+- Accessible charts.
+- Accessible tables.
+- Color-vision-aware visualizations.
+
+Do not claim compliance or manual assistive-technology testing without evidence.
+
+## DOMAIN 23 — PERSONALIZATION
+
+Include:
+
+- Custom dashboards.
+- Widget layouts.
+- Saved views.
+- Personal favorites.
+- Recent items.
+- Custom navigation.
+- Density preferences.
+- Theme preferences.
+- Language preferences.
+- Personalized home screens.
+- Configurable columns.
+- Configurable filters.
+- Layout presets.
+- User-specific presentation preferences.
+
+Do not store personal preferences in the core UI package's backend.
+
+## DOMAIN 24 — DEVELOPER AND EXTENSION PLATFORM
+
+Include:
+
+- Module creation templates.
+- Component contracts.
+- Design token registration.
+- Theme extension API.
+- Responsive conventions.
+- Accessibility standards.
+- TypeScript standards.
+- Export conventions.
+- Adapter development standards.
+- Storybook templates.
+- Testing templates.
+- Visual regression testing.
+- API documentation.
+- Component examples.
+- Migration guides.
+- Deprecation policy.
+- Compatibility policy.
+- Bundle-size budgets.
+- Dependency governance.
+- Extension points.
+
+This domain is mandatory because the system must remain consistent as new modules are introduced.
+
+---
+
+# PART 6 — VISUAL DESIGN QUALITY
+
+The system must look modern, refined and premium.
+
+Do not create a generic library with unrelated visual styles.
+
+Establish a coherent visual language.
+
+Use:
+
+- Clear information hierarchy.
+- Excellent typography.
+- Balanced whitespace.
+- Consistent spacing.
+- Purposeful surface elevation.
+- Refined borders.
+- Appropriate shadows.
+- Consistent iconography.
+- Attractive data visualization.
+- Thoughtful motion.
+- Consistent hover and active states.
+- Strong focus indicators.
+- Responsive composition.
+- Professional empty states.
+- Refined loading states.
+- Clear error recovery.
+- Meaningful micro-interactions.
+
+Avoid:
+
+- Excessive gradients.
+- Unnecessary animation.
+- Excessive rounded cards.
+- Decorative clutter.
+- Inconsistent icon sizes.
+- Arbitrary colors.
+- Overloaded dashboards.
+- Inconsistent spacing.
+- Excessive visual noise.
+- Fake functionality.
+
+The system should support different product identities without losing its shared design language.
+
+---
+
+# PART 7 — UNIVERSAL VISUAL CONTRACT FOR FUTURE MODULES
+
+Every existing and future module must comply with the same standards.
+
+A module must automatically inherit:
+
+1. Brand tokens.
+2. Theme system.
+3. Typography.
+4. Spacing.
+5. Component sizing.
+6. Responsive behavior.
+7. Focus behavior.
+8. Accessibility.
+9. Interaction conventions.
+10. Motion conventions.
+11. Loading states.
+12. Empty states.
+13. Error states.
+14. Success states.
+15. Storybook conventions.
+16. Testing standards.
+
+A new module must not introduce an unrelated design language by default.
+
+Allow controlled customization and product branding.
+
+---
+
+# PART 8 — RESPONSIVE AND DEVICE TESTING
+
+Test representative components and patterns at:
+
+- 320px.
+- 360px.
+- 375px.
+- 390px.
+- 430px.
+- 768px.
+- 820px.
+- 1024px.
+- 1280px.
+- 1440px.
+- 1920px.
+
+Check:
+
+- Overflow.
+- Clipping.
+- Navigation.
+- Touch targets.
+- Keyboard interactions.
+- Modal behavior.
+- Scroll behavior.
+- Sidebar behavior.
+- Table behavior.
+- Chart responsiveness.
+- Form usability.
+- Split layouts.
+- Landscape and portrait orientation.
+- Text scaling.
+- Long labels.
+- Localization.
+- RTL layout.
+
+Do not merely resize desktop screenshots and call the result responsive.
+
+---
+
+# PART 9 — PERFORMANCE AND ENGINEERING QUALITY
+
+Maintain:
+
+- Tree-shaking.
+- Minimal core dependencies.
+- Optional heavy dependencies.
+- Lazy loading where appropriate.
+- Stable component APIs.
+- Efficient rendering.
+- Type safety.
+- Correct cleanup of timers and listeners.
+- No memory leaks.
+- Safe URL handling.
+- Predictable state management.
+- Consistent error handling.
+- SSR-aware code where appropriate.
+- React 18 compatibility.
+- Existing package compatibility.
+
+Avoid unnecessary dependencies.
+
+For every proposed dependency, document:
+
+- Purpose.
+- License.
+- Maintenance status.
+- Bundle impact.
+- Security implications.
+- Whether it belongs in core or an optional module.
+
+Do not introduce arbitrary overrides or downgrade security audit thresholds.
+
+---
+
+# PART 10 — STORYBOOK AND DOCUMENTATION
+
+Create a comprehensive Storybook architecture.
+
+Organize by:
+
+1. Foundations.
+2. Core components.
+3. Navigation.
+4. Controls.
+5. Forms.
+6. Data.
+7. Charts.
+8. Workspaces.
+9. Collaboration.
+10. Communication.
+11. Workflow.
+12. AI interfaces.
+13. Scheduling.
+14. Business components.
+15. Industry patterns.
+16. System feedback.
+17. Device experiences.
+18. Accessibility.
+19. Theming.
+20. Advanced modules.
+21. Adapters.
+22. Developer extensions.
+
+For representative modules provide:
+
+- Default state.
+- Variants.
+- Sizes.
+- Dark mode.
+- Responsive presentation.
+- Interactive example.
+- Loading state.
+- Empty state.
+- Error state.
+- Accessibility guidance.
+
+Provide complete example compositions for:
+
+- Agency workspace.
+- SaaS administration.
+- Enterprise dashboard.
+- E-commerce operations.
+- Customer portal.
+- Project management.
+- Analytics workspace.
+- AI assistant workspace.
+- Mobile dashboard.
+- Tablet workspace.
+- Workflow studio.
+
+All demo data must be synthetic.
+
+---
+
+# PART 11 — TESTING AND SECURITY
+
+Run and report actual results.
+
+## Required verification
+
+- Clean dependency installation.
+- TypeScript.
+- Lint.
+- Unit tests.
+- Integration tests.
+- Accessibility tests.
+- Responsive tests.
+- Build.
+- Storybook build.
+- ESM exports.
+- CJS exports.
+- Type declaration exports.
+- Package exports.
+- Consumer fixture.
+- Package contents.
+- Package size.
+- Lockfile consistency.
+- Dependency audit.
+- Security scan.
+
+Test keyboard navigation, focus behavior, timers, overlays, responsive navigation, URL sanitization and error states.
+
+Review all newly introduced components for:
+
+- Unsafe URLs.
+- Untrusted HTML.
+- Unsafe rendering.
+- Event listener leaks.
+- Timer leaks.
+- Focus traps.
+- Inaccessible interactions.
+- Insecure data assumptions.
+- Dependency vulnerabilities.
+
+Never present a failed test as a pass.
+
+Never suppress vulnerabilities to manufacture a green CI result.
+
+If a major dependency migration is necessary, document it separately and explain the compatibility risks.
+
+---
+
+# PART 12 — CI AND PACKAGE VERIFICATION
+
+Review the existing CI workflow.
+
+Ensure:
+
+- Immutable action SHA pins.
+- Least-privilege permissions.
+- No unnecessary secrets.
+- No persisted credentials.
+- Separate Bun and npm lockfile verification jobs where both are supported.
+- Reproducible installation.
+- Honest dependency audit results.
+- TypeScript and build checks.
+- Tests.
+- Storybook build.
+- Package export validation.
+- Package contents validation.
+
+Do not claim GitHub Actions passed unless an actual GitHub Actions run occurred.
+
+Google AI Studio local checks are not GitHub CI verification.
+
+---
+
+# PART 13 — IMPLEMENTATION PRIORITIES
+
+Do not attempt to implement all 24 domains as one uncontrolled code dump.
+
+Use controlled implementation phases while maintaining the full architecture.
+
+### Phase 1 — Foundation and architecture
+- Repository audit.
+- Design tokens.
+- Theme architecture.
+- Module contracts.
+- Responsive utilities.
+- Accessibility foundation.
+- Core component consistency.
+
+### Phase 2 — Core interaction systems
+- Controls.
+- Sliders.
+- Scrollbars.
+- Navigation.
+- Sidebars.
+- Menus.
+- Launchers.
+- Loaders.
+- Progress.
+- Feedback.
+- Responsive behavior.
+
+### Phase 3 — Business and productivity systems
+- Tables.
+- Forms.
+- Data grids.
+- Calendars.
+- Kanban.
+- Timelines.
+- Workspaces.
+- Collaboration.
+- Communication.
+
+### Phase 4 — Advanced systems
+- Charts.
+- Workflow builder.
+- Form builder.
+- Dashboard builder.
+- Editors.
+- AI interfaces.
+- Maps.
+- Advanced data tools.
+
+### Phase 5 — Industry patterns
+- Agency.
+- SaaS.
+- Enterprise.
+- Commerce.
+- Operations.
+- Services.
+- Education.
+- Finance.
+- Support.
+- Specialist business patterns.
+
+### Phase 6 — Extension and governance
+- Developer standards.
+- Module templates.
+- Adapter contracts.
+- Storybook.
+- Documentation.
+- Visual regression.
+- Compatibility governance.
+
+Do not sacrifice architecture or code quality to complete every category superficially.
+
+If a domain cannot be completed safely in the current implementation pass, deliver a documented contract and implementation plan, clearly classified as planned.
+
+---
+
+# PART 14 — FINAL DELIVERY REPORT
+
+At completion, provide a comprehensive, evidence-based report.
+
+Include:
+
+## A. Executive summary
+- What changed.
+- What improved.
+- What remains incomplete.
+- Overall readiness.
+
+## B. Architecture
+- Module structure.
+- Core versus optional modules.
+- Import model.
+- Theme architecture.
+- Extension contracts.
+- Adapter architecture.
+
+## C. Capability inventory
+For every one of the 24 domains, report:
+
+- Existing.
+- Improved.
+- Implemented.
+- Planned.
+- Intentionally excluded.
+
+Identify exact components and file paths.
+
+## D. Responsive quality
+Report mobile, tablet and desktop coverage and actual verification performed.
+
+## E. Visual quality
+Explain tokens, themes, typography, component consistency and design improvements.
+
+## F. Accessibility
+Report actual tests and remaining manual checks.
+
+## G. Engineering
+Report dependencies, package size, exports, performance considerations and compatibility.
+
+## H. Security
+Report audit findings, vulnerabilities, sanitization and security test results.
+
+## I. Storybook
+Report documented components and representative compositions.
+
+## J. File manifest
+List:
+
+- Modified files.
+- Added files.
+- Deleted files.
+- Generated files excluded.
+- Any untracked files.
+
+## K. Verification
+Include exact commands, results and failures.
+
+## L. Remaining work
+Separate:
+- Required before internal integration.
+- Required before external release.
+- Optional future enhancements.
+
+## M. Final readiness classification
+
+Use one of:
+
+- Not ready.
+- Implementation in progress.
+- Ready for controlled repository transfer.
+- Ready for internal product integration.
+- Ready for staging verification.
+- Ready for release review.
+
+Do not claim readiness beyond what has actually been verified.
+
+---
+
+# FINAL INSTRUCTION
+
+Build a complete, visually unified, extensible Wendoro design-system platform.
+
+Every current and future module should be able to look modern, polished and professional without creating its own unrelated design language.
+
+The architecture must support the full Wendoro ecosystem, independent applications and new business models.
+
+Implement as much as can be delivered correctly within the existing repository and workspace.
+
+Preserve existing completed work.
+
+Do not modify other repositories.
+
+Do not push, publish, release or deploy.
+
+Do not invent test results.
+
+At the end, provide the complete implementation report and wait for explicit approval before any GitHub transfer.

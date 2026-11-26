@@ -284,3 +284,181 @@ export function ApprovalQueue({
     </Card>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* PresenceIndicator, VersionHistoryPanel, ConflictResolutionCard             */
+/* -------------------------------------------------------------------------- */
+
+export interface CollaboratorPresence {
+  id: string;
+  name: string;
+  status: 'online' | 'away' | 'offline' | 'editing';
+  locationLabel?: string;
+}
+
+export function PresenceIndicator({
+  collaborators,
+  syncState = 'synced',
+  className,
+}: {
+  collaborators: CollaboratorPresence[];
+  syncState?: 'synced' | 'syncing' | 'conflict' | 'offline';
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        'flex flex-wrap items-center justify-between gap-3 rounded-[var(--wdr-radius-md)] border border-border bg-surface px-3.5 py-2 text-xs',
+        className
+      )}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        {collaborators.map((user) => (
+          <span
+            key={user.id}
+            className="inline-flex items-center gap-1.5 rounded-[var(--wdr-radius-sm)] border border-border bg-muted/40 px-2 py-1 text-foreground"
+          >
+            <span
+              aria-hidden="true"
+              className={cn(
+                'h-2 w-2 rounded-full',
+                user.status === 'online' || user.status === 'editing'
+                  ? 'bg-success'
+                  : user.status === 'away'
+                    ? 'bg-warning'
+                    : 'bg-muted-foreground'
+              )}
+            />
+            <span className="font-medium">{user.name}</span>
+            {user.locationLabel && (
+              <span className="text-[11px] text-muted-foreground">· {user.locationLabel}</span>
+            )}
+          </span>
+        ))}
+      </div>
+      <StatusBadge
+        status={
+          syncState === 'synced'
+            ? 'completed'
+            : syncState === 'syncing'
+              ? 'active'
+              : syncState === 'conflict'
+                ? 'error'
+                : 'warning'
+        }
+        label={
+          syncState === 'synced'
+            ? 'Synced'
+            : syncState === 'syncing'
+              ? 'Syncing…'
+              : syncState === 'conflict'
+                ? 'Conflict detected'
+                : 'Offline'
+        }
+      />
+    </div>
+  );
+}
+
+export interface VersionRevisionEntry {
+  id: string;
+  versionLabel: string;
+  author: string;
+  timestamp: string;
+  summary: string;
+  current?: boolean;
+}
+
+export function VersionHistoryPanel({
+  versions,
+  onRestoreVersion,
+  title = 'Version history',
+  className,
+}: {
+  versions: VersionRevisionEntry[];
+  onRestoreVersion?: (versionId: string) => void;
+  title?: string;
+  className?: string;
+}) {
+  return (
+    <Card className={cn('p-5 space-y-3', className)}>
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-base font-semibold text-foreground">{title}</h3>
+        <span className="text-xs text-muted-foreground tabular-nums">{versions.length} revisions</span>
+      </div>
+      <ul className="space-y-2">
+        {versions.map((ver) => (
+          <li
+            key={ver.id}
+            className={cn(
+              'flex flex-wrap items-center justify-between gap-3 rounded-[var(--wdr-radius-md)] border p-3 text-xs',
+              ver.current ? 'border-foreground bg-primary-subtle/30' : 'border-border bg-surface'
+            )}
+          >
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-semibold text-foreground">{ver.versionLabel}</span>
+                {ver.current && <StatusBadge status="active" label="Current" />}
+              </div>
+              <div className="mt-0.5 text-foreground">{ver.summary}</div>
+              <div className="mt-0.5 text-[11px] text-muted-foreground">
+                {ver.author} · {ver.timestamp}
+              </div>
+            </div>
+            {!ver.current && onRestoreVersion && (
+              <Button size="sm" variant="outline" onClick={() => onRestoreVersion(ver.id)}>
+                Restore
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+export function ConflictResolutionCard({
+  resourceTitle,
+  localSummary,
+  remoteSummary,
+  onKeepLocal,
+  onAcceptRemote,
+  className,
+}: {
+  resourceTitle: string;
+  localSummary: string;
+  remoteSummary: string;
+  onKeepLocal: () => void;
+  onAcceptRemote: () => void;
+  className?: string;
+}) {
+  return (
+    <Card role="alert" className={cn('border-warning/50 p-5 space-y-4', className)}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h4 className="text-sm font-semibold text-foreground">Merge conflict: {resourceTitle}</h4>
+          <p className="text-xs text-muted-foreground">Choose which revision to preserve before syncing.</p>
+        </div>
+        <StatusBadge status="warning" label="Resolution required" />
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="rounded-[var(--wdr-radius-md)] border border-border bg-surface p-3 space-y-2">
+          <div className="text-xs font-semibold text-foreground">Your local changes</div>
+          <p className="text-xs text-muted-foreground">{localSummary}</p>
+          <Button size="sm" variant="primary" onClick={onKeepLocal}>
+            Keep local
+          </Button>
+        </div>
+        <div className="rounded-[var(--wdr-radius-md)] border border-border bg-surface p-3 space-y-2">
+          <div className="text-xs font-semibold text-foreground">Incoming workspace version</div>
+          <p className="text-xs text-muted-foreground">{remoteSummary}</p>
+          <Button size="sm" variant="outline" onClick={onAcceptRemote}>
+            Accept incoming
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+

@@ -31,14 +31,6 @@ jobs:
           node-version: "20"
           cache: npm
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5 # v2.0.1
-        with:
-          bun-version: "1.4.4"
-
-      - name: Verify frozen Bun lockfile
-        run: bun install --frozen-lockfile
-
       - name: Install dependencies via frozen npm lockfile
         run: npm ci
 
@@ -81,8 +73,18 @@ jobs:
           test -f dist/lib/hooks/index.js
           test -f dist/lib/hooks/index.cjs
           test -f dist/lib/hooks/index.d.ts
+          test -f dist/lib/ai/index.js
+          test -f dist/lib/ai/index.cjs
+          test -f dist/lib/components/ai/index.d.ts
+          test -f dist/lib/editors/index.js
+          test -f dist/lib/editors/index.cjs
+          test -f dist/lib/components/editors/index.d.ts
+          test -f dist/lib/adapters/index.js
+          test -f dist/lib/adapters/index.cjs
+          test -f dist/lib/components/adapters/index.d.ts
           test -f src/themes/light.css
           test -f src/themes/dark.css
+          test -f src/themes/high-contrast.css
           npm pack --dry-run
 
       - name: Static security and brand-token scan

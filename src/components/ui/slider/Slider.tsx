@@ -258,6 +258,9 @@ export function RangeSlider({
   const minId = useStableId(undefined, 'wdr-range-min');
   const maxId = useStableId(undefined, 'wdr-range-max');
   const [internal, setInternal] = React.useState<[number, number]>(defaultValue);
+  const [focusedThumb, setFocusedThumb] = React.useState<'min' | 'max' | null>(null);
+  const [activeThumb, setActiveThumb] = React.useState<'min' | 'max'>('max');
+  const trackRef = React.useRef<HTMLDivElement>(null);
   const current = value ?? internal;
 
   const low = Math.max(min, Math.min(current[0], current[1] - minGap));
@@ -272,6 +275,17 @@ export function RangeSlider({
     onValueChange?.(next);
   };
 
+  const handleTrackPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (disabled || !trackRef.current) return;
+    const rect = trackRef.current.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const pointerPct = ratio * 100;
+    const distLow = Math.abs(pointerPct - lowPct);
+    const distHigh = Math.abs(pointerPct - highPct);
+    setActiveThumb(distLow <= distHigh ? 'min' : 'max');
+  };
+
   return (
     <div className={cn('w-full space-y-2', disabled && 'opacity-50', className)}>
       <div className="flex items-center justify-between gap-2 text-sm">
@@ -281,7 +295,11 @@ export function RangeSlider({
         </span>
       </div>
 
-      <div className="relative flex h-7 items-center">
+      <div
+        ref={trackRef}
+        onPointerDown={handleTrackPointerDown}
+        className="relative flex h-7 items-center"
+      >
         <div aria-hidden="true" className="relative h-2 w-full rounded-full bg-muted">
           <div
             className="absolute top-0 bottom-0 rounded-full bg-primary"
@@ -299,11 +317,19 @@ export function RangeSlider({
           disabled={disabled}
           aria-label={typeof label === 'string' ? `${label} minimum` : 'Minimum value'}
           aria-valuetext={formatValue(low)}
+          onFocus={() => {
+            setFocusedThumb('min');
+            setActiveThumb('min');
+          }}
+          onBlur={() => setFocusedThumb((prev) => (prev === 'min' ? null : prev))}
           onChange={(e) => {
             const candidate = Math.min(Number(e.target.value), high - minGap);
             updateRange(candidate, high);
           }}
-          className="pointer-events-auto absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent opacity-0"
+          className={cn(
+            'pointer-events-auto absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent opacity-0',
+            activeThumb === 'min' ? 'z-20' : 'z-10'
+          )}
         />
 
         <input
@@ -316,21 +342,35 @@ export function RangeSlider({
           disabled={disabled}
           aria-label={typeof label === 'string' ? `${label} maximum` : 'Maximum value'}
           aria-valuetext={formatValue(high)}
+          onFocus={() => {
+            setFocusedThumb('max');
+            setActiveThumb('max');
+          }}
+          onBlur={() => setFocusedThumb((prev) => (prev === 'max' ? null : prev))}
           onChange={(e) => {
             const candidate = Math.max(Number(e.target.value), low + minGap);
             updateRange(low, candidate);
           }}
-          className="pointer-events-auto absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent opacity-0"
+          className={cn(
+            'pointer-events-auto absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent opacity-0',
+            activeThumb === 'max' ? 'z-20' : 'z-10'
+          )}
         />
 
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-foreground bg-primary shadow-xs"
+          className={cn(
+            'pointer-events-none absolute top-1/2 z-30 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-foreground bg-primary shadow-xs transition-shadow',
+            focusedThumb === 'min' && 'ring-2 ring-ring ring-offset-2 ring-offset-background'
+          )}
           style={{ left: `${lowPct}%` }}
         />
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-foreground bg-surface shadow-xs"
+          className={cn(
+            'pointer-events-none absolute top-1/2 z-30 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-foreground bg-surface shadow-xs transition-shadow',
+            focusedThumb === 'max' && 'ring-2 ring-ring ring-offset-2 ring-offset-background'
+          )}
           style={{ left: `${highPct}%` }}
         />
       </div>

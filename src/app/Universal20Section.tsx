@@ -12,6 +12,13 @@ import {
   Users,
 } from 'lucide-react';
 import { DataComparisonTable } from '@/components/business/data-comparison';
+import { AiAssistantPanel, TokenUsageBar } from '@/components/ai';
+import { CodeEditor, MarkdownEditor, VisualFormBuilder } from '@/components/editors';
+import { FleetTrackingWorkspace, SignatureCapturePad } from '@/components/adapters';
+import { ChatLayout } from '@/components/business/communication';
+import { SubscriptionOverview } from '@/components/business/commerce';
+import { ActiveSessionsList } from '@/components/business/identity';
+import { CandlestickChart, NetworkGraphChart } from '@/components/charts/advanced';
 import {
   AssistantResponseCard,
   LiveActivityPulse,
@@ -263,6 +270,7 @@ export function Universal20Section() {
           <TabsTrigger value="workflow">Workflow, Gantt & Collaboration</TabsTrigger>
           <TabsTrigger value="mobile">Mobile & Touch Primitives</TabsTrigger>
           <TabsTrigger value="forms-geo">Forms 2.0 & Geo / Adapters</TabsTrigger>
+          <TabsTrigger value="ai-editors-platform">AI, Editors & Platform 2.0</TabsTrigger>
         </TabsList>
 
         <TabsContent value="controls-scroll" className="space-y-6">
@@ -1208,6 +1216,106 @@ export function Universal20Section() {
               />
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="ai-editors-platform" className="space-y-6">
+          <AiAssistantPanel
+            models={[
+              { id: 'fast', name: 'Wendoro Fast', provider: 'Host Adapter', contextWindow: '128k', latencyTier: 'fast' },
+              { id: 'reason', name: 'Wendoro Reasoner', provider: 'Host Adapter', contextWindow: '256k', latencyTier: 'reasoning' },
+            ]}
+            selectedModelId="fast"
+            onSelectModel={() => {}}
+            messages={[
+              { id: 'ai-m1', role: 'assistant', content: 'Ready for host-driven prompt workflows across Sample Organization.', timestamp: '09:30' },
+            ]}
+            promptValue={promptInput}
+            onPromptChange={setPromptInput}
+            onSubmitPrompt={(text) => {
+              setLastSubmittedPrompt(text);
+              setPromptInput('');
+            }}
+          />
+
+          <TokenUsageBar promptTokens={1200} completionTokens={450} budgetTokens={8000} estimatedCostLabel="$0.01 est." />
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <MarkdownEditor value={richNote} onChange={setRichNote} />
+            <CodeEditor
+              value={"import { Button } from '@wendoro/ui';\nimport { AiAssistantPanel } from '@wendoro/ui/ai';"}
+              language="tsx"
+              readOnly
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <VisualFormBuilder
+              initialFields={[
+                { id: 'vf-1', label: 'Organization Name', type: 'text', required: true },
+                { id: 'vf-2', label: 'Primary Contact', type: 'email', required: true },
+              ]}
+            />
+            <SignatureCapturePad signerName="Demo User" />
+          </div>
+
+          <FleetTrackingWorkspace
+            markers={[
+              { id: 'mk1', label: 'North Hub (Demo)', lat: 37.774, lng: -122.419, status: 'active', category: 'Dispatch' },
+              { id: 'mk2', label: 'East Hub (Demo)', lat: 40.712, lng: -74.006, status: 'pending', category: 'Transit' },
+            ]}
+            routes={[{ id: 'rt1', origin: 'North Hub', destination: 'East Hub', distanceLabel: '420 km', etaLabel: '4h 15m' }]}
+            geofences={[{ id: 'gf1', name: 'Zone A', radiusLabel: '25 km', active: true }]}
+          />
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <CandlestickChart
+              title="Asset Index OHLC (Demo)"
+              data={[
+                { label: 'Mon', open: 100, high: 112, low: 96, close: 108 },
+                { label: 'Tue', open: 108, high: 116, low: 102, close: 104 },
+                { label: 'Wed', open: 104, high: 120, low: 103, close: 118 },
+              ]}
+            />
+            <NetworkGraphChart
+              title="Hybrid Architecture Topology"
+              nodes={[
+                { id: 'tokens', label: '@wendoro/ui/tokens', group: 'Layer 1', weight: 4 },
+                { id: 'core', label: '@wendoro/ui', group: 'Layer 2', weight: 5 },
+                { id: 'ai', label: '@wendoro/ui/ai', group: 'Layer 4', weight: 3 },
+                { id: 'adapters', label: '@wendoro/ui/adapters', group: 'Layer 5', weight: 3 },
+              ]}
+              edges={[
+                { source: 'core', target: 'tokens', label: 'tokens' },
+                { source: 'ai', target: 'core', label: 'ui' },
+                { source: 'adapters', target: 'core', label: 'slots' },
+              ]}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <SubscriptionOverview
+              planName="Enterprise Multi-Tenant (Demo)"
+              status="active"
+              renewalDateLabel="Dec 31, 2026"
+              seatsLabel="18 / 25 seats"
+            />
+            <ActiveSessionsList
+              sessions={[
+                { id: 'ses-1', deviceName: 'Workstation Browser', locationLabel: 'Primary Office (Demo)', lastActiveLabel: 'Now', current: true },
+              ]}
+              onRevoke={() => {}}
+            />
+          </div>
+
+          <ChatLayout
+            conversations={[
+              { id: 'c1', title: 'Sample Organization Ops', preview: 'Ready for review.', timestamp: '10:00 AM', unreadCount: 1, status: 'active' },
+            ]}
+            activeConversationId="c1"
+            onSelectConversation={() => {}}
+            messages={[{ id: 'm1', sender: 'Demo User', timestamp: '10:00 AM', body: 'All Wendoro UI 2.0 checks verified.' }]}
+            onSendMessage={() => {}}
+          />
         </TabsContent>
       </Tabs>
     </div>

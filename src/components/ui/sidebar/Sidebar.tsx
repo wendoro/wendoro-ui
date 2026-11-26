@@ -2,8 +2,11 @@ import * as React from 'react';
 import { ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 
+export type SidebarVariant = 'default' | 'mini' | 'icon';
+
 export interface SidebarProps extends React.HTMLAttributes<HTMLElement> {
   collapsed?: boolean;
+  variant?: SidebarVariant;
   onCollapsedChange?: (collapsed: boolean) => void;
   collapsible?: boolean;
   resizable?: boolean;
@@ -18,6 +21,7 @@ const SidebarContext = React.createContext<{ collapsed: boolean }>({ collapsed: 
 
 export function Sidebar({
   collapsed = false,
+  variant = 'default',
   onCollapsedChange,
   collapsible = false,
   resizable = false,
@@ -31,13 +35,14 @@ export function Sidebar({
   children,
   ...props
 }: SidebarProps) {
+  const effectiveCollapsed = collapsed || variant === 'mini' || variant === 'icon';
   const [width, setWidth] = React.useState(defaultWidth);
   const asideRef = React.useRef<HTMLElement>(null);
 
   const clampWidth = (val: number) => Math.max(minWidth, Math.min(maxWidth, val));
 
   const startResize = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!resizable || collapsed) return;
+    if (!resizable || effectiveCollapsed) return;
     e.preventDefault();
     const startX = e.clientX;
     const startWidth = width;
@@ -53,34 +58,39 @@ export function Sidebar({
   };
 
   return (
-    <SidebarContext.Provider value={{ collapsed }}>
+    <SidebarContext.Provider value={{ collapsed: effectiveCollapsed }}>
       <aside
         ref={asideRef}
         aria-label="Sidebar navigation"
+        data-sidebar-variant={variant}
         style={
-          !collapsed && resizable
+          !effectiveCollapsed && resizable
             ? { width: `${width}px`, ...style }
             : style
         }
         className={cn(
           'relative flex h-full flex-col border-r border-border bg-surface transition-[width] duration-200',
-          collapsed ? 'w-16' : !resizable && 'w-64',
+          effectiveCollapsed
+            ? variant === 'icon'
+              ? 'w-14'
+              : 'w-16'
+            : !resizable && 'w-64',
           className
         )}
         {...props}
       >
         {(header || collapsible) && (
           <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-3.5">
-            {!collapsed && <div className="min-w-0 flex-1">{header}</div>}
+            {!effectiveCollapsed && <div className="min-w-0 flex-1">{header}</div>}
             {collapsible && (
               <button
                 type="button"
-                onClick={() => onCollapsedChange?.(!collapsed)}
-                aria-expanded={!collapsed}
-                aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                onClick={() => onCollapsedChange?.(!effectiveCollapsed)}
+                aria-expanded={!effectiveCollapsed}
+                aria-label={effectiveCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                 className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--wdr-radius-md)] text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                {collapsed ? (
+                {effectiveCollapsed ? (
                   <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
                 ) : (
                   <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
@@ -94,7 +104,7 @@ export function Sidebar({
 
         {footer && <div className="border-t border-border p-3">{footer}</div>}
 
-        {resizable && !collapsed && (
+        {resizable && !effectiveCollapsed && (
           <div
             role="separator"
             aria-orientation="vertical"

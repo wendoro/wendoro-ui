@@ -35,6 +35,26 @@ export interface WorkflowNodeSpec {
   config?: Record<string, string>;
   rules?: AutomationRuleCondition[];
   nextNodeIds?: string[];
+  branchTargets?: {
+    trueTargetId?: string;
+    falseTargetId?: string;
+  };
+}
+
+export interface WorkflowTemplateSpec {
+  id: string;
+  name: string;
+  description?: string;
+  nodes: WorkflowNodeSpec[];
+}
+
+export interface WorkflowExecutionEvent {
+  id: string;
+  nodeId: string;
+  stepTitle: string;
+  status: 'completed' | 'running' | 'pending' | 'failed';
+  durationLabel?: string;
+  timestamp: string;
 }
 
 export interface WorkflowBuilderProps {
@@ -42,6 +62,8 @@ export interface WorkflowBuilderProps {
   nodes: WorkflowNodeSpec[];
   onChange: (nodes: WorkflowNodeSpec[]) => void;
   onRunValidation?: (nodes: WorkflowNodeSpec[]) => void;
+  templates?: WorkflowTemplateSpec[];
+  executionTimeline?: WorkflowExecutionEvent[];
   className?: string;
 }
 
@@ -81,10 +103,13 @@ export function WorkflowBuilder({
   nodes,
   onChange,
   onRunValidation,
+  templates,
+  executionTimeline,
   className,
 }: WorkflowBuilderProps) {
   const [selectedId, setSelectedId] = React.useState<string | null>(nodes[0]?.id ?? null);
   const [validationMessage, setValidationMessage] = React.useState<string | null>(null);
+  const [viewMode, setViewMode] = React.useState<'canvas' | 'timeline'>('canvas');
 
   const selectedNode = nodes.find((n) => n.id === selectedId) ?? nodes[0] ?? null;
 
@@ -180,6 +205,16 @@ export function WorkflowBuilder({
               {KIND_META[kind].label}
             </Button>
           ))}
+          {executionTimeline && executionTimeline.length > 0 && (
+            <Button
+              type="button"
+              size="sm"
+              variant={viewMode === 'timeline' ? 'primary' : 'outline'}
+              onClick={() => setViewMode((m) => (m === 'canvas' ? 'timeline' : 'canvas'))}
+            >
+              {viewMode === 'timeline' ? 'Canvas view' : 'Execution monitor'}
+            </Button>
+          )}
           <Button
             type="button"
             size="sm"
@@ -191,6 +226,25 @@ export function WorkflowBuilder({
           </Button>
         </div>
       </div>
+
+      {templates && templates.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-border bg-surface px-5 py-2 text-xs">
+          <span className="font-semibold text-muted-foreground">Templates:</span>
+          {templates.map((tpl) => (
+            <button
+              key={tpl.id}
+              type="button"
+              onClick={() => {
+                onChange(tpl.nodes);
+                setSelectedId(tpl.nodes[0]?.id ?? null);
+              }}
+              className="rounded-[var(--wdr-radius-sm)] border border-border bg-muted/50 px-2.5 py-1 font-medium text-foreground hover:bg-muted"
+            >
+              {tpl.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {validationMessage && (
         <div
@@ -208,7 +262,29 @@ export function WorkflowBuilder({
           aria-label="Visual workflow canvas"
           className="lg:col-span-7 border-b lg:border-b-0 lg:border-r border-border bg-background/60 p-5 space-y-3"
         >
-          {nodes.length === 0 ? (
+          {viewMode === 'timeline' && executionTimeline ? (
+            <div className="space-y-2.5" aria-label="Workflow execution timeline">
+              <div className="text-xs font-semibold text-foreground">Execution Timeline Monitor</div>
+              <ul className="space-y-2">
+                {executionTimeline.map((evt) => (
+                  <li
+                    key={evt.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--wdr-radius-md)] border border-border bg-surface px-3.5 py-2.5 text-xs"
+                  >
+                    <div>
+                      <div className="font-semibold text-foreground">{evt.stepTitle}</div>
+                      <div className="text-[11px] text-muted-foreground tabular-nums">
+                        {evt.timestamp}{evt.durationLabel ? ` · ${evt.durationLabel}` : ''}
+                      </div>
+                    </div>
+                    <span className="rounded bg-muted px-2 py-0.5 font-mono text-[11px] font-semibold uppercase text-foreground">
+                      {evt.status}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : nodes.length === 0 ? (
             <div className="rounded-[var(--wdr-radius-lg)] border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
               Use the palette buttons above to add your first Trigger or Action step.
             </div>
@@ -263,6 +339,24 @@ export function WorkflowBuilder({
                                   {r.field} {r.operator} &quot;{r.value}&quot;
                                 </span>
                               ))}
+                            </div>
+                          )}
+                          {(node.branchTargets?.trueTargetId || node.branchTargets?.falseTargetId) && (
+                            <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
+                              {node.branchTargets.trueTargetId && (
+                                <span className="rounded bg-success-subtle px-1.5 py-0.5 font-semibold text-success-subtle-foreground">
+                                  True →{' '}
+                                  {nodes.find((c) => c.id === node.branchTargets?.trueTargetId)?.title ??
+                                    node.branchTargets.trueTargetId}
+                                </span>
+                              )}
+                              {node.branchTargets.falseTargetId && (
+                                <span className="rounded bg-destructive-subtle px-1.5 py-0.5 font-semibold text-destructive-subtle-foreground">
+                                  False →{' '}
+                                  {nodes.find((c) => c.id === node.branchTargets?.falseTargetId)?.title ??
+                                    node.branchTargets.falseTargetId}
+                                </span>
+                              )}
                             </div>
                           )}
                         </button>
@@ -403,6 +497,65 @@ export function WorkflowBuilder({
                     })}
                 </div>
               </div>
+
+              {selectedNode.kind === 'condition' && (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 border-t border-border pt-3">
+                  <div className="space-y-1">
+                    <label htmlFor="wdr-wf-true-branch" className="block text-[11px] font-semibold text-success">
+                      True branch target
+                    </label>
+                    <select
+                      id="wdr-wf-true-branch"
+                      value={selectedNode.branchTargets?.trueTargetId ?? ''}
+                      onChange={(e) =>
+                        updateNode(selectedNode.id, {
+                          branchTargets: {
+                            ...selectedNode.branchTargets,
+                            trueTargetId: e.target.value || undefined,
+                          },
+                        })
+                      }
+                      className="h-8 w-full rounded border border-input bg-surface px-2 text-xs text-foreground"
+                    >
+                      <option value="">None</option>
+                      {nodes
+                        .filter((cand) => cand.id !== selectedNode.id)
+                        .map((cand) => (
+                          <option key={cand.id} value={cand.id}>
+                            {cand.title}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="wdr-wf-false-branch" className="block text-[11px] font-semibold text-destructive">
+                      False branch target
+                    </label>
+                    <select
+                      id="wdr-wf-false-branch"
+                      value={selectedNode.branchTargets?.falseTargetId ?? ''}
+                      onChange={(e) =>
+                        updateNode(selectedNode.id, {
+                          branchTargets: {
+                            ...selectedNode.branchTargets,
+                            falseTargetId: e.target.value || undefined,
+                          },
+                        })
+                      }
+                      className="h-8 w-full rounded border border-input bg-surface px-2 text-xs text-foreground"
+                    >
+                      <option value="">None</option>
+                      {nodes
+                        .filter((cand) => cand.id !== selectedNode.id)
+                        .map((cand) => (
+                          <option key={cand.id} value={cand.id}>
+                            {cand.title}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+              )}
 
               {/* Automation Rule Editor */}
               <div className="space-y-2 border-t border-border pt-3">

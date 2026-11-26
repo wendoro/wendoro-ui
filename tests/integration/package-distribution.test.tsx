@@ -46,6 +46,15 @@ describe('Package Distribution & External Consumer Integration', () => {
       'hooks/index.js',
       'hooks/index.cjs',
       'hooks/index.d.ts',
+      'ai/index.js',
+      'ai/index.cjs',
+      'components/ai/index.d.ts',
+      'editors/index.js',
+      'editors/index.cjs',
+      'components/editors/index.d.ts',
+      'adapters/index.js',
+      'adapters/index.cjs',
+      'components/adapters/index.d.ts',
     ];
 
     for (const rel of requiredFiles) {
@@ -96,6 +105,9 @@ describe('Package Distribution & External Consumer Integration', () => {
     const cjsAdvCharts = require(path.join(distDir, 'charts/advanced/index.cjs'));
     const cjsBusiness = require(path.join(distDir, 'business/index.cjs'));
     const cjsHooks = require(path.join(distDir, 'hooks/index.cjs'));
+    const cjsAi = require(path.join(distDir, 'ai/index.cjs'));
+    const cjsEditors = require(path.join(distDir, 'editors/index.cjs'));
+    const cjsAdapters = require(path.join(distDir, 'adapters/index.cjs'));
 
     const esmMain = await import('@wendoro/ui');
     const esmTokens = await import('@wendoro/ui/tokens');
@@ -103,6 +115,9 @@ describe('Package Distribution & External Consumer Integration', () => {
     const esmAdvCharts = await import('@wendoro/ui/charts/advanced');
     const esmBusiness = await import('@wendoro/ui/business');
     const esmHooks = await import('@wendoro/ui/hooks');
+    const esmAi = await import('@wendoro/ui/ai');
+    const esmEditors = await import('@wendoro/ui/editors');
+    const esmAdapters = await import('@wendoro/ui/adapters');
 
     expect(cjsMain.Button).toBeTruthy();
     expect((cjsMain.Button as { $$typeof?: symbol }).$$typeof).toBe(Symbol.for('react.forward_ref'));
@@ -140,6 +155,22 @@ describe('Package Distribution & External Consumer Integration', () => {
     expect(typeof esmBusiness.WorkspaceModeContainer).toBe('function');
     expect(typeof esmBusiness.PromptComposerBar).toBe('function');
     expect(esmBusiness.WENDORO_MODULE_CONTRACT_VERSION).toBe('2.0.0');
+
+    expect(typeof cjsAi.AiAssistantPanel).toBe('function');
+    expect(typeof esmAi.HumanApprovalCheckpoint).toBe('function');
+    expect('LineChart' in esmAi).toBe(false);
+
+    expect(typeof cjsEditors.MarkdownEditor).toBe('function');
+    expect(typeof esmEditors.VisualFormBuilder).toBe('function');
+    expect('LineChart' in esmEditors).toBe(false);
+
+    expect(typeof cjsAdapters.FleetTrackingWorkspace).toBe('function');
+    expect(typeof esmAdapters.SignatureCapturePad).toBe('function');
+    expect('LineChart' in esmAdapters).toBe(false);
+    expect('CandlestickChart' in esmAdapters).toBe(false);
+
+    expect(typeof cjsAdvCharts.CandlestickChart).toBe('function');
+    expect(typeof esmAdvCharts.NetworkGraphChart).toBe('function');
 
     expect(cjsTokens.brandColors.primaryYellow).toBe('#FACC15');
     expect(esmTokens.semanticColorTokens.destructiveSubtleForeground).toBe(

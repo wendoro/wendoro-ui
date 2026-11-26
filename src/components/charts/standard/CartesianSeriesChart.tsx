@@ -27,6 +27,7 @@ export interface CartesianChartProps extends BaseChartProps {
   series: ChartSeriesConfig[];
   stacked?: boolean;
   area?: boolean;
+  zoomable?: boolean;
   onPointSelect?: (datum: ChartDatum, index: number) => void;
 }
 
@@ -36,6 +37,7 @@ function CartesianSeriesChart({
   series,
   stacked = false,
   area = false,
+  zoomable = false,
   mode = 'cartesian',
   title,
   subtitle,
@@ -65,6 +67,82 @@ function CartesianSeriesChart({
   const patPrefix = useStableId(undefined, 'wdr-cart');
   const [hiddenKeys, setHiddenKeys] = React.useState<Set<string>>(new Set());
   const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
+  const [zoomWindow, setZoomWindow] = React.useState<[number, number]>([0, data.length]);
+
+  React.useEffect(() => {
+    setZoomWindow([0, data.length]);
+  }, [data.length]);
+
+  const slicedData = React.useMemo(() => {
+    if (!zoomable || data.length <= 2) return data;
+    const start = Math.max(0, Math.min(data.length - 2, zoomWindow[0]));
+    const end = Math.max(start + 2, Math.min(data.length, zoomWindow[1]));
+    return data.slice(start, end);
+  }, [data, zoomWindow, zoomable]);
+
+  const zoomControls = zoomable && data.length > 2 ? (
+    <div className="inline-flex items-center gap-1 rounded-[var(--wdr-radius-md)] border border-border bg-surface p-0.5 text-[11px]">
+      <button
+        type="button"
+        aria-label="Pan left"
+        disabled={zoomWindow[0] <= 0}
+        onClick={() => {
+          const span = zoomWindow[1] - zoomWindow[0];
+          const nextStart = Math.max(0, zoomWindow[0] - 1);
+          setZoomWindow([nextStart, nextStart + span]);
+        }}
+        className="rounded px-1.5 py-0.5 text-foreground hover:bg-muted disabled:opacity-40"
+      >
+        ←
+      </button>
+      <button
+        type="button"
+        aria-label="Zoom in"
+        disabled={zoomWindow[1] - zoomWindow[0] <= 2}
+        onClick={() => {
+          const span = zoomWindow[1] - zoomWindow[0];
+          if (span <= 2) return;
+          setZoomWindow([zoomWindow[0] + 1, Math.max(zoomWindow[0] + 2, zoomWindow[1] - 1)]);
+        }}
+        className="rounded px-1.5 py-0.5 font-semibold text-foreground hover:bg-muted disabled:opacity-40"
+      >
+        +
+      </button>
+      <button
+        type="button"
+        aria-label="Zoom out"
+        disabled={zoomWindow[0] === 0 && zoomWindow[1] >= data.length}
+        onClick={() => {
+          setZoomWindow([Math.max(0, zoomWindow[0] - 1), Math.min(data.length, zoomWindow[1] + 1)]);
+        }}
+        className="rounded px-1.5 py-0.5 font-semibold text-foreground hover:bg-muted disabled:opacity-40"
+      >
+        −
+      </button>
+      <button
+        type="button"
+        aria-label="Pan right"
+        disabled={zoomWindow[1] >= data.length}
+        onClick={() => {
+          const span = zoomWindow[1] - zoomWindow[0];
+          const nextEnd = Math.min(data.length, zoomWindow[1] + 1);
+          setZoomWindow([Math.max(0, nextEnd - span), nextEnd]);
+        }}
+        className="rounded px-1.5 py-0.5 text-foreground hover:bg-muted disabled:opacity-40"
+      >
+        →
+      </button>
+      {(zoomWindow[0] !== 0 || zoomWindow[1] !== data.length) && (
+        <button
+          type="button"
+          onClick={() => setZoomWindow([0, data.length])}
+          className="rounded px-1.5 py-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          Reset
+        </button>
+      )}
+    </div>
+  ) : null;
 
   const toggleSeries = (key: string) => {
     setHiddenKeys((prev) => {
@@ -88,14 +166,14 @@ function CartesianSeriesChart({
 
   const tableRows = React.useMemo(
     () =>
-      data.map((row) => {
+      slicedData.map((row) => {
         const out: Record<string, string> = { [xKey]: String(row[xKey] ?? '') };
         for (const s of series) {
           out[s.key] = formatChartValue(row[s.key], valueFormatter);
         }
         return out;
       }),
-    [data, series, valueFormatter, xKey]
+    [slicedData, series, valueFormatter, xKey]
   );
 
   const legendItems = series.map((s, idx) => ({
@@ -107,9 +185,9 @@ function CartesianSeriesChart({
     active: !hiddenKeys.has(s.key),
   }));
 
-  const isEmpty = empty ?? (data.length === 0 || series.length === 0);
+  const isEmpty = empty ?? (slicedData.length === 0 || series.length === 0);
 
-  const tooltipDatum = activeIndex !== null ? data[activeIndex] : undefined;
+  const tooltipDatum = activeIndex !== null ? slicedData[activeIndex] : undefined;
   const tooltipRows: ChartTooltipRow[] = tooltipDatum
     ? visibleSeries.map((s) => {
         const origIdx = series.findIndex((orig) => orig.key === s.key);
@@ -127,7 +205,7 @@ function CartesianSeriesChart({
       title={title}
       subtitle={subtitle}
       description={description}
-      summary={summary ?? `${title ?? 'Series chart'} across ${data.length} points and ${visibleSeries.length} visible series.`}
+      summary={summary ?? `${title ?? 'Series chart'} across ${slicedData.length} points and ${visibleSeries.length} visible series.`}
       loading={loading}
       error={error}
       errorTitle={errorTitle}
@@ -140,7 +218,14 @@ function CartesianSeriesChart({
       tableColumns={tableColumns}
       tableRows={tableRows}
       showTableToggle={showTableToggle}
-      actions={actions}
+      actions={
+        zoomControls || actions ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {zoomControls}
+            {actions}
+          </div>
+        ) : undefined
+      }
       footer={footer}
       aria-label={ariaLabel}
       className={className}
@@ -159,7 +244,7 @@ function CartesianSeriesChart({
 
         const allValues: number[] = [];
         if (stacked) {
-          for (const row of data) {
+          for (const row of slicedData) {
             let sum = 0;
             for (const s of visibleSeries) {
               const v = Number(row[s.key] ?? 0);
@@ -168,7 +253,7 @@ function CartesianSeriesChart({
             allValues.push(sum);
           }
         } else {
-          for (const row of data) {
+          for (const row of slicedData) {
             for (const s of visibleSeries) {
               const v = Number(row[s.key]);
               if (Number.isFinite(v)) allValues.push(v);
@@ -187,25 +272,25 @@ function CartesianSeriesChart({
           mode === 'composed' ? visibleSeries.filter((s) => (s.type ?? 'line') === 'bar') : [];
         const hasBars = barSeries.length > 0;
         const stepX = hasBars
-          ? plotWidth / Math.max(1, data.length)
-          : data.length > 1
-            ? plotWidth / (data.length - 1)
+          ? plotWidth / Math.max(1, slicedData.length)
+          : slicedData.length > 1
+            ? plotWidth / (slicedData.length - 1)
             : 0;
 
         const getX = (idx: number) =>
           hasBars
             ? margin.left + stepX * idx + stepX / 2
-            : data.length === 1
+            : slicedData.length === 1
               ? margin.left + plotWidth / 2
               : margin.left + stepX * idx;
 
         const xPositions = new Map<string, number>();
-        data.forEach((row, idx) => {
+        slicedData.forEach((row, idx) => {
           xPositions.set(String(row[xKey] ?? idx), getX(idx));
         });
 
-        const cumulativeBaseline = data.map(() => 0);
-        const xTickStep = Math.max(1, Math.ceil(data.length / 7));
+        const cumulativeBaseline = slicedData.map(() => 0);
+        const xTickStep = Math.max(1, Math.ceil(slicedData.length / 7));
 
         return (
           <svg
@@ -263,7 +348,7 @@ function CartesianSeriesChart({
 
               return (
                 <g key={s.key}>
-                  {data.map((row, idx) => {
+                  {slicedData.map((row, idx) => {
                     const val = Number(row[s.key] ?? 0);
                     const y = scaleLinear(val, yDomain, [margin.top + plotHeight, margin.top]);
                     const rectY = Math.min(y, baselineY);
@@ -298,7 +383,7 @@ function CartesianSeriesChart({
                 const patId = getPatternId(patPrefix, origIdx);
                 const isArea = area || s.type === 'area';
 
-                const pts = data.map((row, idx) => {
+                const pts = slicedData.map((row, idx) => {
                   const val = Number(row[s.key] ?? 0);
                   const topVal = stacked ? cumulativeBaseline[idx] + Math.max(0, val) : val;
                   const bottomVal = stacked ? cumulativeBaseline[idx] : 0;
@@ -368,9 +453,9 @@ function CartesianSeriesChart({
             />
 
             {/* Interactive focus/hover columns + X labels */}
-            {data.map((row, idx) => {
+            {slicedData.map((row, idx) => {
               const x = getX(idx);
-              const showLabel = idx % xTickStep === 0 || idx === data.length - 1;
+              const showLabel = idx % xTickStep === 0 || idx === slicedData.length - 1;
               return (
                 <g key={idx}>
                   {showLabel && (

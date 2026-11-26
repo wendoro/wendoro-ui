@@ -380,3 +380,353 @@ export function EducationMembershipPattern({
     </div>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Domain 17: Administration Panels (Health, Feature Flags, Settings)         */
+/* -------------------------------------------------------------------------- */
+
+export interface SystemHealthServiceItem {
+  id: string;
+  service: string;
+  region: string;
+  latencyLabel: string;
+  status: 'operational' | 'degraded' | 'incident';
+}
+
+export function SystemHealthPanel({
+  services,
+  title = 'System health presentation',
+  className,
+}: {
+  services: SystemHealthServiceItem[];
+  title?: string;
+  className?: string;
+}) {
+  return (
+    <Card className={cn('p-5 space-y-3', className)}>
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-base font-semibold text-foreground">{title}</h3>
+        <StatusBadge
+          status={services.every((s) => s.status === 'operational') ? 'completed' : 'warning'}
+          label={services.every((s) => s.status === 'operational') ? 'All systems nominal' : 'Attention needed'}
+        />
+      </div>
+      <ul className="divide-y divide-border/70 text-xs">
+        {services.map((svc) => (
+          <li key={svc.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+            <div>
+              <div className="font-semibold text-foreground">{svc.service}</div>
+              <div className="text-[11px] text-muted-foreground">{svc.region}</div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="font-mono tabular-nums text-muted-foreground">{svc.latencyLabel}</span>
+              <StatusBadge
+                status={
+                  svc.status === 'operational'
+                    ? 'completed'
+                    : svc.status === 'degraded'
+                      ? 'warning'
+                      : 'error'
+                }
+                label={svc.status}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+export interface FeatureFlagEntry {
+  id: string;
+  key: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  environment?: string;
+}
+
+export function FeatureFlagsPanel({
+  flags,
+  onToggleFlag,
+  title = 'Feature configuration',
+  className,
+}: {
+  flags: FeatureFlagEntry[];
+  onToggleFlag: (id: string, enabled: boolean) => void;
+  title?: string;
+  className?: string;
+}) {
+  return (
+    <Card className={cn('p-5 space-y-3', className)}>
+      <h3 className="text-base font-semibold text-foreground">{title}</h3>
+      <ul className="divide-y divide-border/70">
+        {flags.map((flag) => (
+          <li key={flag.id} className="flex items-center justify-between gap-4 py-2.5 text-xs">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground">{flag.label}</span>
+                <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                  {flag.key}
+                </code>
+              </div>
+              <div className="text-[11px] text-muted-foreground">{flag.description}</div>
+            </div>
+            <Button
+              size="sm"
+              variant={flag.enabled ? 'primary' : 'outline'}
+              aria-pressed={flag.enabled}
+              onClick={() => onToggleFlag(flag.id, !flag.enabled)}
+            >
+              {flag.enabled ? 'Enabled' : 'Disabled'}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+export function WorkspaceSettingsPanel({
+  workspaceName,
+  defaultLocale,
+  onSave,
+  className,
+}: {
+  workspaceName: string;
+  defaultLocale: string;
+  onSave: (next: { workspaceName: string; defaultLocale: string }) => void;
+  className?: string;
+}) {
+  const [nameDraft, setNameDraft] = React.useState(workspaceName);
+  const [localeDraft, setLocaleDraft] = React.useState(defaultLocale);
+
+  return (
+    <Card className={cn('p-5 space-y-4', className)}>
+      <h3 className="text-base font-semibold text-foreground">Workspace settings</h3>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <label htmlFor="wdr-ws-name" className="block text-xs font-medium text-foreground">
+            Workspace name
+          </label>
+          <input
+            id="wdr-ws-name"
+            type="text"
+            value={nameDraft}
+            onChange={(e) => setNameDraft(e.target.value)}
+            className="h-9 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 text-xs text-foreground"
+          />
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="wdr-ws-locale" className="block text-xs font-medium text-foreground">
+            Default locale
+          </label>
+          <select
+            id="wdr-ws-locale"
+            value={localeDraft}
+            onChange={(e) => setLocaleDraft(e.target.value)}
+            className="h-9 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 text-xs text-foreground"
+          >
+            <option value="en-US">English (en-US)</option>
+            <option value="en-GB">English (en-GB)</option>
+            <option value="ar-SA">Arabic (ar-SA · RTL)</option>
+            <option value="de-DE">German (de-DE)</option>
+          </select>
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <Button size="sm" variant="primary" onClick={() => onSave({ workspaceName: nameDraft, defaultLocale: localeDraft })}>
+          Save preferences
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Domain 18 Additional Industry Patterns (Support, HR, Clinical, Legal)      */
+/* -------------------------------------------------------------------------- */
+
+export interface SupportTicketItem {
+  id: string;
+  ticketCode: string;
+  subject: string;
+  requester: string;
+  slaRemaining: string;
+  status: 'active' | 'pending' | 'completed' | 'warning';
+  statusLabel: string;
+}
+
+export function SupportDeskPattern({
+  tickets,
+  onSelectTicket,
+  className,
+}: {
+  tickets: SupportTicketItem[];
+  onSelectTicket?: (id: string) => void;
+  className?: string;
+}) {
+  return (
+    <div className={cn('space-y-4', className)}>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <MetricCard label="Open Tickets" value={String(tickets.filter((t) => t.status !== 'completed').length)} trend="neutral" />
+        <MetricCard label="SLA Compliance" value="97.4%" delta="+1.2%" trend="up" />
+        <MetricCard label="Median First Response" value="14m" trend="up" />
+      </div>
+      <Card className="p-5 space-y-3">
+        <h4 className="text-sm font-semibold text-foreground">Customer Support & Triage Queue</h4>
+        <ul className="divide-y divide-border/70">
+          {tickets.map((t) => (
+            <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-xs">
+              <div>
+                <div className="font-semibold text-foreground">
+                  <span className="font-mono text-muted-foreground mr-2">{t.ticketCode}</span>
+                  {t.subject}
+                </div>
+                <div className="text-muted-foreground">
+                  Requester: {t.requester} · SLA window: {t.slaRemaining}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <StatusBadge status={t.status} label={t.statusLabel} />
+                {onSelectTicket && (
+                  <Button size="sm" variant="outline" onClick={() => onSelectTicket(t.id)}>
+                    Inspect
+                  </Button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </div>
+  );
+}
+
+export function PeopleHrPattern({
+  headcountLabel = '142',
+  openRolesCount = 7,
+  timeOffRequests,
+  onDecision,
+  className,
+}: {
+  headcountLabel?: string;
+  openRolesCount?: number;
+  timeOffRequests: ApprovalRequestItem[];
+  onDecision: (id: string, decision: 'approved' | 'rejected', note?: string) => void;
+  className?: string;
+}) {
+  return (
+    <div className={cn('space-y-4', className)}>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <MetricCard label="Active Workforce" value={headcountLabel} trend="neutral" />
+        <MetricCard label="Open Requisitions" value={String(openRolesCount)} trend="up" />
+        <MetricCard label="Onboarding Completion" value="92%" trend="up" />
+      </div>
+      <ApprovalQueue title="People & Time-Off Approvals" items={timeOffRequests} onDecision={onDecision} />
+    </div>
+  );
+}
+
+export function HealthcareClinicalPattern({
+  appointments,
+  complianceChecklist,
+  className,
+}: {
+  appointments: Array<{ id: string; slotLabel: string; patientAlias: string; clinician: string; room: string; status: 'active' | 'pending' | 'completed' }>;
+  complianceChecklist: Array<{ id: string; label: string; verified: boolean }>;
+  className?: string;
+}) {
+  return (
+    <div className={cn('grid grid-cols-1 gap-4 lg:grid-cols-2', className)}>
+      <Card className="p-5 space-y-3">
+        <h4 className="text-sm font-semibold text-foreground">Clinical Scheduling Queue (Synthetic)</h4>
+        <ul className="divide-y divide-border/70 text-xs">
+          {appointments.map((apt) => (
+            <li key={apt.id} className="flex items-center justify-between gap-2 py-2">
+              <div>
+                <div className="font-semibold text-foreground">{apt.patientAlias} · {apt.slotLabel}</div>
+                <div className="text-muted-foreground">{apt.clinician} · {apt.room}</div>
+              </div>
+              <StatusBadge status={apt.status} label={apt.status} />
+            </li>
+          ))}
+        </ul>
+      </Card>
+      <Card className="p-5 space-y-3">
+        <h4 className="text-sm font-semibold text-foreground">Intake & Safety Verification</h4>
+        <ul className="space-y-2 text-xs">
+          {complianceChecklist.map((item) => (
+            <li key={item.id} className="flex items-center justify-between rounded border border-border px-3 py-2">
+              <span className="text-foreground">{item.label}</span>
+              <StatusBadge status={item.verified ? 'completed' : 'pending'} label={item.verified ? 'Verified' : 'Required'} />
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </div>
+  );
+}
+
+export function LegalCompliancePattern({
+  contracts,
+  className,
+}: {
+  contracts: Array<{ id: string; contractCode: string; title: string; counterparty: string; renewalDate: string; status: 'active' | 'pending' | 'warning' }>;
+  className?: string;
+}) {
+  return (
+    <Card className={cn('p-5 space-y-3', className)}>
+      <h4 className="text-sm font-semibold text-foreground">Legal Contracts & Compliance Review</h4>
+      <ul className="divide-y divide-border/70 text-xs">
+        {contracts.map((c) => (
+          <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+            <div>
+              <div className="font-semibold text-foreground">
+                <span className="font-mono text-muted-foreground mr-2">{c.contractCode}</span>
+                {c.title}
+              </div>
+              <div className="text-muted-foreground">
+                {c.counterparty} · Renewal {c.renewalDate}
+              </div>
+            </div>
+            <StatusBadge status={c.status} label={c.status} />
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+export function CommunityEventsPattern({
+  events,
+  onRsvp,
+  className,
+}: {
+  events: Array<{ id: string; title: string; dateLabel: string; attendeesCount: number; rsvped?: boolean }>;
+  onRsvp?: (id: string) => void;
+  className?: string;
+}) {
+  return (
+    <Card className={cn('p-5 space-y-3', className)}>
+      <h4 className="text-sm font-semibold text-foreground">Community & Events Schedule</h4>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        {events.map((ev) => (
+          <div key={ev.id} className="rounded-[var(--wdr-radius-md)] border border-border bg-surface p-3.5 space-y-2 text-xs">
+            <div className="font-semibold text-foreground">{ev.title}</div>
+            <div className="text-muted-foreground tabular-nums">
+              {ev.dateLabel} · {ev.attendeesCount} attendees
+            </div>
+            {onRsvp && (
+              <Button size="sm" variant={ev.rsvped ? 'primary' : 'outline'} onClick={() => onRsvp(ev.id)}>
+                {ev.rsvped ? 'Registered' : 'RSVP'}
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+

@@ -47,6 +47,21 @@
       "types": "./dist/lib/hooks/index.d.ts",
       "import": "./dist/lib/hooks/index.js",
       "require": "./dist/lib/hooks/index.cjs"
+    },
+    "./ai": {
+      "types": "./dist/lib/components/ai/index.d.ts",
+      "import": "./dist/lib/ai/index.js",
+      "require": "./dist/lib/ai/index.cjs"
+    },
+    "./editors": {
+      "types": "./dist/lib/components/editors/index.d.ts",
+      "import": "./dist/lib/editors/index.js",
+      "require": "./dist/lib/editors/index.cjs"
+    },
+    "./adapters": {
+      "types": "./dist/lib/components/adapters/index.d.ts",
+      "import": "./dist/lib/adapters/index.js",
+      "require": "./dist/lib/adapters/index.cjs"
     }
   },
   "files": [

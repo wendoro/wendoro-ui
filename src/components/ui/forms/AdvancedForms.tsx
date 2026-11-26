@@ -94,8 +94,33 @@ export function MultiSelect({
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [internal, setInternal] = React.useState<string[]>(defaultValue);
+  const [activeIndex, setActiveIndex] = React.useState(0);
   const selected = controlled ?? internal;
   const listboxId = useStableId(undefined, 'wdr-ms');
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const optionRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
+
+  React.useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+    const handleOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [open]);
 
   const toggleOption = (val: string) => {
     const next = selected.includes(val) ? selected.filter((v) => v !== val) : [...selected, val];
@@ -103,18 +128,34 @@ export function MultiSelect({
     onValueChange?.(next);
   };
 
+  const moveFocus = (nextIdx: number) => {
+    if (options.length === 0) return;
+    const bounded = (nextIdx + options.length) % options.length;
+    setActiveIndex(bounded);
+    optionRefs.current[bounded]?.focus();
+  };
+
   return (
-    <div className={cn('relative space-y-1.5', className)}>
+    <div ref={containerRef} className={cn('relative space-y-1.5', className)}>
       {label && <div className="text-xs font-medium text-foreground">{label}</div>}
       <button
+        ref={triggerRef}
         type="button"
         disabled={disabled}
         aria-expanded={open}
         aria-controls={listboxId}
         aria-label={label ?? placeholder}
         onClick={() => !disabled && setOpen((o) => !o)}
+        onKeyDown={(e) => {
+          if (disabled) return;
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            setOpen(true);
+            setActiveIndex(e.key === 'ArrowUp' ? Math.max(0, options.length - 1) : 0);
+          }
+        }}
         className={cn(
-          'flex min-h-10 w-full items-center justify-between gap-2 rounded-[var(--wdr-radius-md)] border bg-surface px-3 py-1.5 text-left text-sm',
+          'flex min-h-10 w-full items-center justify-between gap-2 rounded-[var(--wdr-radius-md)] border bg-surface px-3 py-1.5 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           error ? 'border-destructive' : 'border-input',
           'disabled:cursor-not-allowed disabled:opacity-50'
         )}
@@ -136,7 +177,7 @@ export function MultiSelect({
             })
           )}
         </div>
-        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <ChevronDown className={cn('h-4 w-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')} aria-hidden="true" />
       </button>
 
       {open && (
@@ -146,19 +187,38 @@ export function MultiSelect({
           aria-multiselectable="true"
           className="absolute left-0 top-full z-40 mt-1 max-h-56 w-full overflow-auto rounded-[var(--wdr-radius-md)] border border-border bg-surface-elevated p-1 shadow-[var(--wdr-shadow-md)]"
         >
-          {options.map((opt) => {
+          {options.map((opt, idx) => {
             const checked = selected.includes(opt.value);
             return (
               <li key={opt.value}>
                 <button
+                  ref={(el) => {
+                    optionRefs.current[idx] = el;
+                  }}
                   type="button"
                   role="option"
                   aria-selected={checked}
                   disabled={opt.disabled}
                   onClick={() => toggleOption(opt.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      moveFocus(idx + 1);
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      moveFocus(idx - 1);
+                    } else if (e.key === 'Home') {
+                      e.preventDefault();
+                      moveFocus(0);
+                    } else if (e.key === 'End') {
+                      e.preventDefault();
+                      moveFocus(options.length - 1);
+                    }
+                  }}
                   className={cn(
-                    'flex w-full items-center justify-between rounded-[var(--wdr-radius-sm)] px-2.5 py-1.5 text-left text-sm hover:bg-muted',
-                    checked && 'bg-primary-subtle font-medium text-primary-subtle-foreground'
+                    'flex w-full items-center justify-between rounded-[var(--wdr-radius-sm)] px-2.5 py-1.5 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    checked && 'bg-primary-subtle font-medium text-primary-subtle-foreground',
+                    activeIndex === idx && 'ring-1 ring-border'
                   )}
                 >
                   <span>{opt.label}</span>
@@ -200,11 +260,29 @@ export function Combobox({
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState('');
   const [internal, setInternal] = React.useState(defaultValue);
+  const [highlightedIndex, setHighlightedIndex] = React.useState(0);
   const selected = controlled ?? internal;
   const listboxId = useStableId(undefined, 'wdr-cb');
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   const selectedLabel = options.find((o) => o.value === selected)?.label ?? '';
   const filtered = options.filter((o) => o.label.toLowerCase().includes(query.trim().toLowerCase()));
+
+  React.useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+    const handleOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQuery('');
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [open]);
+
+  React.useEffect(() => {
+    setHighlightedIndex(0);
+  }, [query, open]);
 
   const commit = (val: string) => {
     if (controlled === undefined) setInternal(val);
@@ -214,7 +292,7 @@ export function Combobox({
   };
 
   return (
-    <div className={cn('relative space-y-1.5', className)}>
+    <div ref={containerRef} className={cn('relative space-y-1.5', className)}>
       {label && <label className="block text-xs font-medium text-foreground">{label}</label>}
       <div className="relative">
         <input
@@ -223,6 +301,9 @@ export function Combobox({
           disabled={disabled}
           aria-expanded={open}
           aria-controls={listboxId}
+          aria-activedescendant={
+            open && filtered[highlightedIndex] ? `${listboxId}-opt-${highlightedIndex}` : undefined
+          }
           aria-label={label ?? placeholder}
           value={open ? query : selectedLabel}
           placeholder={placeholder}
@@ -230,6 +311,24 @@ export function Combobox({
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              setOpen(false);
+              setQuery('');
+            } else if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              if (!open) setOpen(true);
+              else if (filtered.length > 0) setHighlightedIndex((i) => (i + 1) % filtered.length);
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              if (!open) setOpen(true);
+              else if (filtered.length > 0) setHighlightedIndex((i) => (i - 1 + filtered.length) % filtered.length);
+            } else if (e.key === 'Enter' && open && filtered[highlightedIndex] && !filtered[highlightedIndex].disabled) {
+              e.preventDefault();
+              commit(filtered[highlightedIndex].value);
+            }
           }}
           className={cn(
             'h-10 w-full rounded-[var(--wdr-radius-md)] border bg-surface pl-3 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -257,16 +356,20 @@ export function Combobox({
           {filtered.length === 0 ? (
             <li className="px-3 py-2 text-xs text-muted-foreground">No matching options</li>
           ) : (
-            filtered.map((opt) => (
+            filtered.map((opt, idx) => (
               <li key={opt.value}>
                 <button
+                  id={`${listboxId}-opt-${idx}`}
                   type="button"
                   role="option"
+                  disabled={opt.disabled}
                   aria-selected={selected === opt.value}
+                  onMouseEnter={() => setHighlightedIndex(idx)}
                   onClick={() => commit(opt.value)}
                   className={cn(
                     'flex w-full items-center justify-between rounded-[var(--wdr-radius-sm)] px-2.5 py-1.5 text-left text-sm hover:bg-muted',
-                    selected === opt.value && 'bg-primary text-primary-foreground'
+                    selected === opt.value && 'bg-primary text-primary-foreground',
+                    selected !== opt.value && highlightedIndex === idx && 'bg-muted'
                   )}
                 >
                   <span>{opt.label}</span>
@@ -784,3 +887,155 @@ export function MultiStepForm({
     </Card>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* ColorInput & MaskedInput (Domain 02 Inputs)                                */
+/* -------------------------------------------------------------------------- */
+
+export interface ColorInputProps {
+  value: string;
+  onValueChange: (hex: string) => void;
+  label?: string;
+  presets?: string[];
+  disabled?: boolean;
+  className?: string;
+}
+
+export function ColorInput({
+  value,
+  onValueChange,
+  label = 'Color',
+  presets = ['#FACC15', '#DC2626', '#111111', '#FFFFFF', '#242424', '#737373'],
+  disabled = false,
+  className,
+}: ColorInputProps) {
+  const id = useStableId(undefined, 'wdr-color');
+  const safeHex = /^#[0-9A-Fa-f]{6}$/.test(value) ? value : '#111111';
+
+  return (
+    <div className={cn('space-y-1.5', className)}>
+      {label && (
+        <label htmlFor={id} className="block text-xs font-medium text-foreground">
+          {label}
+        </label>
+      )}
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          aria-label={`${label} swatch`}
+          disabled={disabled}
+          value={safeHex}
+          onChange={(e) => onValueChange(e.target.value.toUpperCase())}
+          className="h-10 w-10 shrink-0 cursor-pointer rounded-[var(--wdr-radius-md)] border border-input bg-surface p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+        <input
+          id={id}
+          type="text"
+          disabled={disabled}
+          value={value}
+          onChange={(e) => onValueChange(e.target.value)}
+          placeholder="#FACC15"
+          className="h-10 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 font-mono text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+        />
+      </div>
+      {presets.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+          {presets.map((hex) => (
+            <button
+              key={hex}
+              type="button"
+              disabled={disabled}
+              aria-label={`Select color ${hex}`}
+              onClick={() => onValueChange(hex)}
+              style={{ backgroundColor: hex }}
+              className={cn(
+                'h-5 w-5 rounded-[var(--wdr-radius-sm)] border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                value.toUpperCase() === hex.toUpperCase() && 'ring-2 ring-foreground ring-offset-1'
+              )}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export interface MaskedInputProps {
+  value: string;
+  onValueChange: (formatted: string, rawDigits: string) => void;
+  /** Mask template using '#' for digits and 'A' for alphanumeric characters, e.g. "(###) ###-####" or "####-####-####" */
+  mask: string;
+  label?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  error?: string;
+  className?: string;
+}
+
+function applyInputMask(raw: string, mask: string): { formatted: string; unmasked: string } {
+  const cleanChars = raw.replace(/[^a-zA-Z0-9]/g, '');
+  let charIdx = 0;
+  let formatted = '';
+  let unmasked = '';
+
+  for (let i = 0; i < mask.length && charIdx < cleanChars.length; i += 1) {
+    const token = mask[i];
+    if (token === '#') {
+      while (charIdx < cleanChars.length && !/\d/.test(cleanChars[charIdx])) {
+        charIdx += 1;
+      }
+      if (charIdx < cleanChars.length) {
+        formatted += cleanChars[charIdx];
+        unmasked += cleanChars[charIdx];
+        charIdx += 1;
+      }
+    } else if (token === 'A') {
+      formatted += cleanChars[charIdx];
+      unmasked += cleanChars[charIdx];
+      charIdx += 1;
+    } else {
+      formatted += token;
+    }
+  }
+  return { formatted, unmasked };
+}
+
+export function MaskedInput({
+  value,
+  onValueChange,
+  mask,
+  label,
+  placeholder,
+  disabled = false,
+  error,
+  className,
+}: MaskedInputProps) {
+  const id = useStableId(undefined, 'wdr-masked');
+
+  return (
+    <div className={cn('space-y-1.5', className)}>
+      {label && (
+        <label htmlFor={id} className="block text-xs font-medium text-foreground">
+          {label}
+        </label>
+      )}
+      <input
+        id={id}
+        type="text"
+        disabled={disabled}
+        value={value}
+        placeholder={placeholder ?? mask.replace(/[#A]/g, '_')}
+        onChange={(e) => {
+          const { formatted, unmasked } = applyInputMask(e.target.value, mask);
+          onValueChange(formatted, unmasked);
+        }}
+        className={cn(
+          'h-10 w-full rounded-[var(--wdr-radius-md)] border bg-surface px-3 font-mono text-sm tabular-nums text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50',
+          error ? 'border-destructive' : 'border-input'
+        )}
+      />
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}
+

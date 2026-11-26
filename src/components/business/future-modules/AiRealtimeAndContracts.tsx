@@ -213,7 +213,7 @@ export function AssistantResponseCard({
 /* Real-Time Presence & Collaboration Indicators                              */
 /* -------------------------------------------------------------------------- */
 
-export interface CollaboratorPresence {
+export interface PresenceAvatarMember {
   id: string;
   name: string;
   role?: string;
@@ -225,7 +225,7 @@ export function PresenceAvatarStack({
   maxVisible = 4,
   className,
 }: {
-  collaborators: CollaboratorPresence[];
+  collaborators: PresenceAvatarMember[];
   maxVisible?: number;
   className?: string;
 }) {
