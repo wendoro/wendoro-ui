@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
-    name: Build, Test & Security Verification
+  verify-npm:
+    name: npm Lockfile, Build, Test & Security Audit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -93,7 +93,7 @@ jobs:
             echo "Unsafe code pattern or key material detected in src/"
             exit 1
           fi
-          if grep -rnE "text-(blue|purple|indigo|teal|cyan|violet)-|bg-(blue|purple|indigo|teal|cyan|violet)-|border-(blue|purple|indigo|teal|cyan|violet)-" src/components src/styles src/themes src/tokens; then
+          if grep -rnE "\b(text|bg|border|ring|from|to|via)-(blue|purple|indigo|teal|cyan|violet)-" src/components src/styles src/themes src/tokens; then
             echo "Forbidden brand color utility detected"
             exit 1
           fi
@@ -103,3 +103,46 @@ jobs:
 
       - name: Full dependency vulnerability audit
         run: npm audit --audit-level=moderate
+
+  verify-bun:
+    name: Bun Lockfile, Build, Test & Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.0.2
+        with:
+          node-version: "20"
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
+        with:
+          bun-version: "1.4.4"
+
+      - name: Install dependencies via frozen Bun lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck application, stories, and unit tests (Bun)
+        run: bun run typecheck
+
+      - name: Run ESLint (Bun)
+        run: bun run lint
+
+      - name: Run unit and component tests (Bun)
+        run: bun run test:run
+
+      - name: Run integration tests and consumer typecheck (Bun)
+        run: bun run test:integration
+
+      - name: Build showcase application (Bun)
+        run: bun run build
+
+      - name: Build Storybook static documentation (Bun)
+        run: bun run build-storybook
+
+      - name: Full Bun dependency vulnerability audit
+        run: bun audit

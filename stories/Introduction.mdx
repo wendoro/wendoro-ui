@@ -12,19 +12,23 @@ Wendoro UI is the shared design system and modular React component library for t
 
 ## Modular Package Entry Points
 
-`@wendoro/ui` exposes tree-shakeable entry points so standard consumer apps never bundle unused charting modules:
+`@wendoro/ui` exposes 5 layered architectural tiers across tree-shakeable entry points so consumer apps never bundle unused charting, AI, or editor modules:
 
 | Subpath | Purpose |
 | --- | --- |
-| `@wendoro/ui` | Core UI, forms, feedback, navigation, overlays, and enterprise business modules |
+| `@wendoro/ui` | Core UI, controls, forms, feedback, navigation, overlays, and enterprise exports |
 | `@wendoro/ui/styles.css` | Standalone compiled Tailwind CSS v4 + design tokens + density + reduced-motion stylesheet |
 | `@wendoro/ui/themes/light.css` | Light mode CSS custom properties |
 | `@wendoro/ui/themes/dark.css` | Dark mode CSS custom properties |
-| `@wendoro/ui/tokens` | Brand, chart palette, semantic color, typography, spacing/density, elevation, motion, and breakpoint tokens |
-| `@wendoro/ui/charts` | 18 standard charts + shared container, legend, tooltip, annotations, Intl formatters, and `<table>` fallbacks |
-| `@wendoro/ui/charts/advanced` | 12 advanced analytical charts (Funnel, Waterfall, Heatmap, CalendarHeatmap, Treemap, Sankey, BoxPlot, Violin, Histogram, RangeBand, MultiSeriesTimeSeries, MixedAxis) |
-| `@wendoro/ui/business` | Analytics, dashboard shell, advanced `DataTable`, Kanban, timeline, calendar grid, workflow, and hierarchy components |
-| `@wendoro/ui/hooks` | `ThemeProvider`/`useTheme`, `DensityProvider`/`useDensity`, `useReducedMotion`, `useBreakpoint`, `useId` |
+| `@wendoro/ui/themes/high-contrast.css` | High-contrast Light & Dark accessibility CSS custom properties |
+| `@wendoro/ui/tokens` | Brand, chart palette, semantic color, typography, spacing/density, elevation, motion, breakpoints, and theme preset registries |
+| `@wendoro/ui/charts` | 18 standard charts + shared container, legend, tooltip, annotations, `Intl` formatters, `<table>` fallbacks, and `ExternalChart` adapter |
+| `@wendoro/ui/charts/advanced` | 15 advanced analytical charts (Funnel, Waterfall, Heatmap, CalendarHeatmap, Treemap, Sankey, BoxPlot, Violin, Histogram, RangeBand, MultiSeriesTimeSeries, MixedAxis, GeoRegion, Candlestick, NetworkGraph) |
+| `@wendoro/ui/business` | Chart-free business suites (DataTools, Commerce, Identity, Communication, Collaboration, Admin, Installer, Workflow, Scheduling, and 13 industry blueprints) |
+| `@wendoro/ui/hooks` | `ThemeProvider`/`useTheme`, `DensityProvider`/`useDensity`, `DirectionProvider`/`useDirection`, `useReducedMotion`, `useBreakpoint`, `useClipboard`, `useKeyboardShortcuts`, `useId`, `useUndo` |
+| `@wendoro/ui/ai` | Optional AI & Agent presentation workspace (assistant panels, streaming messages, prompt tools, model comparison, approvals, citations, multimodal input) |
+| `@wendoro/ui/editors` | Optional interactive editors & builders (Markdown, Code, JSON/YAML/XML/Diff viewers, Color/Gradient pickers, media tools, Form/Dashboard/Report builders) |
+| `@wendoro/ui/adapters` | Layer 5 external map/diagram/signature adapter contracts + extension registry & bundle budgets |
 
 ---
 
