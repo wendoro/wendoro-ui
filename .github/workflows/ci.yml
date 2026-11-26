@@ -88,15 +88,53 @@ jobs:
           npm pack --dry-run
 
       - name: Static security and brand-token scan
+        shell: bash
         run: |
-          if grep -rnE "dangerouslySetInnerHTML|eval\(|new Function|-----BEGIN (RSA|EC|OPENSSH|PRIVATE) KEY-----" src; then
-            echo "Unsafe code pattern or key material detected in src/"
-            exit 1
-          fi
-          if grep -rnE "\b(text|bg|border|ring|from|to|via)-(blue|purple|indigo|teal|cyan|violet)-" src/components src/styles src/themes src/tokens; then
-            echo "Forbidden brand color utility detected"
-            exit 1
-          fi
+          set -euo pipefail
+
+          run_forbidden_scan() {
+            local description="$1"
+            local pattern="$2"
+            shift 2
+
+            local dir
+            for dir in "$@"; do
+              if [[ ! -d "$dir" ]]; then
+                echo "Error: required scan directory '$dir' does not exist ($description)" >&2
+                return 2
+              fi
+            done
+
+            local status=0
+            set +e
+            grep -rnE -e "$pattern" -- "$@"
+            status=$?
+            set -e
+
+            case "$status" in
+              0)
+                echo "Error: $description" >&2
+                return 1
+                ;;
+              1)
+                return 0
+                ;;
+              *)
+                echo "Error: scan execution failed for '$description' with exit code $status" >&2
+                return "$status"
+                ;;
+            esac
+          }
+
+          run_forbidden_scan \
+            "Unsafe code pattern or key material detected in src/" \
+            "dangerouslySetInnerHTML|eval\(|new Function|-----BEGIN (RSA|EC|OPENSSH|PRIVATE) KEY-----" \
+            src
+
+          run_forbidden_scan \
+            "Forbidden brand color utility detected" \
+            "\b(text|bg|border|ring|from|to|via)-(blue|purple|indigo|teal|cyan|violet)-" \
+            src/components src/styles src/themes src/tokens
 
       - name: Audit runtime dependencies
         run: npm audit --omit=dev --audit-level=moderate
