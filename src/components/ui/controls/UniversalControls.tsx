@@ -36,6 +36,7 @@ export function SegmentedControl({
 }: SegmentedControlProps) {
   const [internal, setInternal] = React.useState(defaultValue ?? options[0]?.value ?? '');
   const activeValue = controlled ?? internal;
+  const buttonRefs = React.useRef<Record<string, HTMLButtonElement | null>>({});
 
   const selectValue = (next: string) => {
     if (controlled === undefined) setInternal(next);
@@ -45,17 +46,29 @@ export function SegmentedControl({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const enabled = options.filter((o) => !o.disabled);
     if (enabled.length === 0) return;
-    const idx = enabled.findIndex((o) => o.value === activeValue);
+    const idx = Math.max(0, enabled.findIndex((o) => o.value === activeValue));
+    let next: SegmentedControlOption | undefined;
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
       e.preventDefault();
-      const next = enabled[(idx + 1) % enabled.length];
-      selectValue(next.value);
+      next = enabled[(idx + 1) % enabled.length];
     } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
       e.preventDefault();
-      const next = enabled[(idx - 1 + enabled.length) % enabled.length];
+      next = enabled[(idx - 1 + enabled.length) % enabled.length];
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      next = enabled[0];
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      next = enabled[enabled.length - 1];
+    }
+    if (next) {
       selectValue(next.value);
+      buttonRefs.current[next.value]?.focus();
     }
   };
+
+  const firstEnabledValue = options.find((o) => !o.disabled)?.value;
+  const hasSelectedEnabled = options.some((o) => !o.disabled && o.value === activeValue);
 
   return (
     <div
@@ -70,12 +83,21 @@ export function SegmentedControl({
     >
       {options.map((opt) => {
         const selected = opt.value === activeValue;
+        const tabbable = opt.disabled
+          ? -1
+          : selected || (!hasSelectedEnabled && opt.value === firstEnabledValue)
+            ? 0
+            : -1;
         return (
           <button
             key={opt.value}
+            ref={(el) => {
+              buttonRefs.current[opt.value] = el;
+            }}
             type="button"
             role="radio"
             aria-checked={selected}
+            tabIndex={tabbable}
             disabled={opt.disabled}
             onClick={() => selectValue(opt.value)}
             className={cn(
@@ -126,10 +148,10 @@ export function ButtonGroup({
         !attached && 'gap-2',
         attached &&
           orientation === 'horizontal' &&
-          '[&>*:not(:first-child)]:rounded-l-none [&>*:not(:last-child)]:rounded-r-none [&>*:not(:first-child)]:-ml-px',
+          '[&>*:not(:first-child)]:rounded-s-none [&>*:not(:last-child)]:rounded-e-none [&>*:not(:first-child)]:-ms-px [&>*:focus-visible]:relative [&>*:focus-visible]:z-10',
         attached &&
           orientation === 'vertical' &&
-          '[&>*:not(:first-child)]:rounded-t-none [&>*:not(:last-child)]:rounded-b-none [&>*:not(:first-child)]:-mt-px',
+          '[&>*:not(:first-child)]:rounded-t-none [&>*:not(:last-child)]:rounded-b-none [&>*:not(:first-child)]:-mt-px [&>*:focus-visible]:relative [&>*:focus-visible]:z-10',
         className
       )}
       {...props}

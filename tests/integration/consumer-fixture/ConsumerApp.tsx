@@ -59,6 +59,15 @@ import { DensityProvider, DirectionProvider, useReducedMotion, useBreakpoint } f
 import { TokenUsageBar } from '@wendoro/ui/ai';
 import { DiffViewer } from '@wendoro/ui/editors';
 import { MapContainer, WENDORO_BUNDLE_BUDGETS } from '@wendoro/ui/adapters';
+import { ButtonGroup, useUndoAction } from '@wendoro/ui/core';
+import { SelectableChipGroup } from '@wendoro/ui/forms';
+import { WorkspaceSwitcher } from '@wendoro/ui/navigation';
+import { VirtualizedList } from '@wendoro/ui/data';
+import { MarkdownEditor } from '@wendoro/ui/editor';
+import { FileManager } from '@wendoro/ui/workspace';
+import { SubscriptionOverview } from '@wendoro/ui/commerce';
+import { HelpCenterPanel, SettingsPageLayout, SettingsSection } from '@wendoro/ui/admin';
+import { CrmSalesPipelinePattern } from '@wendoro/ui/industry';
 
 interface ServiceRow {
   id: string;
@@ -122,6 +131,7 @@ function ConsumerWorkspace() {
   const [workspaceName, setWorkspaceName] = React.useState('');
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [sheetOpen, setSheetOpen] = React.useState(false);
+  const undoState = useUndoAction('initial');
 
   return (
     <div
@@ -273,7 +283,52 @@ function ConsumerWorkspace() {
           <DiffViewer original="a" modified="b" />
           <MapContainer
             data-budget={WENDORO_BUNDLE_BUDGETS.adaptersMaxGzipKb}
+            data-undo-ready={String(!undoState.canUndo)}
             markers={[{ id: 'm1', label: 'Demo Hub', lat: 10, lng: 20, status: 'active' }]}
+          />
+          <ButtonGroup>
+            <Button size="sm" variant="outline" onClick={() => undoState.commit('updated')}>
+              Commit Undo
+            </Button>
+          </ButtonGroup>
+          <SelectableChipGroup
+            aria-label="Subpath Chips"
+            value={['a']}
+            onValueChange={() => {}}
+            items={[{ value: 'a', label: 'Chip A' }]}
+          />
+          <WorkspaceSwitcher
+            workspaces={[{ id: 'w1', name: 'Sample Organization' }]}
+            activeWorkspaceId="w1"
+            onSelectWorkspace={() => {}}
+          />
+          <VirtualizedList
+            items={[{ id: 'v1', name: 'Row 1' }]}
+            getKey={(r) => r.id}
+            renderItem={(r) => <div className="px-2 py-1 text-xs">{r.name}</div>}
+            viewportHeight={60}
+          />
+          <MarkdownEditor value="**Subpath**" onChange={() => {}} />
+          <FileManager
+            items={[{ id: 'f1', name: 'Repo.pdf', kind: 'document', sizeLabel: '1 MB', updatedAt: 'Now', owner: 'Demo User' }]}
+          />
+          <SubscriptionOverview planName="Pro" status="active" renewalDateLabel="Dec 2026" seatsLabel="5 / 10 seats" />
+          <SettingsPageLayout
+            categories={[{ id: 'c1', label: 'General' }]}
+            activeCategoryId="c1"
+            onCategoryChange={() => {}}
+          >
+            <SettingsSection title="Subpath Admin">
+              <HelpCenterPanel
+                articles={[{ id: 'a1', title: 'Guide', category: 'Docs', summary: 'Summary', content: 'Body' }]}
+                faqs={[{ id: 'q1', question: 'Q?', answer: 'A.' }]}
+              />
+            </SettingsSection>
+          </SettingsPageLayout>
+          <CrmSalesPipelinePattern
+            columns={[{ id: 'col1', title: 'Lead' }]}
+            deals={[{ id: 'd1', columnId: 'col1', title: 'Deal 1' }]}
+            accounts={[{ id: 'ac1', accountName: 'Sample Organization', owner: 'Demo User', stage: 'Lead', dealValueLabel: '$10k', health: 'active' }]}
           />
         </div>
 

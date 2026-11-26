@@ -26,6 +26,7 @@ export function SignInView({
   onSubmit,
   onForgotPassword,
   onPasskeyClick,
+  error,
   loading = false,
   className,
 }: {
@@ -34,11 +35,13 @@ export function SignInView({
   onSubmit: (payload: { email: string; password: string }) => void;
   onForgotPassword?: () => void;
   onPasskeyClick?: () => void;
+  error?: string;
   loading?: boolean;
   className?: string;
 }) {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const errorId = React.useId();
 
   return (
     <Card className={cn('mx-auto w-full max-w-md p-6 space-y-4', className)}>
@@ -46,6 +49,11 @@ export function SignInView({
         <h3 className="text-lg font-semibold text-foreground">{title}</h3>
         <p className="text-xs text-muted-foreground">{subtitle}</p>
       </div>
+      {error && (
+        <p id={errorId} role="alert" className="rounded-[var(--wdr-radius-sm)] border border-destructive/40 bg-destructive-subtle px-3 py-2 text-xs text-destructive-subtle-foreground">
+          {error}
+        </p>
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -62,15 +70,21 @@ export function SignInView({
             type="email"
             required
             value={email}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? errorId : undefined}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="demo@example.invalid"
-            className="h-10 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 text-sm text-foreground"
+            className={cn(
+              'h-10 w-full rounded-[var(--wdr-radius-md)] border bg-surface px-3 text-sm text-foreground',
+              error ? 'border-destructive' : 'border-input'
+            )}
           />
         </div>
         <PasswordInput
           label="Password"
           required
           value={password}
+          error={error ? 'Check your credentials and try again.' : undefined}
           onChange={(e) => setPassword(e.target.value)}
         />
         <div className="flex items-center justify-between text-xs">
@@ -99,16 +113,19 @@ export function SignInView({
 
 export function SignUpView({
   onSubmit,
+  error,
   loading = false,
   className,
 }: {
   onSubmit: (payload: { fullName: string; email: string; password: string }) => void;
+  error?: string;
   loading?: boolean;
   className?: string;
 }) {
   const [fullName, setFullName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const errorId = React.useId();
 
   return (
     <Card className={cn('mx-auto w-full max-w-md p-6 space-y-4', className)}>
@@ -116,6 +133,11 @@ export function SignUpView({
         <h3 className="text-lg font-semibold text-foreground">Create workspace account</h3>
         <p className="text-xs text-muted-foreground">Account provisioning is handled by your host auth adapter.</p>
       </div>
+      {error && (
+        <p id={errorId} role="alert" className="rounded-[var(--wdr-radius-sm)] border border-destructive/40 bg-destructive-subtle px-3 py-2 text-xs text-destructive-subtle-foreground">
+          {error}
+        </p>
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -132,9 +154,14 @@ export function SignUpView({
             type="text"
             required
             value={fullName}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? errorId : undefined}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Demo User"
-            className="h-10 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 text-sm text-foreground"
+            className={cn(
+              'h-10 w-full rounded-[var(--wdr-radius-md)] border bg-surface px-3 text-sm text-foreground',
+              error ? 'border-destructive' : 'border-input'
+            )}
           />
         </div>
         <div className="space-y-1">
@@ -146,9 +173,14 @@ export function SignUpView({
             type="email"
             required
             value={email}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? errorId : undefined}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="demo@example.invalid"
-            className="h-10 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 text-sm text-foreground"
+            className={cn(
+              'h-10 w-full rounded-[var(--wdr-radius-md)] border bg-surface px-3 text-sm text-foreground',
+              error ? 'border-destructive' : 'border-input'
+            )}
           />
         </div>
         <PasswordInput
@@ -169,21 +201,29 @@ export function AccountRecoveryView({
   onSubmitEmail,
   onSubmitReset,
   mode = 'recover',
+  error,
   className,
 }: {
   mode?: 'recover' | 'reset';
   onSubmitEmail?: (email: string) => void;
   onSubmitReset?: (newPassword: string) => void;
+  error?: string;
   className?: string;
 }) {
   const [email, setEmail] = React.useState('');
   const [nextPw, setNextPw] = React.useState('');
+  const errorId = React.useId();
 
   return (
     <Card className={cn('mx-auto w-full max-w-md p-6 space-y-4', className)}>
       <h3 className="text-base font-semibold text-foreground">
         {mode === 'recover' ? 'Account recovery' : 'Set new password'}
       </h3>
+      {error && (
+        <p id={errorId} role="alert" className="rounded-[var(--wdr-radius-sm)] border border-destructive/40 bg-destructive-subtle px-3 py-2 text-xs text-destructive-subtle-foreground">
+          {error}
+        </p>
+      )}
       {mode === 'recover' ? (
         <form
           onSubmit={(e) => {
@@ -196,10 +236,15 @@ export function AccountRecoveryView({
             type="email"
             required
             aria-label="Recovery email"
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? errorId : undefined}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="demo@example.invalid"
-            className="h-10 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 text-sm text-foreground"
+            className={cn(
+              'h-10 w-full rounded-[var(--wdr-radius-md)] border bg-surface px-3 text-sm text-foreground',
+              error ? 'border-destructive' : 'border-input'
+            )}
           />
           <Button type="submit" fullWidth variant="primary">
             Send recovery link
@@ -217,6 +262,7 @@ export function AccountRecoveryView({
             label="New password"
             required
             value={nextPw}
+            error={error}
             onChange={(e) => setNextPw(e.target.value)}
           />
           <Button type="submit" fullWidth variant="primary">

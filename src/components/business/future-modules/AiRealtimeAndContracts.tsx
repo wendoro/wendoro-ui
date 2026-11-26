@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Check, Copy, Paperclip, Send, Sparkles, Square, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { sanitizeUrl } from '../../../utils/url';
+import { useClipboard } from '../../../hooks/use-clipboard';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 
@@ -124,14 +125,10 @@ export function AssistantResponseCard({
   onFeedback?: (helpful: boolean) => void;
   className?: string;
 }) {
-  const [copied, setCopied] = React.useState(false);
+  const { copied, copy } = useClipboard(1200);
 
   const handleCopy = () => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-      void navigator.clipboard.writeText(body).catch(() => {});
-    }
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1200);
+    void copy(body);
   };
 
   return (

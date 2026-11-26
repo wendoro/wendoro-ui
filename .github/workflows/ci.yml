@@ -82,6 +82,33 @@ jobs:
           test -f dist/lib/adapters/index.js
           test -f dist/lib/adapters/index.cjs
           test -f dist/lib/components/adapters/index.d.ts
+          test -f dist/lib/core/index.js
+          test -f dist/lib/core/index.cjs
+          test -f dist/lib/subpaths/core.d.ts
+          test -f dist/lib/forms/index.js
+          test -f dist/lib/forms/index.cjs
+          test -f dist/lib/subpaths/forms.d.ts
+          test -f dist/lib/navigation/index.js
+          test -f dist/lib/navigation/index.cjs
+          test -f dist/lib/subpaths/navigation.d.ts
+          test -f dist/lib/data/index.js
+          test -f dist/lib/data/index.cjs
+          test -f dist/lib/subpaths/data.d.ts
+          test -f dist/lib/editor/index.js
+          test -f dist/lib/editor/index.cjs
+          test -f dist/lib/subpaths/editor.d.ts
+          test -f dist/lib/workspace/index.js
+          test -f dist/lib/workspace/index.cjs
+          test -f dist/lib/subpaths/workspace.d.ts
+          test -f dist/lib/commerce/index.js
+          test -f dist/lib/commerce/index.cjs
+          test -f dist/lib/subpaths/commerce.d.ts
+          test -f dist/lib/admin/index.js
+          test -f dist/lib/admin/index.cjs
+          test -f dist/lib/subpaths/admin.d.ts
+          test -f dist/lib/industry/index.js
+          test -f dist/lib/industry/index.cjs
+          test -f dist/lib/subpaths/industry.d.ts
           test -f src/themes/light.css
           test -f src/themes/dark.css
           test -f src/themes/high-contrast.css

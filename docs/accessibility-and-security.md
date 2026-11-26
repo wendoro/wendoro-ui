@@ -10,11 +10,10 @@
 
 ## Security Hardening
 
-- **URL & Image Sanitization (`src/utils/url.ts`)**: `sanitizeUrl` allows only safe `http:`, `https:`, `mailto:`, `tel:`, `/...`, or `#...` URLs (blocking `javascript:`, `vbscript:`, `data:text/html`, and protocol-relative redirects). `sanitizeImageUrl` additionally blocks `data:image/svg+xml` payloads. Applied across `Breadcrumb`, `NavigationMenu`, `MegaMenu`, `UserProfile`, `Avatar`, and `RichTextEditor`.
-- **No Raw HTML Injection**: Components avoid `dangerouslySetInnerHTML`, `eval`, or unsafe inline style injection. `RichTextEditor` parses inline markdown preview tokens into safe React elements rather than raw HTML strings.
+- **URL & Image Sanitization (`src/utils/url.ts`)**: `sanitizeUrl` allows only safe `http:`, `https:`, `mailto:`, `tel:`, `/...`, or `#...` URLs (blocking `javascript:`, `vbscript:`, `data:text/html`, and protocol-relative redirects). `sanitizeImageUrl` additionally blocks `data:image/svg+xml` payloads. Applied across `Breadcrumb`, `NavigationMenu`, `MegaMenu`, `UserProfile`, `Avatar`, `RichTextEditor`, and `MarkdownEditor`.
+- **No Raw HTML Injection**: Components avoid `dangerouslySetInnerHTML`, `eval`, or unsafe inline style injection. `RichTextEditor` and `MarkdownEditor` parse markdown preview tokens into safe React elements rather than raw HTML strings.
 - **No Global Mutation in Preview**: `ThemeProvider` handles storage errors and SSR (`typeof window === 'undefined'`) safely and supports `disableStorage` + `scoped` overrides.
 
 ## Dependency Advisory Status
 
-- **Runtime Dependencies (`npm audit --omit=dev`)**: **0 vulnerabilities** (`lucide-react` is the sole runtime dependency).
-- **Development Tooling (`npm audit`)**: Known upstream advisories remain inside pre-existing dev tooling (`vitest@2.1.x`, `vite@6.0.x`, `storybook@8.5.x` transitive packages) which are not masked, suppressed, or overridden in audit outputs.
+- **Lockfile & Advisory Audit (`bun audit`)**: `bun audit` reports **0 vulnerabilities** across 330 resolved packages (`lucide-react` is the sole runtime dependency). `npm audit` requires a `package-lock.json` lockfile (`ENOLOCK` under `bun.lock`-only installs); preserve the synchronized lockfile baseline without weakening audit thresholds.

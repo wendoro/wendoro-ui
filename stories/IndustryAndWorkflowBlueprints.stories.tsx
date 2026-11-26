@@ -3,11 +3,16 @@ import type { Meta, StoryObj } from '@storybook/react';
 import {
   AgencyWorkspacePattern,
   CommerceOperationsPattern,
+  CreatorPublishingPattern,
+  CrmSalesPipelinePattern,
   EducationMembershipPattern,
   EnterpriseAdminPattern,
   FinanceOperationsPattern,
+  HospitalityBookingPattern,
+  InventoryWarehousePattern,
   LogisticsOperationsPattern,
   ProfessionalServicesPattern,
+  ProjectDeliveryPattern,
   SaasAdminPattern,
 } from '../src/components/business/patterns';
 import {
@@ -262,6 +267,88 @@ export const EducationMembershipPortal: StoryObj = {
     <EducationMembershipPattern
       courses={WENDORO_DEMO_COURSES}
       communityFeed={WENDORO_DEMO_ACTIVITY}
+    />
+  ),
+};
+
+export const CrmSalesPipeline: StoryObj = {
+  render: () => (
+    <CrmSalesPipelinePattern
+      columns={WENDORO_DEMO_KANBAN_COLUMNS}
+      deals={WENDORO_DEMO_KANBAN_CARDS}
+      accounts={[
+        {
+          id: 'crm-1',
+          accountName: 'Sample Organization',
+          owner: 'Demo User',
+          stage: 'Negotiation',
+          dealValueLabel: '$140,000',
+          health: 'active',
+        },
+        {
+          id: 'crm-2',
+          accountName: 'Example Venture Group (Demo)',
+          owner: 'Sample Member A',
+          stage: 'Security Review',
+          dealValueLabel: '$78,500',
+          health: 'pending',
+        },
+      ]}
+    />
+  ),
+};
+
+export const InventoryWarehouseOps: StoryObj = {
+  render: () => (
+    <InventoryWarehousePattern
+      zones={[
+        { id: 'z1', zoneName: 'Zone A · Dispatch', occupancyPercent: 68, skuCount: 120 },
+        { id: 'z2', zoneName: 'Zone B · Reserve', occupancyPercent: 89, skuCount: 54 },
+      ]}
+      skus={[
+        { id: 's1', sku: 'WDR-101', itemName: 'Countertop Dock', zone: 'Zone A', onHand: 36, reorderPoint: 15, status: 'active' },
+        { id: 's2', sku: 'WDR-204', itemName: 'Thermal Roll Pack', zone: 'Zone B', onHand: 6, reorderPoint: 15, status: 'warning' },
+      ]}
+      onReorderSku={() => {}}
+    />
+  ),
+};
+
+export const ProjectDeliveryOps: StoryObj = {
+  render: () => (
+    <ProjectDeliveryPattern
+      kanbanColumns={WENDORO_DEMO_KANBAN_COLUMNS}
+      kanbanCards={WENDORO_DEMO_KANBAN_CARDS}
+      resources={WENDORO_DEMO_RESOURCES}
+      periods={WENDORO_DEMO_RESOURCE_PERIODS}
+    />
+  ),
+};
+
+export const HospitalityBookingOps: StoryObj = {
+  render: () => (
+    <HospitalityBookingPattern
+      units={[
+        { id: 'u1', unitCode: 'STE-301', category: 'Corner Suite', guestOrTenant: 'Demo Guest', windowLabel: 'Nov 26 – Nov 29', status: 'pending', statusLabel: 'Arrival Ready' },
+        { id: 'u2', unitCode: 'RM-210', category: 'Deluxe King', guestOrTenant: 'Sample Guest', windowLabel: 'Nov 25 – Nov 28', status: 'active', statusLabel: 'Checked In' },
+      ]}
+      onCheckIn={() => {}}
+    />
+  ),
+};
+
+export const CreatorPublishingPipeline: StoryObj = {
+  render: () => (
+    <CreatorPublishingPattern
+      editorialStages={[
+        { id: 'st1', label: 'Drafting', state: 'completed' },
+        { id: 'st2', label: 'Editorial Review', state: 'current' },
+        { id: 'st3', label: 'Scheduled', state: 'upcoming' },
+      ]}
+      drafts={[
+        { id: 'd1', title: 'Design Token Deep Dive', channel: 'Engineering Blog', author: 'Demo User', scheduledFor: 'Nov 29', stage: 'scheduled' },
+      ]}
+      onPublishDraft={() => {}}
     />
   ),
 };

@@ -62,6 +62,51 @@
       "types": "./dist/lib/components/adapters/index.d.ts",
       "import": "./dist/lib/adapters/index.js",
       "require": "./dist/lib/adapters/index.cjs"
+    },
+    "./core": {
+      "types": "./dist/lib/subpaths/core.d.ts",
+      "import": "./dist/lib/core/index.js",
+      "require": "./dist/lib/core/index.cjs"
+    },
+    "./forms": {
+      "types": "./dist/lib/subpaths/forms.d.ts",
+      "import": "./dist/lib/forms/index.js",
+      "require": "./dist/lib/forms/index.cjs"
+    },
+    "./navigation": {
+      "types": "./dist/lib/subpaths/navigation.d.ts",
+      "import": "./dist/lib/navigation/index.js",
+      "require": "./dist/lib/navigation/index.cjs"
+    },
+    "./data": {
+      "types": "./dist/lib/subpaths/data.d.ts",
+      "import": "./dist/lib/data/index.js",
+      "require": "./dist/lib/data/index.cjs"
+    },
+    "./editor": {
+      "types": "./dist/lib/subpaths/editor.d.ts",
+      "import": "./dist/lib/editor/index.js",
+      "require": "./dist/lib/editor/index.cjs"
+    },
+    "./workspace": {
+      "types": "./dist/lib/subpaths/workspace.d.ts",
+      "import": "./dist/lib/workspace/index.js",
+      "require": "./dist/lib/workspace/index.cjs"
+    },
+    "./commerce": {
+      "types": "./dist/lib/subpaths/commerce.d.ts",
+      "import": "./dist/lib/commerce/index.js",
+      "require": "./dist/lib/commerce/index.cjs"
+    },
+    "./admin": {
+      "types": "./dist/lib/subpaths/admin.d.ts",
+      "import": "./dist/lib/admin/index.js",
+      "require": "./dist/lib/admin/index.cjs"
+    },
+    "./industry": {
+      "types": "./dist/lib/subpaths/industry.d.ts",
+      "import": "./dist/lib/industry/index.js",
+      "require": "./dist/lib/industry/index.cjs"
     }
   },
   "files": [
@@ -77,7 +122,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "tsc --noEmit && vite build",
-    "build:lib": "rm -rf dist/lib && tsc -p tsconfig.lib.json && vite build --config vite.lib.config.ts && vite build --config vite.styles.config.ts",
+    "build:lib": "rm -rf dist/lib && NODE_ENV=production tsc -p tsconfig.lib.json && NODE_ENV=production vite build --config vite.lib.config.ts && NODE_ENV=production vite build --config vite.styles.config.ts",
     "preview": "vite preview --host 0.0.0.0 --port 3000",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src stories tests",

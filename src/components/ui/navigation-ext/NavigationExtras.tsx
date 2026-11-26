@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
+import { getFocusableElements } from '../../../utils/focus';
 import { sanitizeUrl } from '../../../utils/url';
 import { Card } from '../card';
 import { BottomSheet } from '../mobile/MobilePrimitives';
@@ -53,6 +54,7 @@ export function MegaMenu({
 }) {
   const [openId, setOpenId] = React.useState<string | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const triggerRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
 
   React.useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
@@ -61,7 +63,13 @@ export function MegaMenu({
       }
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpenId(null);
+      if (e.key === 'Escape' && openId !== null) {
+        const currentIdx = sections.findIndex((s) => s.id === openId);
+        setOpenId(null);
+        if (currentIdx >= 0) {
+          triggerRefs.current[currentIdx]?.focus();
+        }
+      }
     };
     document.addEventListener('mousedown', onDocClick);
     document.addEventListener('keydown', onKey);
@@ -69,21 +77,48 @@ export function MegaMenu({
       document.removeEventListener('mousedown', onDocClick);
       document.removeEventListener('keydown', onKey);
     };
-  }, []);
+  }, [openId, sections]);
 
   const activeSection = sections.find((s) => s.id === openId);
+
+  const focusTopTrigger = (idx: number) => {
+    if (sections.length === 0) return;
+    const target = (idx + sections.length) % sections.length;
+    triggerRefs.current[target]?.focus();
+  };
 
   return (
     <div ref={containerRef} className={cn('relative inline-block', className)}>
       <nav aria-label="Mega menu navigation" className="flex flex-wrap items-center gap-1">
-        {sections.map((sec) => {
+        {sections.map((sec, idx) => {
           const isOpen = openId === sec.id;
           return (
             <button
               key={sec.id}
+              ref={(el) => {
+                triggerRefs.current[idx] = el;
+              }}
               type="button"
               aria-expanded={isOpen}
               onClick={() => setOpenId(isOpen ? null : sec.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight') {
+                  e.preventDefault();
+                  focusTopTrigger(idx + 1);
+                } else if (e.key === 'ArrowLeft') {
+                  e.preventDefault();
+                  focusTopTrigger(idx - 1);
+                } else if (e.key === 'Home') {
+                  e.preventDefault();
+                  focusTopTrigger(0);
+                } else if (e.key === 'End') {
+                  e.preventDefault();
+                  focusTopTrigger(sections.length - 1);
+                } else if (e.key === 'ArrowDown' && !isOpen) {
+                  e.preventDefault();
+                  setOpenId(sec.id);
+                }
+              }}
               className={cn(
                 'inline-flex items-center gap-1 rounded-[var(--wdr-radius-md)] px-3 py-1.5 text-sm font-medium transition-colors',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -602,16 +637,23 @@ export function WorkspaceSwitcher({
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState('');
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const optionRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
 
   React.useEffect(() => {
     if (!open || typeof document === 'undefined') return undefined;
+    searchInputRef.current?.focus();
     const onDocClick = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     };
     document.addEventListener('mousedown', onDocClick);
     document.addEventListener('keydown', onKey);
@@ -626,9 +668,16 @@ export function WorkspaceSwitcher({
     `${w.name} ${w.subtitle ?? ''} ${w.role ?? ''}`.toLowerCase().includes(query.trim().toLowerCase())
   );
 
+  const focusOption = (idx: number) => {
+    if (filtered.length === 0) return;
+    const target = (idx + filtered.length) % filtered.length;
+    optionRefs.current[target]?.focus();
+  };
+
   return (
     <div ref={containerRef} className={cn('relative inline-block w-full max-w-xs', className)}>
       <button
+        ref={triggerRef}
         type="button"
         aria-expanded={open}
         aria-label={label}
@@ -656,9 +705,16 @@ export function WorkspaceSwitcher({
           <div className="relative mb-2">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <input
+              ref={searchInputRef}
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown' && filtered.length > 0) {
+                  e.preventDefault();
+                  focusOption(0);
+                }
+              }}
               placeholder="Filter workspaces…"
               aria-label="Filter workspaces"
               className="h-8 w-full rounded-[var(--wdr-radius-sm)] border border-input bg-surface pl-8 pr-2 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -666,11 +722,14 @@ export function WorkspaceSwitcher({
           </div>
 
           <ul role="listbox" aria-label="Available workspaces" className="max-h-56 space-y-0.5 overflow-y-auto">
-            {filtered.map((ws) => {
+            {filtered.map((ws, idx) => {
               const selected = ws.id === activeWorkspaceId;
               return (
                 <li key={ws.id}>
                   <button
+                    ref={(el) => {
+                      optionRefs.current[idx] = el;
+                    }}
                     type="button"
                     role="option"
                     aria-selected={selected}
@@ -678,9 +737,20 @@ export function WorkspaceSwitcher({
                       onSelectWorkspace(ws.id);
                       setOpen(false);
                       setQuery('');
+                      triggerRef.current?.focus();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        focusOption(idx + 1);
+                      } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (idx === 0) searchInputRef.current?.focus();
+                        else focusOption(idx - 1);
+                      }
                     }}
                     className={cn(
-                      'flex w-full items-center justify-between gap-2 rounded-[var(--wdr-radius-sm)] px-2.5 py-2 text-left text-xs transition-colors hover:bg-muted',
+                      'flex w-full items-center justify-between gap-2 rounded-[var(--wdr-radius-sm)] px-2.5 py-2 text-left text-xs transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                       selected && 'bg-primary-subtle text-primary-subtle-foreground font-semibold'
                     )}
                   >
@@ -1090,14 +1160,44 @@ export function FullscreenMobileMenu({
   footer?: React.ReactNode;
 }) {
   const [query, setQuery] = React.useState('');
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+  const previousFocusRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     if (!open || typeof document === 'undefined') return undefined;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const focusablesInitial = getFocusableElements(dialogRef.current);
+    focusablesInitial[0]?.focus();
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onOpenChange(false);
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onOpenChange(false);
+        return;
+      }
+      if (e.key === 'Tab') {
+        const focusables = getFocusableElements(dialogRef.current);
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+      previousFocusRef.current?.focus?.();
+    };
   }, [open, onOpenChange]);
 
   if (!open) return null;
@@ -1114,6 +1214,7 @@ export function FullscreenMobileMenu({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label={title}

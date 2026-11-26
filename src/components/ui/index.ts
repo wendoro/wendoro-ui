@@ -44,11 +44,13 @@ export * from './textarea';
 export * from './toast';
 export * from './tooltip';
 export {
+  ButtonGroup,
   SegmentedControl,
   SelectableChipGroup,
   QuantityStepper,
 } from './controls';
 export type {
+  ButtonGroupProps,
   SegmentedControlOption,
   SegmentedControlProps,
   SelectableChipItem,

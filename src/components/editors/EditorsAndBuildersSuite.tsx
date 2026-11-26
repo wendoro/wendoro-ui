@@ -15,7 +15,7 @@ import {
   Volume2,
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
-import { sanitizeImageUrl } from '../../utils/url';
+import { sanitizeImageUrl, sanitizeUrl } from '../../utils/url';
 import { useClipboard } from '../../hooks/use-clipboard';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -26,34 +26,124 @@ import { Card } from '../ui/card';
 /* Pure React/SVG implementations with safe React node rendering only.       */
 /* -------------------------------------------------------------------------- */
 
+function renderMarkdownInline(text: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  const tokenPattern = /\[([^\]]+)\]\(([^)]+)\)|`([^`]+)`|\*\*([^*]+)\*\*/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let keyIdx = 0;
+
+  while ((match = tokenPattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+    if (match[1] !== undefined && match[2] !== undefined) {
+      const safeHref = sanitizeUrl(match[2]);
+      if (safeHref) {
+        nodes.push(
+          <a
+            key={`md-lnk-${keyIdx++}`}
+            href={safeHref}
+            rel="noopener noreferrer"
+            className="font-medium underline text-foreground hover:opacity-80"
+          >
+            {match[1]}
+          </a>
+        );
+      } else {
+        nodes.push(match[1]);
+      }
+    } else if (match[3] !== undefined) {
+      nodes.push(
+        <code
+          key={`md-code-${keyIdx++}`}
+          className="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground"
+        >
+          {match[3]}
+        </code>
+      );
+    } else if (match[4] !== undefined) {
+      nodes.push(
+        <strong key={`md-b-${keyIdx++}`} className="font-semibold text-foreground">
+          {match[4]}
+        </strong>
+      );
+    }
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+  return nodes;
+}
+
 function renderMarkdownSafe(markdown: string): React.ReactNode[] {
   const lines = markdown.split('\n');
   const nodes: React.ReactNode[] = [];
+  let inCodeFence = false;
+  let fenceBuffer: string[] = [];
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (line.trim().startsWith('```')) {
+      if (!inCodeFence) {
+        inCodeFence = true;
+        fenceBuffer = [];
+      } else {
+        inCodeFence = false;
+        nodes.push(
+          <pre
+            key={`fence-${i}`}
+            className="my-2 overflow-x-auto rounded-[var(--wdr-radius-sm)] border border-border bg-muted/50 p-2.5 font-mono text-xs text-foreground"
+          >
+            <code>{fenceBuffer.join('\n')}</code>
+          </pre>
+        );
+        fenceBuffer = [];
+      }
+      continue;
+    }
+
+    if (inCodeFence) {
+      fenceBuffer.push(line);
+      continue;
+    }
+
     if (line.startsWith('### ')) {
-      nodes.push(<h3 key={i} className="text-sm font-bold text-foreground mt-2">{line.slice(4)}</h3>);
+      nodes.push(<h3 key={i} className="text-sm font-bold text-foreground mt-2">{renderMarkdownInline(line.slice(4))}</h3>);
     } else if (line.startsWith('## ')) {
-      nodes.push(<h2 key={i} className="text-base font-bold text-foreground mt-2">{line.slice(3)}</h2>);
+      nodes.push(<h2 key={i} className="text-base font-bold text-foreground mt-2">{renderMarkdownInline(line.slice(3))}</h2>);
     } else if (line.startsWith('# ')) {
-      nodes.push(<h1 key={i} className="text-lg font-bold text-foreground mt-1">{line.slice(2)}</h1>);
+      nodes.push(<h1 key={i} className="text-lg font-bold text-foreground mt-1">{renderMarkdownInline(line.slice(2))}</h1>);
     } else if (line.startsWith('- ') || line.startsWith('* ')) {
       nodes.push(
         <li key={i} className="ml-4 list-disc text-sm text-foreground">
-          {line.slice(2)}
+          {renderMarkdownInline(line.slice(2))}
         </li>
       );
     } else if (line.startsWith('> ')) {
       nodes.push(
         <blockquote key={i} className="border-l-2 border-primary pl-3 text-sm italic text-muted-foreground">
-          {line.slice(2)}
+          {renderMarkdownInline(line.slice(2))}
         </blockquote>
       );
     } else if (line.trim() === '') {
       nodes.push(<div key={i} className="h-2" />);
     } else {
-      nodes.push(<p key={i} className="text-sm leading-relaxed text-foreground">{line}</p>);
+      nodes.push(<p key={i} className="text-sm leading-relaxed text-foreground">{renderMarkdownInline(line)}</p>);
     }
+  }
+
+  if (inCodeFence && fenceBuffer.length > 0) {
+    nodes.push(
+      <pre
+        key="fence-unclosed"
+        className="my-2 overflow-x-auto rounded-[var(--wdr-radius-sm)] border border-border bg-muted/50 p-2.5 font-mono text-xs text-foreground"
+      >
+        <code>{fenceBuffer.join('\n')}</code>
+      </pre>
+    );
   }
   return nodes;
 }
@@ -438,16 +528,20 @@ export function ImageAnnotationPanel({
   alt,
   annotations,
   onAddAnnotation,
+  onRemoveAnnotation,
   className,
 }: {
   src: string;
   alt: string;
   annotations: ImageAnnotationPin[];
   onAddAnnotation?: (pin: ImageAnnotationPin) => void;
+  onRemoveAnnotation?: (id: string) => void;
   className?: string;
 }) {
   const safeSrc = sanitizeImageUrl(src);
   const [draftNote, setDraftNote] = React.useState('');
+  const pinSeqRef = React.useRef(annotations.length + 1);
+  const nextPinId = () => `pin-${pinSeqRef.current++}`;
 
   return (
     <Card className={cn('p-4 space-y-3', className)}>
@@ -469,7 +563,7 @@ export function ImageAnnotationPanel({
               disabled={!draftNote.trim()}
               onClick={() => {
                 onAddAnnotation({
-                  id: `pin-${Date.now()}`,
+                  id: nextPinId(),
                   xPercent: 50,
                   yPercent: 50,
                   note: draftNote.trim(),
@@ -491,7 +585,7 @@ export function ImageAnnotationPanel({
           const xPercent = Math.round(((e.clientX - rect.left) / Math.max(1, rect.width)) * 100);
           const yPercent = Math.round(((e.clientY - rect.top) / Math.max(1, rect.height)) * 100);
           onAddAnnotation({
-            id: `pin-${Date.now()}`,
+            id: nextPinId(),
             xPercent,
             yPercent,
             note: draftNote.trim(),
@@ -508,6 +602,7 @@ export function ImageAnnotationPanel({
           <span
             key={pin.id}
             title={pin.note}
+            aria-label={`Pin ${idx + 1}: ${pin.note}`}
             className="absolute inline-flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-background bg-primary text-[10px] font-bold text-primary-foreground shadow"
             style={{ left: `${pin.xPercent}%`, top: `${pin.yPercent}%` }}
           >
@@ -519,10 +614,22 @@ export function ImageAnnotationPanel({
       {annotations.length > 0 && (
         <ul className="space-y-1 text-xs">
           {annotations.map((pin, idx) => (
-            <li key={pin.id} className="flex items-center gap-2 text-foreground">
-              <Pin className="h-3 w-3 text-primary-active" aria-hidden="true" />
-              <span className="font-semibold">#{idx + 1}</span>
-              <span>{pin.note}</span>
+            <li key={pin.id} className="flex items-center justify-between gap-2 text-foreground">
+              <span className="flex items-center gap-2 min-w-0">
+                <Pin className="h-3 w-3 shrink-0 text-primary-active" aria-hidden="true" />
+                <span className="font-semibold">#{idx + 1}</span>
+                <span className="truncate">{pin.note}</span>
+              </span>
+              {onRemoveAnnotation && (
+                <button
+                  type="button"
+                  aria-label={`Remove pin ${idx + 1}`}
+                  onClick={() => onRemoveAnnotation(pin.id)}
+                  className="rounded p-1 text-destructive hover:bg-destructive-subtle"
+                >
+                  <Trash2 className="h-3 w-3" aria-hidden="true" />
+                </button>
+              )}
             </li>
           ))}
         </ul>
@@ -734,22 +841,36 @@ export function VisualFormBuilder({
 
       {preview ? (
         <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
-          {fields.map((f) => (
-            <div key={f.id} className="space-y-1">
-              <label className="block text-xs font-medium text-foreground">
-                {f.label} {f.required && <span className="text-destructive">*</span>}
-              </label>
-              {f.type === 'checkbox' ? (
-                <input type="checkbox" aria-label={f.label} className="h-4 w-4" />
-              ) : (
-                <input
-                  type={f.type === 'select' ? 'text' : f.type}
-                  placeholder={`Enter ${f.label.toLowerCase()}…`}
-                  className="h-9 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 text-xs text-foreground"
-                />
-              )}
-            </div>
-          ))}
+          {fields.map((f) => {
+            const previewFieldId = `wdr-vfb-preview-${f.id}`;
+            return (
+              <div key={f.id} className="space-y-1">
+                <label htmlFor={previewFieldId} className="block text-xs font-medium text-foreground">
+                  {f.label} {f.required && <span className="text-destructive">*</span>}
+                </label>
+                {f.type === 'checkbox' ? (
+                  <input id={previewFieldId} type="checkbox" className="h-4 w-4" />
+                ) : f.type === 'select' ? (
+                  <select
+                    id={previewFieldId}
+                    defaultValue=""
+                    className="h-9 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 text-xs text-foreground"
+                  >
+                    <option value="">Select {f.label.toLowerCase()}…</option>
+                    <option value="option-1">Option 1</option>
+                    <option value="option-2">Option 2</option>
+                  </select>
+                ) : (
+                  <input
+                    id={previewFieldId}
+                    type={f.type}
+                    placeholder={`Enter ${f.label.toLowerCase()}…`}
+                    className="h-9 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 text-xs text-foreground"
+                  />
+                )}
+              </div>
+            );
+          })}
         </form>
       ) : (
         <div className="space-y-2">

@@ -1,3 +1,4 @@
+export * from './admin-settings';
 export * from './activity-feed';
 export * from './analytics';
 export * from './commerce';
@@ -7,6 +8,7 @@ export * from './data-comparison';
 export * from './data-table';
 export * from './data-tools';
 export * from './device';
+export * from './file-manager';
 export * from './filter-bar';
 export * from './identity';
 export * from './kpi-card';
@@ -24,4 +26,5 @@ export * from './workflow-builder';
 export * from './installer';
 export * from './workspace';
 export * from './future-modules';
+
 

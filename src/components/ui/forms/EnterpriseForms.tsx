@@ -47,6 +47,7 @@ export function RichTextEditor({
   const [linkText, setLinkText] = React.useState('');
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const id = useStableId(undefined, 'wdr-rte');
+  const errorId = `${id}-error`;
 
   const wrapSelection = (prefix: string, suffix = prefix, fallbackText = 'text') => {
     const el = textareaRef.current;
@@ -265,6 +266,8 @@ export function RichTextEditor({
             rows={rows}
             value={value}
             placeholder={placeholder}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? errorId : undefined}
             onChange={(e) => onChange(e.target.value)}
             className="w-full resize-y bg-surface p-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
           />
@@ -278,7 +281,11 @@ export function RichTextEditor({
           </div>
         )}
       </div>
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && (
+        <p id={errorId} role="alert" className="text-xs text-destructive">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -595,6 +602,7 @@ export function DynamicFormBuilder({
         {visibleFields.map((field) => {
           const fieldId = `wdr-dyn-${field.name}`;
           const errMsg = errorMap.get(field.name);
+          const errId = `${fieldId}-error`;
           const spanClass = field.columns === 2 ? 'md:col-span-2' : '';
 
           if (field.type === 'checkbox') {
@@ -605,12 +613,14 @@ export function DynamicFormBuilder({
                     id={fieldId}
                     type="checkbox"
                     checked={Boolean(values[field.name])}
+                    aria-invalid={Boolean(errMsg)}
+                    aria-describedby={errMsg ? errId : undefined}
                     onChange={(e) => setValues((prev) => ({ ...prev, [field.name]: e.target.checked }))}
                     className="h-4 w-4 rounded border-input"
                   />
                   <span>{field.label}</span>
                 </label>
-                {errMsg && <p className="text-xs text-destructive">{errMsg}</p>}
+                {errMsg && <p id={errId} className="text-xs text-destructive">{errMsg}</p>}
               </div>
             );
           }
@@ -626,6 +636,8 @@ export function DynamicFormBuilder({
                 <select
                   id={fieldId}
                   value={String(values[field.name] ?? '')}
+                  aria-invalid={Boolean(errMsg)}
+                  aria-describedby={errMsg ? errId : undefined}
                   onChange={(e) => setValues((prev) => ({ ...prev, [field.name]: e.target.value }))}
                   className={cn(
                     'h-10 w-full rounded-[var(--wdr-radius-md)] border bg-surface px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -645,6 +657,8 @@ export function DynamicFormBuilder({
                   rows={3}
                   placeholder={field.placeholder}
                   value={String(values[field.name] ?? '')}
+                  aria-invalid={Boolean(errMsg)}
+                  aria-describedby={errMsg ? errId : undefined}
                   onChange={(e) => setValues((prev) => ({ ...prev, [field.name]: e.target.value }))}
                   className={cn(
                     'w-full rounded-[var(--wdr-radius-md)] border bg-surface p-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -657,6 +671,8 @@ export function DynamicFormBuilder({
                   type={field.type}
                   placeholder={field.placeholder}
                   value={String(values[field.name] ?? '')}
+                  aria-invalid={Boolean(errMsg)}
+                  aria-describedby={errMsg ? errId : undefined}
                   onChange={(e) => setValues((prev) => ({ ...prev, [field.name]: e.target.value }))}
                   className={cn(
                     'h-10 w-full rounded-[var(--wdr-radius-md)] border bg-surface px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -665,7 +681,7 @@ export function DynamicFormBuilder({
                 />
               )}
 
-              {errMsg && <p className="text-xs text-destructive">{errMsg}</p>}
+              {errMsg && <p id={errId} className="text-xs text-destructive">{errMsg}</p>}
             </div>
           );
         })}
@@ -719,10 +735,15 @@ export function AddressContactFields({
           id="wdr-addr-name"
           type="text"
           value={value.contactName}
+          aria-invalid={Boolean(errors.contactName)}
+          aria-describedby={errors.contactName ? 'wdr-addr-name-error' : undefined}
           onChange={(e) => update('contactName', e.target.value)}
-          className="h-10 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 text-sm text-foreground"
+          className={cn(
+            'h-10 w-full rounded-[var(--wdr-radius-md)] border bg-surface px-3 text-sm text-foreground',
+            errors.contactName ? 'border-destructive' : 'border-input'
+          )}
         />
-        {errors.contactName && <p className="text-xs text-destructive">{errors.contactName}</p>}
+        {errors.contactName && <p id="wdr-addr-name-error" className="text-xs text-destructive">{errors.contactName}</p>}
       </div>
       <div className="space-y-1">
         <label htmlFor="wdr-addr-email" className="block text-xs font-medium text-foreground">
@@ -732,10 +753,15 @@ export function AddressContactFields({
           id="wdr-addr-email"
           type="email"
           value={value.email}
+          aria-invalid={Boolean(errors.email)}
+          aria-describedby={errors.email ? 'wdr-addr-email-error' : undefined}
           onChange={(e) => update('email', e.target.value)}
-          className="h-10 w-full rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 text-sm text-foreground"
+          className={cn(
+            'h-10 w-full rounded-[var(--wdr-radius-md)] border bg-surface px-3 text-sm text-foreground',
+            errors.email ? 'border-destructive' : 'border-input'
+          )}
         />
-        {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+        {errors.email && <p id="wdr-addr-email-error" className="text-xs text-destructive">{errors.email}</p>}
       </div>
       <div className="space-y-1">
         <label htmlFor="wdr-addr-phone" className="block text-xs font-medium text-foreground">

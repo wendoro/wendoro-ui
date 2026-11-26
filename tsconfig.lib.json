@@ -10,6 +10,6 @@
     "rootDir": "./src",
     "paths": {}
   },
-  "include": ["src/index.ts", "src/tokens", "src/components", "src/hooks", "src/utils"],
+  "include": ["src/index.ts", "src/tokens", "src/components", "src/hooks", "src/utils", "src/subpaths"],
   "exclude": ["src/app", "src/main.tsx", "src/App.tsx", "tests", "stories"]
 }

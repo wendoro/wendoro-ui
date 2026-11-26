@@ -306,6 +306,14 @@ export function SplitPanel({
   const [ratio, setRatio] = React.useState(defaultLeftPercent);
   const [leftCollapsed, setLeftCollapsed] = React.useState(defaultLeftCollapsed);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const dragCleanupRef = React.useRef<(() => void) | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      dragCleanupRef.current?.();
+      dragCleanupRef.current = null;
+    };
+  }, []);
 
   const clamp = (val: number) => Math.max(minLeftPercent, Math.min(maxLeftPercent, val));
 
@@ -315,18 +323,22 @@ export function SplitPanel({
     const container = containerRef.current;
     if (!container) return;
 
+    dragCleanupRef.current?.();
+
     const onMove = (moveEvent: PointerEvent) => {
       const rect = container.getBoundingClientRect();
       if (rect.width <= 0) return;
       const pct = ((moveEvent.clientX - rect.left) / rect.width) * 100;
       setRatio(clamp(Math.round(pct)));
     };
-    const onUp = () => {
+    const cleanup = () => {
       window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointerup', cleanup);
+      dragCleanupRef.current = null;
     };
+    dragCleanupRef.current = cleanup;
     window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointerup', cleanup);
   };
 
   const rowBreakpointClass = collapseBelow === 'md' ? 'md:flex-row' : 'lg:flex-row';

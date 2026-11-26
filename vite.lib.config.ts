@@ -26,6 +26,15 @@ export default defineConfig({
         ai: path.resolve(__dirname, 'src/components/ai/index.ts'),
         editors: path.resolve(__dirname, 'src/components/editors/index.ts'),
         adapters: path.resolve(__dirname, 'src/components/adapters/index.ts'),
+        core: path.resolve(__dirname, 'src/subpaths/core.ts'),
+        forms: path.resolve(__dirname, 'src/subpaths/forms.ts'),
+        navigation: path.resolve(__dirname, 'src/subpaths/navigation.ts'),
+        data: path.resolve(__dirname, 'src/subpaths/data.ts'),
+        editor: path.resolve(__dirname, 'src/subpaths/editor.ts'),
+        workspace: path.resolve(__dirname, 'src/subpaths/workspace.ts'),
+        commerce: path.resolve(__dirname, 'src/subpaths/commerce.ts'),
+        admin: path.resolve(__dirname, 'src/subpaths/admin.ts'),
+        industry: path.resolve(__dirname, 'src/subpaths/industry.ts'),
       },
       name: 'WendoroUI',
       formats: ['es', 'cjs'],
@@ -40,6 +49,15 @@ export default defineConfig({
         if (entryName === 'ai') return `ai/index.${ext}`;
         if (entryName === 'editors') return `editors/index.${ext}`;
         if (entryName === 'adapters') return `adapters/index.${ext}`;
+        if (entryName === 'core') return `core/index.${ext}`;
+        if (entryName === 'forms') return `forms/index.${ext}`;
+        if (entryName === 'navigation') return `navigation/index.${ext}`;
+        if (entryName === 'data') return `data/index.${ext}`;
+        if (entryName === 'editor') return `editor/index.${ext}`;
+        if (entryName === 'workspace') return `workspace/index.${ext}`;
+        if (entryName === 'commerce') return `commerce/index.${ext}`;
+        if (entryName === 'admin') return `admin/index.${ext}`;
+        if (entryName === 'industry') return `industry/index.${ext}`;
         return `wendoro-ui.${ext}`;
       },
     },

@@ -274,11 +274,20 @@ export function FloatingWindow({
 }: FloatingWindowProps) {
   const [pos, setPos] = React.useState(initialPosition);
   const [minimized, setMinimized] = React.useState(false);
+  const dragCleanupRef = React.useRef<(() => void) | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      dragCleanupRef.current?.();
+      dragCleanupRef.current = null;
+    };
+  }, []);
 
   if (!open) return null;
 
   const startDrag = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
+    dragCleanupRef.current?.();
     const startX = e.clientX;
     const startY = e.clientY;
     const origin = pos;
@@ -288,12 +297,14 @@ export function FloatingWindow({
         y: Math.max(0, origin.y + (evt.clientY - startY)),
       });
     };
-    const onUp = () => {
+    const cleanup = () => {
       window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointerup', cleanup);
+      dragCleanupRef.current = null;
     };
+    dragCleanupRef.current = cleanup;
     window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointerup', cleanup);
   };
 
   return (

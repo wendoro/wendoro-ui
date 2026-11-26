@@ -56,9 +56,16 @@ export function ConversationList({
   className?: string;
 }) {
   const [query, setQuery] = React.useState('');
+  const optionRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
   const filtered = conversations.filter((c) =>
     `${c.title} ${c.preview}`.toLowerCase().includes(query.trim().toLowerCase())
   );
+
+  const focusOption = (idx: number) => {
+    if (filtered.length === 0) return;
+    const target = (idx + filtered.length) % filtered.length;
+    optionRefs.current[target]?.focus();
+  };
 
   return (
     <div className={cn('flex flex-col border-r border-border bg-surface', className)}>
@@ -77,17 +84,35 @@ export function ConversationList({
       </div>
 
       <ul role="listbox" aria-label="Conversations" className="flex-1 divide-y divide-border/60 overflow-y-auto">
-        {filtered.map((conv) => {
+        {filtered.map((conv, idx) => {
           const active = conv.id === activeId;
           return (
             <li key={conv.id}>
               <button
+                ref={(el) => {
+                  optionRefs.current[idx] = el;
+                }}
                 type="button"
                 role="option"
                 aria-selected={active}
                 onClick={() => onSelect(conv.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    focusOption(idx + 1);
+                  } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    focusOption(idx - 1);
+                  } else if (e.key === 'Home') {
+                    e.preventDefault();
+                    focusOption(0);
+                  } else if (e.key === 'End') {
+                    e.preventDefault();
+                    focusOption(filtered.length - 1);
+                  }
+                }}
                 className={cn(
-                  'w-full px-3.5 py-3 text-left transition-colors hover:bg-muted',
+                  'w-full px-3.5 py-3 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   active && 'bg-primary-subtle/40'
                 )}
               >
@@ -185,6 +210,7 @@ export function MessageComposer({
 }) {
   const [text, setText] = React.useState('');
   const [attachments, setAttachments] = React.useState<string[]>([]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   return (
     <form
@@ -197,12 +223,34 @@ export function MessageComposer({
       }}
       className={cn('border-t border-border bg-surface p-3 space-y-2', className)}
     >
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        aria-label="Select files to attach"
+        className="hidden"
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []).map((f) => f.name);
+          if (files.length > 0) {
+            setAttachments((prev) => Array.from(new Set([...prev, ...files])));
+          }
+          e.target.value = '';
+        }}
+      />
       {attachments.length > 0 && (
         <div className="flex flex-wrap gap-1.5 text-xs">
           {attachments.map((name) => (
-            <span key={name} className="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5">
+            <span key={name} className="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 text-foreground">
               <Paperclip className="h-3 w-3" aria-hidden="true" />
               <span>{name}</span>
+              <button
+                type="button"
+                aria-label={`Remove ${name}`}
+                onClick={() => setAttachments((prev) => prev.filter((item) => item !== name))}
+                className="ml-0.5 rounded px-1 text-muted-foreground hover:text-foreground"
+              >
+                ×
+              </button>
             </span>
           ))}
         </div>
@@ -212,8 +260,8 @@ export function MessageComposer({
           type="button"
           size="sm"
           variant="outline"
-          aria-label="Attach sample file"
-          onClick={() => setAttachments((prev) => [...prev, `attachment-${prev.length + 1}.txt`])}
+          aria-label="Attach files"
+          onClick={() => fileInputRef.current?.click()}
         >
           <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>

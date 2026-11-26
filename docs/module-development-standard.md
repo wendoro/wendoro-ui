@@ -35,12 +35,12 @@ Every future module, industry pack, or domain-specific studio integrating into `
 - Keep all modules strictly presentational and backend-agnostic.
 
 ## 8. TypeScript Standards
-- Compile cleanly under strict TypeScript (`strict`, `noUnusedLocals`, `noUnusedParameters`) with relative internal imports inside `src/components/**`, `src/tokens/**`, `src/hooks/**`, and `src/utils/**` so zero `@/` path aliases appear in emitted `.d.ts` files.
+- Compile cleanly under strict TypeScript (`strict`, `noUnusedLocals`, `noUnusedParameters`) with relative internal imports inside `src/components/**`, `src/tokens/**`, `src/hooks/**`, `src/utils/**`, and `src/subpaths/**` so zero `@/` path aliases appear in emitted `.d.ts` files.
 
 ## 9. Hybrid Modular Export & Bundle-Size Budgets
-- Core primitives belong in `@wendoro/ui`.
-- Business suites belong in `@wendoro/ui/business` (zero chart imports).
-- Optional complex subsystems belong in `@wendoro/ui/ai`, `@wendoro/ui/editors`, `@wendoro/ui/charts`, or `@wendoro/ui/adapters`.
+- Core primitives belong in `@wendoro/ui` and `@wendoro/ui/core`.
+- Domain suites expose targeted subpaths: `@wendoro/ui/forms`, `@wendoro/ui/navigation`, `@wendoro/ui/data`, `@wendoro/ui/workspace`, `@wendoro/ui/commerce`, `@wendoro/ui/admin`, and `@wendoro/ui/industry`, alongside `@wendoro/ui/business` (all zero chart imports).
+- Optional complex subsystems belong in `@wendoro/ui/ai`, `@wendoro/ui/editors`, `@wendoro/ui/editor`, `@wendoro/ui/charts`, or `@wendoro/ui/adapters`.
 - Target gzip bundle budgets defined in `WENDORO_BUNDLE_BUDGETS`:
   - Core `@wendoro/ui`: <= 45 KB gzip
   - `@wendoro/ui/tokens`: <= 6 KB gzip

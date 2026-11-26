@@ -55,10 +55,42 @@ describe('Package Distribution & External Consumer Integration', () => {
       'adapters/index.js',
       'adapters/index.cjs',
       'components/adapters/index.d.ts',
+      'core/index.js',
+      'core/index.cjs',
+      'subpaths/core.d.ts',
+      'forms/index.js',
+      'forms/index.cjs',
+      'subpaths/forms.d.ts',
+      'navigation/index.js',
+      'navigation/index.cjs',
+      'subpaths/navigation.d.ts',
+      'data/index.js',
+      'data/index.cjs',
+      'subpaths/data.d.ts',
+      'editor/index.js',
+      'editor/index.cjs',
+      'subpaths/editor.d.ts',
+      'workspace/index.js',
+      'workspace/index.cjs',
+      'subpaths/workspace.d.ts',
+      'commerce/index.js',
+      'commerce/index.cjs',
+      'subpaths/commerce.d.ts',
+      'admin/index.js',
+      'admin/index.cjs',
+      'subpaths/admin.d.ts',
+      'industry/index.js',
+      'industry/index.cjs',
+      'subpaths/industry.d.ts',
     ];
 
     for (const rel of requiredFiles) {
       expect(fs.existsSync(path.join(distDir, rel))).toBe(true);
+      if (rel.endsWith('.js') || rel.endsWith('.cjs')) {
+        const jsContent = fs.readFileSync(path.join(distDir, rel), 'utf-8');
+        expect(jsContent).not.toContain('jsxDEV');
+        expect(jsContent).not.toContain('/app/applet');
+      }
     }
     expect(fs.existsSync(path.resolve(process.cwd(), 'src/themes/light.css'))).toBe(true);
     expect(fs.existsSync(path.resolve(process.cwd(), 'src/themes/dark.css'))).toBe(true);
@@ -108,6 +140,15 @@ describe('Package Distribution & External Consumer Integration', () => {
     const cjsAi = require(path.join(distDir, 'ai/index.cjs'));
     const cjsEditors = require(path.join(distDir, 'editors/index.cjs'));
     const cjsAdapters = require(path.join(distDir, 'adapters/index.cjs'));
+    const cjsCore = require(path.join(distDir, 'core/index.cjs'));
+    const cjsForms = require(path.join(distDir, 'forms/index.cjs'));
+    const cjsNavigation = require(path.join(distDir, 'navigation/index.cjs'));
+    const cjsData = require(path.join(distDir, 'data/index.cjs'));
+    const cjsEditor = require(path.join(distDir, 'editor/index.cjs'));
+    const cjsWorkspace = require(path.join(distDir, 'workspace/index.cjs'));
+    const cjsCommerce = require(path.join(distDir, 'commerce/index.cjs'));
+    const cjsAdmin = require(path.join(distDir, 'admin/index.cjs'));
+    const cjsIndustry = require(path.join(distDir, 'industry/index.cjs'));
 
     const esmMain = await import('@wendoro/ui');
     const esmTokens = await import('@wendoro/ui/tokens');
@@ -118,9 +159,19 @@ describe('Package Distribution & External Consumer Integration', () => {
     const esmAi = await import('@wendoro/ui/ai');
     const esmEditors = await import('@wendoro/ui/editors');
     const esmAdapters = await import('@wendoro/ui/adapters');
+    const esmCore = await import('@wendoro/ui/core');
+    const esmForms = await import('@wendoro/ui/forms');
+    const esmNavigation = await import('@wendoro/ui/navigation');
+    const esmData = await import('@wendoro/ui/data');
+    const esmEditor = await import('@wendoro/ui/editor');
+    const esmWorkspace = await import('@wendoro/ui/workspace');
+    const esmCommerce = await import('@wendoro/ui/commerce');
+    const esmAdmin = await import('@wendoro/ui/admin');
+    const esmIndustry = await import('@wendoro/ui/industry');
 
     expect(cjsMain.Button).toBeTruthy();
     expect((cjsMain.Button as { $$typeof?: symbol }).$$typeof).toBe(Symbol.for('react.forward_ref'));
+    expect(typeof cjsMain.ButtonGroup).toBe('function');
     expect(typeof cjsMain.TeamDirectory).toBe('function');
     expect('LineChart' in cjsMain).toBe(false);
     expect('FunnelChart' in cjsMain).toBe(false);
@@ -139,6 +190,9 @@ describe('Package Distribution & External Consumer Integration', () => {
     expect(typeof esmAdvCharts.GeoRegionChart).toBe('function');
     expect(typeof cjsBusiness.KanbanBoard).toBe('function');
     expect(typeof esmBusiness.AppShell).toBe('function');
+    expect(typeof esmBusiness.FileManager).toBe('function');
+    expect(typeof esmBusiness.SettingsPageLayout).toBe('function');
+    expect(typeof esmBusiness.HelpCenterPanel).toBe('function');
     expect(typeof esmBusiness.WorkflowBuilder).toBe('function');
     expect(typeof esmBusiness.AgencyWorkspacePattern).toBe('function');
     expect(typeof cjsHooks.useDensity).toBe('function');
@@ -168,6 +222,42 @@ describe('Package Distribution & External Consumer Integration', () => {
     expect(typeof esmAdapters.SignatureCapturePad).toBe('function');
     expect('LineChart' in esmAdapters).toBe(false);
     expect('CandlestickChart' in esmAdapters).toBe(false);
+
+    expect(typeof cjsCore.ButtonGroup).toBe('function');
+    expect(typeof esmCore.useUndoAction).toBe('function');
+    expect('LineChart' in esmCore).toBe(false);
+
+    expect(typeof cjsForms.SelectableChipGroup).toBe('function');
+    expect(typeof esmForms.DynamicFormBuilder).toBe('function');
+    expect('LineChart' in esmForms).toBe(false);
+
+    expect(typeof cjsNavigation.WorkspaceSwitcher).toBe('function');
+    expect(typeof esmNavigation.MegaMenu).toBe('function');
+    expect('LineChart' in esmNavigation).toBe(false);
+
+    expect(typeof cjsData.VirtualizedList).toBe('function');
+    expect(typeof esmData.DataTable).toBe('function');
+    expect('LineChart' in esmData).toBe(false);
+
+    expect(typeof cjsEditor.MarkdownEditor).toBe('function');
+    expect(typeof esmEditor.WorkflowBuilder).toBe('function');
+    expect('LineChart' in esmEditor).toBe(false);
+
+    expect(typeof cjsWorkspace.FileManager).toBe('function');
+    expect(typeof esmWorkspace.FloatingWindow).toBe('function');
+    expect('LineChart' in esmWorkspace).toBe(false);
+
+    expect(typeof cjsCommerce.SubscriptionOverview).toBe('function');
+    expect(typeof esmCommerce.PricingTable).toBe('function');
+    expect('LineChart' in esmCommerce).toBe(false);
+
+    expect(typeof cjsAdmin.SettingsPageLayout).toBe('function');
+    expect(typeof esmAdmin.HelpCenterPanel).toBe('function');
+    expect('LineChart' in esmAdmin).toBe(false);
+
+    expect(typeof cjsIndustry.CrmSalesPipelinePattern).toBe('function');
+    expect(typeof esmIndustry.CreatorPublishingPattern).toBe('function');
+    expect('LineChart' in esmIndustry).toBe(false);
 
     expect(typeof cjsAdvCharts.CandlestickChart).toBe('function');
     expect(typeof esmAdvCharts.NetworkGraphChart).toBe('function');

@@ -148,9 +148,16 @@ export function ThemeProvider({
   >(() => controlledCustomTheme ?? getThemePreset(defaultPresetId)?.overrides);
   const [systemTheme, setSystemTheme] = React.useState<ResolvedTheme>(() => getSystemTheme());
 
+  const prevControlledCustomThemeRef = React.useRef<BrandThemeOverrides | undefined>(controlledCustomTheme);
   React.useEffect(() => {
-    setInternalCustomTheme(controlledCustomTheme);
-  }, [controlledCustomTheme]);
+    const prev = prevControlledCustomThemeRef.current;
+    prevControlledCustomThemeRef.current = controlledCustomTheme;
+    if (controlledCustomTheme !== undefined) {
+      setInternalCustomTheme(controlledCustomTheme);
+    } else if (prev !== undefined) {
+      setInternalCustomTheme(presetId ? getThemePreset(presetId)?.overrides : undefined);
+    }
+  }, [controlledCustomTheme, presetId]);
 
   React.useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -180,11 +187,15 @@ export function ThemeProvider({
   const resolvedTheme: ResolvedTheme = activeTheme === 'system' ? systemTheme : activeTheme;
   const activeContrast = forcedContrast ?? contrast;
   const activePreset = presetId ? getThemePreset(presetId) : undefined;
-  const activeCustomTheme =
-    controlledCustomTheme ??
-    (resolvedTheme === 'dark' && activePreset?.darkOverrides
-      ? { ...activePreset.overrides, ...activePreset.darkOverrides }
-      : internalCustomTheme);
+  const activeCustomTheme = React.useMemo(() => {
+    if (controlledCustomTheme) {
+      return controlledCustomTheme;
+    }
+    if (resolvedTheme === 'dark' && activePreset?.darkOverrides) {
+      return { ...activePreset.overrides, ...activePreset.darkOverrides };
+    }
+    return internalCustomTheme;
+  }, [controlledCustomTheme, resolvedTheme, activePreset, internalCustomTheme]);
   const cssVars = React.useMemo(
     () => createThemeCssVariables(activeCustomTheme),
     [activeCustomTheme]

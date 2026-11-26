@@ -32,13 +32,24 @@ import {
   UpdateManagerPanel,
 } from '@/components/business/installer';
 import {
+  HelpCenterPanel,
+  SettingsPageLayout,
+  SettingsSection,
+} from '@/components/business/admin-settings';
+import { FileManager, type FileManagerItem } from '@/components/business/file-manager';
+import {
   AgencyWorkspacePattern,
   CommerceOperationsPattern,
+  CreatorPublishingPattern,
+  CrmSalesPipelinePattern,
   EducationMembershipPattern,
   EnterpriseAdminPattern,
   FinanceOperationsPattern,
+  HospitalityBookingPattern,
+  InventoryWarehousePattern,
   LogisticsOperationsPattern,
   ProfessionalServicesPattern,
+  ProjectDeliveryPattern,
   SaasAdminPattern,
 } from '@/components/business/patterns';
 import {
@@ -139,7 +150,62 @@ type IndustryKey =
   | 'enterprise'
   | 'logistics'
   | 'finance'
-  | 'education';
+  | 'education'
+  | 'crm'
+  | 'inventory'
+  | 'delivery'
+  | 'hospitality'
+  | 'creator';
+
+const DEMO_FILES: FileManagerItem[] = [
+  {
+    id: 'fm-1',
+    name: 'Brand Guidelines & Tokens',
+    kind: 'folder',
+    sizeLabel: '14 items',
+    updatedAt: 'Today, 09:40',
+    owner: 'Demo User',
+    shared: true,
+    tags: ['design-system', 'tokens'],
+    path: '/workspace/brand-tokens',
+  },
+  {
+    id: 'fm-2',
+    name: 'Q4-Governance-Audit.pdf',
+    kind: 'document',
+    sizeBytes: 2450000,
+    sizeLabel: '2.4 MB',
+    updatedAt: 'Yesterday',
+    owner: 'Sample Member A',
+    mimeType: 'application/pdf',
+    shared: true,
+    tags: ['audit', 'compliance'],
+    path: '/workspace/reports/q4-governance.pdf',
+  },
+  {
+    id: 'fm-3',
+    name: 'Workspace-Hero-Banner.png',
+    kind: 'image',
+    sizeBytes: 1180000,
+    sizeLabel: '1.1 MB',
+    updatedAt: 'Nov 22',
+    owner: 'Sample Member B',
+    mimeType: 'image/png',
+    tags: ['marketing'],
+    path: '/workspace/media/hero.png',
+  },
+  {
+    id: 'fm-4',
+    name: 'Product-Walkthrough.mp4',
+    kind: 'media',
+    sizeBytes: 18400000,
+    sizeLabel: '18.4 MB',
+    updatedAt: 'Nov 20',
+    owner: 'Sample Member C',
+    mimeType: 'video/mp4',
+    path: '/workspace/media/walkthrough.mp4',
+  },
+];
 
 const DEMO_VIRTUAL_ROWS = Array.from({ length: 120 }, (_, idx) => ({
   id: `row-${idx + 1}`,
@@ -149,6 +215,10 @@ const DEMO_VIRTUAL_ROWS = Array.from({ length: 120 }, (_, idx) => ({
 
 export function Universal20Section() {
   const [industry, setIndustry] = React.useState<IndustryKey>('agency');
+  const [settingsCategory, setSettingsCategory] = React.useState('workspace');
+  const [settingsDirty, setSettingsDirty] = React.useState(false);
+  const [workspaceDisplayName, setWorkspaceDisplayName] = React.useState('Sample Organization');
+  const [repoFiles, setRepoFiles] = React.useState<FileManagerItem[]>(DEMO_FILES);
   const [workspaceId, setWorkspaceId] = React.useState(WENDORO_DEMO_WORKSPACES[0].id);
   const [mobileNavTab, setMobileNavTab] = React.useState('home');
   const [sheetOpen, setSheetOpen] = React.useState(false);
@@ -266,7 +336,8 @@ export function Universal20Section() {
           <TabsTrigger value="controls-scroll">Controls, Sliders & Scroll</TabsTrigger>
           <TabsTrigger value="launchers-installer">Launchers, Loaders & Installer UI</TabsTrigger>
           <TabsTrigger value="workspace-ai">Window Manager, States & AI</TabsTrigger>
-          <TabsTrigger value="industry">8 Industry Blueprints</TabsTrigger>
+          <TabsTrigger value="industry">13 Industry Blueprints</TabsTrigger>
+          <TabsTrigger value="files-settings">File Manager, Settings & Help</TabsTrigger>
           <TabsTrigger value="workflow">Workflow, Gantt & Collaboration</TabsTrigger>
           <TabsTrigger value="mobile">Mobile & Touch Primitives</TabsTrigger>
           <TabsTrigger value="forms-geo">Forms 2.0 & Geo / Adapters</TabsTrigger>
@@ -815,6 +886,11 @@ export function Universal20Section() {
                   ['logistics', 'Logistics'],
                   ['finance', 'Finance'],
                   ['education', 'Education'],
+                  ['crm', 'CRM Pipeline'],
+                  ['inventory', 'Inventory & Warehouse'],
+                  ['delivery', 'Project Delivery'],
+                  ['hospitality', 'Hospitality'],
+                  ['creator', 'Creator & Publishing'],
                 ] as const
               ).map(([key, label]) => (
                 <Button
@@ -940,6 +1016,202 @@ export function Universal20Section() {
               communityFeed={WENDORO_DEMO_ACTIVITY}
             />
           )}
+
+          {industry === 'crm' && (
+            <CrmSalesPipelinePattern
+              columns={WENDORO_DEMO_KANBAN_COLUMNS}
+              deals={kanbanCards}
+              onMoveDeal={(cardId, toCol) =>
+                setKanbanCards((prev) =>
+                  prev.map((c) => (c.id === cardId ? { ...c, columnId: toCol } : c))
+                )
+              }
+              accounts={[
+                {
+                  id: 'crm-1',
+                  accountName: 'Sample Organization',
+                  owner: 'Demo User',
+                  stage: 'Proposal',
+                  dealValueLabel: '$120,000',
+                  health: 'active',
+                },
+                {
+                  id: 'crm-2',
+                  accountName: 'Northwind Holdings (Demo)',
+                  owner: 'Sample Member A',
+                  stage: 'Security Review',
+                  dealValueLabel: '$85,000',
+                  health: 'pending',
+                },
+              ]}
+            />
+          )}
+
+          {industry === 'inventory' && (
+            <InventoryWarehousePattern
+              zones={[
+                { id: 'z1', zoneName: 'Zone A · High-Velocity', occupancyPercent: 72, skuCount: 148 },
+                { id: 'z2', zoneName: 'Zone B · Cold Storage', occupancyPercent: 91, skuCount: 64 },
+                { id: 'z3', zoneName: 'Zone C · Bulk Pallets', occupancyPercent: 54, skuCount: 92 },
+              ]}
+              skus={[
+                { id: 'sku-1', sku: 'WDR-104', itemName: 'Modular Terminal Stand', zone: 'Zone A', onHand: 42, reorderPoint: 20, status: 'active' },
+                { id: 'sku-2', sku: 'WDR-209', itemName: 'Thermal Label Cartridge', zone: 'Zone B', onHand: 8, reorderPoint: 15, status: 'warning' },
+              ]}
+              onReorderSku={(skuId) => setLaunchedNotice(`Reorder queued for ${skuId} (Demo)`)}
+            />
+          )}
+
+          {industry === 'delivery' && (
+            <ProjectDeliveryPattern
+              kanbanColumns={WENDORO_DEMO_KANBAN_COLUMNS}
+              kanbanCards={kanbanCards}
+              onMoveCard={(cardId, toCol) =>
+                setKanbanCards((prev) =>
+                  prev.map((c) => (c.id === cardId ? { ...c, columnId: toCol } : c))
+                )
+              }
+              resources={WENDORO_DEMO_RESOURCES}
+              periods={WENDORO_DEMO_RESOURCE_PERIODS}
+            />
+          )}
+
+          {industry === 'hospitality' && (
+            <HospitalityBookingPattern
+              units={[
+                { id: 'u-1', unitCode: 'STE-402', category: 'Executive Suite', guestOrTenant: 'Demo Guest A', windowLabel: 'Nov 26 – Nov 29', status: 'pending', statusLabel: 'Arrival Ready' },
+                { id: 'u-2', unitCode: 'STD-118', category: 'Standard Queen', guestOrTenant: 'Demo Guest B', windowLabel: 'Nov 25 – Nov 27', status: 'active', statusLabel: 'Occupied' },
+                { id: 'u-3', unitCode: 'CNF-02', category: 'Boardroom Hall', guestOrTenant: 'Sample Organization', windowLabel: '14:00 – 17:00', status: 'completed', statusLabel: 'Prepared' },
+              ]}
+              onCheckIn={(id) => setLaunchedNotice(`Checked in unit ${id} (Demo)`)}
+            />
+          )}
+
+          {industry === 'creator' && (
+            <CreatorPublishingPattern
+              editorialStages={[
+                { id: 'ed-1', label: 'Drafting', state: 'completed' },
+                { id: 'ed-2', label: 'Editorial QA', state: 'current' },
+                { id: 'ed-3', label: 'Scheduled', state: 'upcoming' },
+                { id: 'ed-4', label: 'Published', state: 'upcoming' },
+              ]}
+              drafts={[
+                { id: 'dr-1', title: 'Wendoro UI 2.0 Release Briefing', channel: 'Engineering Digest', author: 'Demo User', scheduledFor: 'Nov 28 · 09:00 UTC', stage: 'scheduled' },
+                { id: 'dr-2', title: 'WCAG 2.2 Contrast Token Guide', channel: 'Design Notes', author: 'Sample Member A', scheduledFor: 'Dec 02 · 14:00 UTC', stage: 'review' },
+              ]}
+              onPublishDraft={(id) => setLaunchedNotice(`Published draft ${id} (Demo)`)}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="files-settings" className="space-y-8">
+          <FileManager
+            items={repoFiles}
+            breadcrumbs={[
+              { label: 'Sample Organization', href: '#root' },
+              { label: 'Shared Repository' },
+            ]}
+            onUploadFiles={(files) =>
+              setRepoFiles((prev) => [
+                ...prev,
+                ...files.map((f, idx) => ({
+                  id: `up-${Date.now()}-${idx}`,
+                  name: f.name,
+                  kind: 'document' as const,
+                  sizeBytes: f.size,
+                  sizeLabel: `${Math.max(1, Math.round(f.size / 1024))} KB`,
+                  updatedAt: 'Just now',
+                  owner: 'Demo User',
+                  mimeType: f.type || 'application/octet-stream',
+                })),
+              ])
+            }
+            onBulkAction={(action, ids) => {
+              if (action === 'delete') {
+                setRepoFiles((prev) => prev.filter((item) => !ids.includes(item.id)));
+              }
+            }}
+          />
+
+          <SettingsPageLayout
+            categories={[
+              { id: 'workspace', label: 'Workspace Profile', badge: 'Core' },
+              { id: 'security', label: 'Governance & Access', badge: '2.0' },
+              { id: 'notifications', label: 'Alert Channels' },
+            ]}
+            activeCategoryId={settingsCategory}
+            onCategoryChange={setSettingsCategory}
+            dirty={settingsDirty}
+            onSave={() => setSettingsDirty(false)}
+            onDiscard={() => {
+              setWorkspaceDisplayName('Sample Organization');
+              setSettingsDirty(false);
+            }}
+          >
+            <SettingsSection
+              title={
+                settingsCategory === 'workspace'
+                  ? 'Workspace Identity'
+                  : settingsCategory === 'security'
+                    ? 'Governance Policies'
+                    : 'Alert Routing'
+              }
+              description="Synthetic workspace configuration section using Wendoro semantic tokens."
+              badge={settingsDirty ? 'Modified' : 'Synced'}
+            >
+              <div className="space-y-2 text-xs">
+                <label htmlFor="u20-ws-name" className="block font-medium text-foreground">
+                  Organization Display Name
+                </label>
+                <input
+                  id="u20-ws-name"
+                  type="text"
+                  value={workspaceDisplayName}
+                  onChange={(e) => {
+                    setWorkspaceDisplayName(e.target.value);
+                    setSettingsDirty(true);
+                  }}
+                  className="h-9 w-full max-w-md rounded-[var(--wdr-radius-md)] border border-input bg-surface px-3 text-xs text-foreground"
+                />
+              </div>
+            </SettingsSection>
+          </SettingsPageLayout>
+
+          <HelpCenterPanel
+            articles={[
+              {
+                id: 'ha-1',
+                title: 'Importing @wendoro/ui subpath bundles',
+                category: 'Architecture',
+                summary: 'Use modular entry points such as @wendoro/ui/core, /forms, /data, and /workspace.',
+                content:
+                  'Each Wendoro UI subpath ships ESM, CJS, and alias-free TypeScript declarations so host apps bundle only the components they import.',
+                updatedLabel: 'Nov 2026',
+              },
+              {
+                id: 'ha-2',
+                title: 'Configuring High-Contrast & Custom Theme Presets',
+                category: 'Theming',
+                summary: 'Wrap your app in ThemeProvider with defaultPresetId or runtime contrast toggles.',
+                content:
+                  'Wendoro preserves light, dark, and high-contrast semantic tokens without leaking global CSS variables when scoped is enabled.',
+                updatedLabel: 'Nov 2026',
+              },
+            ]}
+            faqs={[
+              {
+                id: 'faq-1',
+                question: 'Does @wendoro/ui include any backend API clients?',
+                answer: 'No. All components are strictly presentational and delegate persistence to host callbacks.',
+              },
+              {
+                id: 'faq-2',
+                question: 'Are SVG charts bundled into @wendoro/ui or @wendoro/ui/business?',
+                answer: 'No. Charts live strictly under @wendoro/ui/charts and @wendoro/ui/charts/advanced.',
+              },
+            ]}
+            onSubmitTicket={() => setLaunchedNotice('Support request captured by demo handler.')}
+          />
         </TabsContent>
 
         <TabsContent value="workflow" className="space-y-6">
